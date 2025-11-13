@@ -8,3 +8,9 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+
+if (import.meta.env.MODE === 'development') {
+  const { worker } = await import('./services/mocks/browser')
+  worker.start()
+}
