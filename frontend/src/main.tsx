@@ -1,16 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import ReactDOM from 'react-dom/client'
+import { AppRoutes } from '@/routes/AppRoutes'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { worker } from '@/services/mocks/browser'
+import './styles/index.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+const queryClient = new QueryClient()
+
+if (import.meta.env.MODE === 'development') worker.start()
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <QueryClientProvider client={queryClient}>
+    <AppRoutes />
+  </QueryClientProvider>
 )
-
-
-if (import.meta.env.MODE === 'development') {
-  const { worker } = await import('./services/mocks/browser')
-  worker.start()
-}
