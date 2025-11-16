@@ -1,5 +1,13 @@
+import { RegisterDTO } from "./auth.types";
+
 const User = require("../../database/models/User");
+
 module.exports = {
-findByEmail: (email) => User.findOne({ email }),
-create: (data) => User.create(data)
+  async findByEmail(email: string) {
+    return User.findOne({ email });
+  },
+
+  async createUser(data: RegisterDTO) {
+    return User.create(data);
+  }
 };

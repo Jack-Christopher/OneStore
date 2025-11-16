@@ -1,21 +1,36 @@
-const repo = require("./auth.repository");
-const { hash, compare } = require("../../shared/utils/hash");
-const jwt2 = require("jsonwebtoken");
-const { jwtSecret: secret } = require("../../config/env");
-import { LoginInput, RegisterInput } from "./auth.types";
+import { LoginDTO, RegisterDTO} from "./auth.types";
+export {}; // Empty export to force module scope
 
-module.exports = {
-  register: async ({ email, password }: RegisterInput) => {
-    const exists = await repo.findByEmail(email);
-    if (exists) throw new Error("Email already used");
-    const hashed = await hash(password);
-    return repo.create({ email, password: hashed });
-  },
-  login: async ({ email, password }: LoginInput) => {
-    const user = await repo.findByEmail(email);
-    if (!user) throw new Error("Invalid credentials");
-    const match = await compare(password, user.password);
-    if (!match) throw new Error("Invalid credentials");
-    return jwt2.sign({ id: user._id }, secret, { expiresIn: "1d" });
-  }
-};
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { jwtSecret } = require("../../config/env");
+const repo = require("./auth.repository");
+
+async function login(dto: LoginDTO) {
+  const user = await repo.findByEmail(dto.email);
+  if (!user) return null;
+
+  const valid = await bcrypt.compare(dto.password, user.password);
+  if (!valid) return null;
+
+  const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: "7d" });
+
+  return { user, token };
+}
+
+async function register(dto: RegisterDTO) {
+  const exists = await repo.findByEmail(dto.email);
+  if (exists) return null;
+
+  const hashed = await bcrypt.hash(dto.password, 10);
+
+  const user = await repo.createUser({
+    name: dto.name,
+    email: dto.email,
+    password: hashed
+  });
+
+  return user;
+}
+
+module.exports = { login, register };

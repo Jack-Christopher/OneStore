@@ -1,9 +1,27 @@
-export interface LoginInput {
-  email: String,
-  password: String
+export interface LoginDTO {
+  email: string;
+  password: string;
 }
 
-export interface RegisterInput {
-  email: String,
-  password: String
+export interface RegisterDTO {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface UserDTO {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthUserDTO {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface AuthTokenPayloadDTO {
+  id: string;
+  email: string;
 }

@@ -1,10 +1,15 @@
-const express = require("express");
-const { productsController } = require("./products.controller");
+export {}; // Empty export to force module scope
 
-module.exports.productsRoutes = (() => {
-  const r = express.Router();
-  const c = productsController;
-  r.get("/", c.list);
-  r.post("/", c.create);
-  return r;
-})();
+const express = require("express");
+const controller = require("./products.controller");
+const authGuard = require("../../shared/middlewares/authGuard");
+
+const router = express.Router();
+
+router.get("/", controller.getAll);
+router.get("/:id", controller.getOne);
+router.post("/", authGuard, controller.create);
+router.put("/:id", authGuard, controller.update);
+router.delete("/:id", authGuard, controller.remove);
+
+module.exports = router;
