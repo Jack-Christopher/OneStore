@@ -1,4 +1,9 @@
-module.exports = {
-  ok: (res, data) => res.json({ success: true, data }),
-  fail: (res, message, status = 400) => res.status(status).json({ success: false, message })
-};
+function ok(res: Res, data: unknown) {
+  return res.json({ success: true, data });
+}
+
+function fail(res: Res, message: string, status = 400) {
+  return res.status(status).json({ success: false, message });
+}
+
+module.exports = { ok, fail };

@@ -5,13 +5,17 @@
     "rootDir": "src",
     "outDir": "dist",
     "strict": true,
+    "allowJs": true,
+    "checkJs": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
-    }
+    },
+    "types": ["node", "express"],
+    "typeRoots": ["./src/shared/types", "./node_modules/@types"],
+    "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"]
 }

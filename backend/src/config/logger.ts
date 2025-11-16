@@ -1,4 +1,4 @@
 module.exports = {
-  log: (...args) => console.log("[LOG]", ...args),
-  error: (...args) => console.error("[ERROR]", ...args)
+  log: (...args: unknown[]) => console.log("[LOG]", ...args),
+  error: (...args: unknown[]) => console.error("[ERROR]", ...args)
 };
