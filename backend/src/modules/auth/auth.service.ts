@@ -1,36 +1,88 @@
 import { LoginDTO, RegisterDTO} from "./auth.types";
 export {}; // Empty export to force module scope
 
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { jwtSecret } = require("../../config/env");
-const repo = require("./auth.repository");
+const User = require("../../database/models/User")
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const { jwtSecret } = require("../../config/env")
+const { AuthErrorCode } = require("./auth.errors")
 
-async function login(dto: LoginDTO) {
-  const user = await repo.findByEmail(dto.email);
-  if (!user) return null;
+module.exports = {
+  async login({ email, password }: LoginDTO) {
+    const user = await User.findOne({ email })
+    if (!user) {
+      return {
+        ok: false,
+        code: AuthErrorCode.EMAIL_NOT_FOUND,
+        status: 404
+      }
+    }
 
-  const valid = await bcrypt.compare(dto.password, user.password);
-  if (!valid) return null;
+    const valid = await bcrypt.compare(password, user.password)
+    if (!valid) {
+      return {
+        ok: false,
+        code: AuthErrorCode.INVALID_PASSWORD,
+        status: 401
+      }
+    }
 
-  const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: "1d" })
 
-  return { user, token };
+    return {
+      ok: true,
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        token
+      }
+    }
+  },
+
+  async register({ name, email, password}: RegisterDTO) {
+    const exists = await User.findOne({ email })
+    if (exists) {
+      return {
+        ok: false,
+        code: AuthErrorCode.EMAIL_ALREADY_EXISTS,
+        status: 400
+      }
+    }
+
+    const hashed = await bcrypt.hash(password, 10)
+    const user = await User.create({ name, email, password: hashed })
+
+    const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: "1d" })
+
+    return {
+      ok: true,
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        token
+      }
+    }
+  },
+
+  async profile(userId: string) {
+    const user = await User.findById(userId)
+    if (!user) {
+      return {
+        ok: false,
+        code: AuthErrorCode.UNAUTHORIZED,
+        status: 401
+      }
+    }
+
+    return {
+      ok: true,
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    }
+  }
 }
-
-async function register(dto: RegisterDTO) {
-  const exists = await repo.findByEmail(dto.email);
-  if (exists) return null;
-
-  const hashed = await bcrypt.hash(dto.password, 10);
-
-  const user = await repo.createUser({
-    name: dto.name,
-    email: dto.email,
-    password: hashed
-  });
-
-  return user;
-}
-
-module.exports = { login, register };

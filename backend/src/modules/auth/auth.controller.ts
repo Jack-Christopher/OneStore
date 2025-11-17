@@ -1,32 +1,36 @@
-export {}; // Empty export to force module scope
+export { }; // Empty export to force module scope
 
 const service = require("./auth.service");
 const { ok, fail } = require("../../shared/utils/response");
 
 async function login(req: Req, res: Res) {
   const result = await service.login(req.body);
-  if (!result) return fail(res, "Invalid credentials", 401);
+  if (!result.ok) return fail(res, result.code.message, result.code.name, result.status);
 
-  return ok(res, /** @type {ApiResponse<any>} */({
+  const { id, email, name, token } = result.data;
+
+  return ok(res, ({
     user: {
-      id: result.user._id,
-      email: result.user.email,
-      name: result.user.name
+      id: id,
+      email: email,
+      name: name
     },
-    token: result.token
+    token: token
   }));
 }
 
 async function register(req: Req, res: Res) {
-  const user = await service.register(req.body);
+  const result = await service.register(req.body);
 
-  if (!user) return fail(res, "Email already in use");
+  if (!result.ok) return fail(res, result.code.message, result.code.name, result.status);
+
+  const { id, email, name } = result.data;
 
   return ok(res, {
-    id: user._id,
-    email: user.email,
-    name: user.name
+    id: id,
+    email: email,
+    name: name
   });
 }
 
-module.exports = { login, register };
+module.exports = { login, register }; 
