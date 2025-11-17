@@ -1,4 +1,4 @@
-import axios from "@/services/lib/axios"
+import api from "@/services/lib/axios"
 import type { ApiResponse } from "@/types/api"
 
 const AUTH_API_BASE = "/api/auth"
@@ -26,16 +26,16 @@ export interface AuthUser {
 }
 
 export async function login(payload: LoginPayload) {
-  const res = await axios.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/login`, payload)
+  const res = await api.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/login`, payload)
   return res.data
 }
 
 export async function register(payload: RegisterPayload) {
-  const res = await axios.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/register`, payload)
+  const res = await api.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/register`, payload)
   return res.data
 }
 
 export async function getProfile() {
-  const res = await axios.get<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/profile`)
+  const res = await api.get<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/profile`)
   return res.data
 }
