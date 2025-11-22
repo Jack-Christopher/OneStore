@@ -7,13 +7,18 @@ async function login(req: Req, res: Res) {
   const result = await service.login(req.body);
   if (!result.ok) return fail(res, result.code.message, result.code.name, result.status);
 
-  const { id, email, name, token } = result.data;
+  const { id, tenantId, role, fullname, email, isActive, token } = result.data;
+
+  console.log("Login successful for user:", result.data);
 
   return ok(res, ({
     user: {
       id: id,
+      tenantId: tenantId,
       email: email,
-      name: name
+      fullname: fullname,
+      role: role,
+      isActive: isActive
     },
     token: token
   }));

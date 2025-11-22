@@ -9,15 +9,19 @@ export interface LoginPayload {
 }
 
 export interface RegisterPayload {
-  name: string
+  fullname: string
   email: string
   password: string
 }
 
 export interface User {
   id: string
-  name: string
+  tenantId: string
+  fullname: string
   email: string
+  role: string
+  isActive: boolean
+  createdAt: string
 }
 
 export interface AuthUser {

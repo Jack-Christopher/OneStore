@@ -1,4 +1,4 @@
-import { LoginDTO, RegisterDTO} from "./auth.types";
+import { LoginDTO, RegisterDTO, UserDTO} from "./auth.types";
 export {}; // Empty export to force module scope
 
 const User = require("../../database/models/User")
@@ -28,13 +28,15 @@ module.exports = {
     }
 
     const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: "1d" })
-
     return {
       ok: true,
       data: {
         id: user.id,
-        name: user.name,
+        tenantId: user.tenant_id,
+        role: user.role,
+        fullname: user.full_name,
         email: user.email,
+        isActive: user.is_active,
         token
       }
     }
