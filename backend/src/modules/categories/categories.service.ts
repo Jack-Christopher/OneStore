@@ -1,0 +1,35 @@
+import { CategoryUpdateDTO } from "./categories.types";
+import { toSnakeCase } from "../../shared/utils/object";
+
+const repo = require("./categories.repository");
+
+async function getAll() {
+  return repo.findAll();
+}
+
+async function getOne(id: string) {
+  return repo.findById(id);
+}
+
+async function create(dto: CategoryUpdateDTO) {
+  const formattedData = toSnakeCase(dto);
+  return repo.create(formattedData);
+}
+
+async function update(id: string, dto: CategoryUpdateDTO) {
+  const formattedData = toSnakeCase(dto);
+  return repo.update(id, formattedData);
+}
+
+async function remove(id: string) {
+  return repo.delete(id);
+}
+
+
+
+module.exports = {
+  getAll,
+  create,
+  update,
+  remove
+};

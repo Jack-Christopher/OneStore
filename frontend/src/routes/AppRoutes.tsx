@@ -10,6 +10,7 @@ import { MainLayout } from '@/layouts/MainLayout'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { PublicRoute } from './PublicRoutes'
 import { PrivateRoute } from '@/routes/PrivateRoute'
+import CategoriesPage from '@/pages/Categories'
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -33,6 +34,7 @@ export const AppRoutes = () => (
         }
       >
         <Route index element={<DashboardPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="sales" element={<SalesPage />} />
         <Route path="profile" element={<ProfilePage />} />
