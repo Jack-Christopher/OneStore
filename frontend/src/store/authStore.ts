@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: false })
       },
 
-      registerUser: async (payload) => {
+      registerUser: async (payload: RegisterPayload) => {
         set({ loading: true })
         const res = await register(payload)
 

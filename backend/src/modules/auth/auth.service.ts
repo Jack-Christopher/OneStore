@@ -1,5 +1,6 @@
-import { LoginDTO, RegisterDTO, UserDTO} from "./auth.types";
-export {}; // Empty export to force module scope
+import { toSnakeCase } from "@/shared/utils/object";
+import { LoginDTO, RegisterDTO, UserDTO } from "./auth.types";
+export { }; // Empty export to force module scope
 
 const User = require("../../database/models/User")
 const bcrypt = require("bcryptjs")
@@ -42,7 +43,7 @@ module.exports = {
     }
   },
 
-  async register({ name, email, password}: RegisterDTO) {
+  async register({ fullname, email, password }: RegisterDTO) {
     const exists = await User.findOne({ email })
     if (exists) {
       return {
@@ -53,7 +54,9 @@ module.exports = {
     }
 
     const hashed = await bcrypt.hash(password, 10)
-    const user = await User.create({ name, email, password: hashed })
+    const userData = { tenantId: "orphan", fullname, email, password: hashed, username: fullname };
+
+    const user = await User.create(toSnakeCase(userData));
 
     const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: "1d" })
 
@@ -61,7 +64,7 @@ module.exports = {
       ok: true,
       data: {
         id: user._id,
-        name: user.name,
+        name: user.fullname,
         email: user.email,
         token
       }

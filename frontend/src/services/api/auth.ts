@@ -21,7 +21,6 @@ export interface User {
   email: string
   role: string
   isActive: boolean
-  createdAt: string
 }
 
 export interface AuthUser {
@@ -29,17 +28,31 @@ export interface AuthUser {
   token: string
 }
 
+export function toUser(dto: RegisterPayload) {
+  const registerUser = {
+    tenantId: "orphan",
+    fullname: dto.fullname,
+    username: dto.fullname,
+    email: dto.email,
+    password: dto.password,
+    role: "clerk",
+    isActive: true,
+  }
+  return registerUser;
+}
+
 export async function login(payload: LoginPayload) {
-  const res = await api.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/login`, payload)
-  return res.data
+  const res = await api.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/login`, payload);
+  return res.data;
 }
 
 export async function register(payload: RegisterPayload) {
-  const res = await api.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/register`, payload)
+  const completePayload = toUser(payload);
+  const res = await api.post<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/register`, completePayload);
   return res.data
 }
 
 export async function getProfile() {
-  const res = await api.get<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/profile`)
-  return res.data
+  const res = await api.get<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/profile`);
+  return res.data;
 }

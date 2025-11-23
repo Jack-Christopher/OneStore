@@ -3,8 +3,6 @@ import { BriefcaseBusiness, Mail, User, Activity } from "lucide-react";
 
 export const ProfilePage = () => {
   const user = useAuthStore.getState().authUser?.user;
-  console.log("user", user);
-
 
   return (
     <div className="p-6">
