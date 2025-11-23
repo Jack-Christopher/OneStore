@@ -1,10 +1,21 @@
 import { CategoryDTO } from '../categories/categories.types';
 
 const Category = require("../../database/models/Category");
+const User = require("../../database/models/User");
 
 module.exports = {
-  findAll() {
-    return Category.find();
+  findAll(user_id: string) {
+    const categories = User.findOne({ _id: user_id }).exec()
+      .then((user: any) => {
+        console.log("user", user);
+        const tenantId = user.tenant_id;
+        console.log(tenantId);
+
+        if (tenantId == "orphan") return [];
+        return Category.find({ tenant_id: tenantId });
+      });
+
+    return categories;
   },
 
   findById(id: string) {
@@ -12,7 +23,6 @@ module.exports = {
   },
 
   create(data: CategoryDTO) {
-    console.log("Creating category with data in repository:", data);
     return Category.create(data);
   },
 

@@ -14,7 +14,7 @@ export default function CategoriesCreateModal({ open, onClose }: CategoriesCreat
   const addCategory = useCategoriesStore(s => s.add);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
-    tenantId: useAuthStore.getState().authUser?.user.tenantId || "",
+    tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     name: "",
     description: "",
   });

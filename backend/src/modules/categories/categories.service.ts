@@ -3,8 +3,8 @@ import { toSnakeCase } from "../../shared/utils/object";
 
 const repo = require("./categories.repository");
 
-async function getAll() {
-  return repo.findAll();
+async function getAll(user_id: string) {
+  return repo.findAll(user_id);
 }
 
 async function getOne(id: string) {

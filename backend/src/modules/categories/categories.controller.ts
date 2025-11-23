@@ -1,10 +1,10 @@
-export {}; // Empty export to force module scope
+export { }; // Empty export to force module scope
 
 const service = require("./categories.service");
 const { ok, fail } = require("../../shared/utils/response");
 
 async function getAll(req: Req, res: Res) {
-  const data = await service.getAll();
+  const data = await service.getAll(req?.user?.id);
   return ok(res, data);
 }
 
@@ -15,7 +15,6 @@ async function getOne(req: Req, res: Res) {
 }
 
 async function create(req: Req, res: Res) {
-  console.log("Creating category with data:", req.body);
   const category = await service.create(req.body);
   return ok(res, category);
 }
