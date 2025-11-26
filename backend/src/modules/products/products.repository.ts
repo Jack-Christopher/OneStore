@@ -1,10 +1,22 @@
 import { ProductDTO } from '../products/products.types';
 
 const Product = require("../../database/models/Product");
+const User = require("../../database/models/User");
 
 module.exports = {
-  findAll() {
-    return Product.find();
+  findAll(user_id: string) {
+    const products = User.findOne({ _id: user_id }).exec()
+      .then((user: any) => {
+        const tenantId = user.tenant_id;
+
+        if (tenantId == "orphan") return [];
+
+        return Product.find({ tenant_id: tenantId })
+          .populate("category_id", "name")
+          .populate("unit_id", "name");
+      });
+
+    return products;
   },
 
   findById(id: string) {

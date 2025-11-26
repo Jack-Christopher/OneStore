@@ -1,9 +1,11 @@
 import { ProductUpdateDTO } from "./products.types";
+import { toSnakeCase } from "../../shared/utils/object";
+import { Double } from 'mongodb';
 
 const repo = require("./products.repository");
 
-async function getAll() {
-  return repo.findAll();
+async function getAll(user_id: string) {
+  return repo.findAll(user_id);
 }
 
 async function getOne(id: string) {
@@ -11,11 +13,13 @@ async function getOne(id: string) {
 }
 
 async function create(dto: ProductUpdateDTO) {
-  return repo.create(dto);
+  const formattedData = toSnakeCase(dto);
+  return repo.create(formattedData);
 }
 
 async function update(id: string, dto: ProductUpdateDTO) {
-  return repo.update(id, dto);
+  const formattedData = toSnakeCase(dto);
+  return repo.update(id, formattedData);
 }
 
 async function remove(id: string) {

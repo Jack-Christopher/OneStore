@@ -3,24 +3,43 @@ import type { ApiResponse } from "@/types/api";
 
 export interface Product {
   _id: string;
+  tenantId: string;
+  categoryId: string & { name: string };
+  unitId: string & { name: string };
   name: string;
-  category: string;
-  stock: number;
-  price: number;
+  sku: string;
+  purchasePrice: number;
+  salePrice: number;
+  minStock: number;
+  maxStock: number;
+  description: string;
 }
 
 export interface CreateProductPayload {
-  name: string
-  price: number
-  stock: number
-  category: string
+  tenantId: string;
+  categoryId: string;
+  unitId: string;
+  name: string;
+  sku: string;
+  purchasePrice: number;
+  salePrice: number;
+  minStock: number;
+  maxStock: number;
+  description: string;
 }
 
 export interface UpdateProductPayload {
-  name?: string
-  price?: number
-  stock?: number
-  category?: string
+  _id?: string;
+  tenantId?: string;
+  categoryId?: string;
+  unitId?: string;
+  name?: string;
+  sku?: string;
+  purchasePrice?: number;
+  salePrice?: number;
+  minStock?: number;
+  maxStock?: number;
+  description?: string;
 }
 
 // CRUD Operations

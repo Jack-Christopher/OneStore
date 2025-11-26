@@ -4,12 +4,11 @@ const Category = require("../../database/models/Category");
 const User = require("../../database/models/User");
 
 module.exports = {
+  // ToDo: move this logic to service layer
   findAll(user_id: string) {
     const categories = User.findOne({ _id: user_id }).exec()
       .then((user: any) => {
-        console.log("user", user);
         const tenantId = user.tenant_id;
-        console.log(tenantId);
 
         if (tenantId == "orphan") return [];
         return Category.find({ tenant_id: tenantId });
