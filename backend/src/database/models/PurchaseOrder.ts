@@ -8,7 +8,7 @@ const PurchaseOrderSchema = new Schema({
   user_id: { type: String, required: true },
   status: { type: String, enum: ['pending', 'received', 'canceled'], default: 'pending' },
   reference_number: { type: String },
-  total_amount: { type: Schema.Types.Decimal128, required: true },
+  total_amount: { type: Number, required: true },
   notes: { type: String },
   metadata: Schema.Types.Mixed,
   created_by: { type: String },

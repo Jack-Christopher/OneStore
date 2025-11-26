@@ -9,7 +9,7 @@ const SaleSchema = new Schema({
   customer_document: { type: String },
   status: { type: String, enum: ['completed', 'canceled'], default: 'completed' },
   payment_method: { type: String },
-  total_amount: { type: Schema.Types.Decimal128, required: true },
+  total_amount: { type: Number, required: true },
   notes: { type: String },
   created_by: { type: String },
   updated_by: { type: String }
