@@ -7,12 +7,15 @@ module.exports = {
   findAll(user_id: string) {
     const unitsOfMeasure = User.findOne({ _id: user_id }).exec()
       .then((user: any) => {
-        console.log("user", user);
         const tenantId = user.tenant_id;
-        console.log(tenantId);
 
         if (tenantId == "orphan") return [];
-        return UnitOfMeasure.find({ tenant_id: tenantId });
+        return UnitOfMeasure.find({
+          $or: [
+            { tenant_id: tenantId },
+            { tenant_id: "default" }
+          ]
+        });
       });
 
     return unitsOfMeasure;
