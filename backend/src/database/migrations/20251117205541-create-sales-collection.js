@@ -18,7 +18,7 @@ module.exports = {
             customer_document: { bsonType: ["string", "null"] },
             status: { bsonType: "string", enum: ["completed", "canceled"] },
             payment_method: { bsonType: ["string", "null"] },
-            total_amount: { bsonType: "double" },
+            total_amount: { bsonType: ["double", "int", "null"] },
             notes: { bsonType: ["string", "null"] },
             created_at: { bsonType: "date" },
             updated_at: { bsonType: "date" },
