@@ -1,36 +1,68 @@
-import { useState } from 'react'
-import mockProducts from '@/services/mocks/products'
-import type { Product } from '@/types'
+import { useEffect, useState } from 'react'
+import { DataGrid } from '@mui/x-data-grid'
+import { Button } from '@mui/material'
+import { useSalesStore } from '@/store/salesStore'
+import SalesCreateModal from './createModal'
+import { useSaleItemsStore } from '@/store/saleItemsStore'
+
 
 export default function SalesPage() {
-  const [cart, setCart] = useState<Product[]>([])
+  const { items: sales, fetch: fetchSales, loading } = useSalesStore();
+  // const { items: saleItems, fetch: fetchSaleItems } = useSaleItemsStore();
+  const [openCreateModal, setOpenCreateModal] = useState(false);
 
-  const addToCart = (product: Product) => {
-    setCart([...cart, product])
-  }
+  useEffect(() => {
+    fetchSales()
+      .then(() => {
+        console.log("Sales fetched", sales);
+      })
+      .catch((err) => {
+        console.error("Error fetching sales:", err)
+      })
+  }, [sales.length, fetch])
+
+
+  // useEffect(() => {
+  //   fetchSaleItems()
+  //     .then(() => {
+  //       console.log("Sale items fetched", saleItems);
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error fetching sales:", err)
+  //     })
+  // }, [saleItems.length, fetch])
+
+
+  const columns = [
+    { field: '_id', headerName: 'ID', width: 70 },
+    { field: 'status', headerName: 'Estado', flex: 1 },
+    { field: 'payment_method', headerName: 'Método de pago', flex: 1 },
+    { field: 'total_amount', headerName: 'Monto Total', flex: 1 },
+    { field: 'notes', headerName: 'Notas', flex: 1 },
+  ]
+
+  if (loading) return <p>Cargando...</p>
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Sales (Mock POS)</h1>
-      <div className="grid grid-cols-3 gap-3">
-        {mockProducts.map((p) => (
-          <div key={p.id} className="p-3 bg-white shadow rounded-xl">
-            <p>{p.name}</p>
-            <p>${p.price}</p>
-            <button
-              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded"
-              onClick={() => addToCart(p)}
-            >
-              Add
-            </button>
-          </div>
-        ))}
-      </div>
-      <div className="mt-6">
-        <h2 className="font-bold">Cart</h2>
-        {cart.map((item, i) => (
-          <p key={i}>{item.name}</p>
-        ))}
+      <h1 className="text-xl font-semibold mb-4">Ventas </h1>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setOpenCreateModal(true)}
+      >
+        Agregar Venta
+      </Button>
+      <SalesCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <div className="mt-4" style={{ height: 400 }}>
+        <DataGrid
+          rows={sales ? sales : []}
+          columns={columns}
+          localeText={{
+            noRowsLabel: "Aún no hay ventas registradas.",
+          }}
+          getRowId={(row) => row._id}
+        />
       </div>
     </div>
   )
