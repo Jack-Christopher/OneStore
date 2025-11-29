@@ -39,7 +39,7 @@ export default function UnitsOfMeasurePage() {
         Agregar Unidad de Medida
       </Button>
       <UnitsOfMeasureCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
-      <div className="mt-4" style={{ height: 400 }}>
+      <div className="mt-4" style={{ height: 750 }}>
         <DataGrid
           rows={items ? items : []}
           columns={columns}

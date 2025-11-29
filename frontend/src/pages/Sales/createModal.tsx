@@ -125,12 +125,6 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       const target = { ...updated[index] }; // clone target object
       target[key] = value;
 
-      // if (key === "productId") {
-      //   const productId = items.find((p) => p.productId == value)?.productId;
-      //   const product = productItems.find((pi) => pi._id == productId);
-      //   target.unitPrice = product.
-      // }
-
       // recalc subtotal if needed
       if (key === "quantity" || key === "unitPrice") {
         const qty = Number(target.quantity) || 0;
@@ -225,17 +219,6 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             value={saleForm.notes}
             onChange={(e) => setSaleForm({ ...saleForm, notes: e.target.value })}
           />
-
-
-
-          {/* id: uuidv4(),
-          tenantId: tenantId,
-          saleId: "",
-          productId: "",
-          unitId: "",
-          quantity: 0,
-          unitPrice: 0,
-          subtotal: 0, */}
 
           {items.map((item, idx) => (
             <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">

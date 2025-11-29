@@ -8,6 +8,11 @@ async function getAll(req: Req, res: Res) {
   return ok(res, data);
 }
 
+async function getMostSold(req: Req, res: Res) {
+  const data = await service.getMostSold(req?.user?.id);
+  return ok(res, data);
+}
+
 async function getOne(req: Req, res: Res) {
   const product = await service.getOne(req.params.id);
   if (!product) return fail(res, "Product not found", 404);
@@ -36,4 +41,4 @@ async function remove(req: Req, res: Res) {
   return ok(res, result);
 }
 
-module.exports = { getAll, getOne, create, update, remove };
+module.exports = { getAll, getMostSold, getOne, create, update, remove };

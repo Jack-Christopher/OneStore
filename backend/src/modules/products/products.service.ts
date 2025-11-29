@@ -8,6 +8,10 @@ async function getAll(user_id: string) {
   return repo.findAll(user_id);
 }
 
+async function getMostSold(user_id: string) {
+  return repo.findMostSold(user_id);
+}
+
 async function getOne(id: string) {
   return repo.findById(id);
 }
@@ -28,6 +32,7 @@ async function remove(id: string) {
 
 module.exports = {
   getAll,
+  getMostSold,
   create,
   update,
   remove

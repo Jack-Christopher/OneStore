@@ -15,6 +15,10 @@ export interface Product {
   description: string;
 }
 
+export interface MostSoldProduct extends Product {
+  totalQuantity: number;
+}
+
 export interface CreateProductPayload {
   tenantId: string;
   categoryId: string;
@@ -49,6 +53,11 @@ const PRODUCT_API_BASE = "/api/products";
 
 export const getProducts = async () => {
   const res = await api.get<ApiResponse<Product[]>>(PRODUCT_API_BASE)
+  return res.data
+}
+
+export const getMostSoldProducts = async () => {
+  const res = await api.get<ApiResponse<MostSoldProduct[]>>(`${PRODUCT_API_BASE}/most-sold`)
   return res.data
 }
 

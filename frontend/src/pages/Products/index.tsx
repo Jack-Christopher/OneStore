@@ -45,7 +45,7 @@ export default function ProductsPage() {
         Agregar Producto
       </Button>
       <ProductsCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
-      <div className="mt-4" style={{ height: 400 }}>
+      <div className="mt-4" style={{ height: 750 }}>
         <DataGrid
           rows={items ? items.map(p => ({
             ...p,

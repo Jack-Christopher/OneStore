@@ -1,13 +1,15 @@
 import { create } from "zustand"
-import { getProducts, createProduct, deleteProduct, updateProduct } from "@/services/api/products"
-import type { Product, CreateProductPayload, UpdateProductPayload } from "@/services/api/products"
+import { getProducts, createProduct, deleteProduct, updateProduct, getMostSoldProducts } from "@/services/api/products"
+import type { Product, CreateProductPayload, UpdateProductPayload, MostSoldProduct } from "@/services/api/products"
 
 interface ProductsState {
   items: Product[]
+  mostSold: MostSoldProduct[]
   loading: boolean
   error: string | null
 
   fetch: () => Promise<void>
+  fetchMostSold: () => Promise<void>
   add: (data: CreateProductPayload) => Promise<void>
   edit: (id: string, data: UpdateProductPayload) => Promise<void>
   remove: (id: string) => Promise<void>
@@ -15,6 +17,7 @@ interface ProductsState {
 
 export const useProductsStore = create<ProductsState>((set, get) => ({
   items: [],
+  mostSold: [],
   loading: false,
   error: null,
 
@@ -24,6 +27,18 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
       const res = await getProducts()
       if (res.success) set({ items: res.data || [] })
       else set({ error: res.message || "Error fetching products" })
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  fetchMostSold: async () => {
+    try {
+      set({ loading: true })
+      const res = await getMostSoldProducts();
+      console.log("res gmsp", res);
+      if (res.success) set({ mostSold: res.data || [] })
+      else set({ error: res.message || "Error fetching most sold products" })
     } finally {
       set({ loading: false })
     }
