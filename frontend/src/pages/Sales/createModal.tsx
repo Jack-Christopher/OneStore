@@ -267,8 +267,8 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             </Box>
           ))}
 
-          <div className="flex justify-end mb-2">
-            <Button variant="outlined" onClick={addEmptyItem}>
+          <div className="flex justify-center mb-2">
+            <Button variant="outlined" color="primary" onClick={addEmptyItem}>
               Agregar Item
             </Button>
           </div>
@@ -297,7 +297,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
             <Button
               variant="contained"
-              color="primary"
+              color="success"
               type="submit"
               disabled={loading || items.length === 0}
             >
