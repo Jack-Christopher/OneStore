@@ -19,9 +19,10 @@ module.exports = {
               minItems: 1,
               items: {
                 bsonType: "object",
-                required: ["product_id", "quantity"],
+                required: ["product_id", "unit_id", "quantity"],
                 properties: {
-                  product_id: { bsonType: "string" },
+                  product_id: { bsonType: "objectId" },
+                  unit_id: { bsonType: "objectId" },
                   quantity: { bsonType: "number" }
                 }
               }

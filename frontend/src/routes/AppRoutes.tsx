@@ -12,6 +12,7 @@ import { PublicRoute } from './PublicRoutes'
 import { PrivateRoute } from '@/routes/PrivateRoute'
 import CategoriesPage from '@/pages/Categories'
 import UnitsOfMeasurePage from '@/pages/UnitsOfMeasure'
+import ProductFormulas from '@/pages/ProductFormulas'
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -38,6 +39,7 @@ export const AppRoutes = () => (
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="unitsOfMeasure" element={<UnitsOfMeasurePage />} />
         <Route path="products" element={<ProductsPage />} />
+        <Route path="productFormulas" element={<ProductFormulas />} />
         <Route path="sales" element={<SalesPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />

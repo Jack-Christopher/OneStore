@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine } from 'lucide-react'
+import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 export const MainLayout = () => {
@@ -22,6 +22,7 @@ export const MainLayout = () => {
             <Link to="/unitsOfMeasure" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><RulerDimensionLine size={18}/> Unidades de Medida</Link>
             <Link to="/products" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><Package size={18}/> Productos</Link>
             <Link to="/sales" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><DollarSign size={18}/> Ventas</Link>
+            <Link to="/productFormulas" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><Calculator size={18}/> Fórmulas de Productos</Link>
             <Link to="/profile" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><User size={18}/> Perfil</Link>
             <Link to="/settings" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><Settings size={18}/> Configuración</Link>
           </nav>

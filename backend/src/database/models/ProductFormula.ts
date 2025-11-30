@@ -2,7 +2,8 @@ export { }; // Empty export to force module scope
 const { Schema, model } = require("mongoose");
 
 const FormulaItemSchema = new Schema({
-  product_id: { type: String, required: true },
+  product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+  unit_id: { type: Schema.Types.ObjectId, ref: "UnitOfMeasure", required: true }, 
   quantity: { type: Number, required: true }
 });
 

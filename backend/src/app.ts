@@ -8,6 +8,7 @@ const salesRoutes = require("./modules/sales/sales.routes");
 const saleItemsRoutes = require("./modules/saleItems/saleItems.routes");
 const categoriesRoutes = require("./modules/categories/categories.routes");
 const unitsOfMeasureRoutes = require("./modules/unitsOfMeasure/unitsOfMeasure.routes");
+const productFormulasRoutes = require("./modules/productFormulas/productFormulas.routes");
 const errorHandler = require("./shared/middlewares/errorHandler");
 
 const expressApp = express();
@@ -23,6 +24,7 @@ apiRouter.use("/sales", salesRoutes);
 apiRouter.use("/saleItems", saleItemsRoutes);
 apiRouter.use("/categories", categoriesRoutes);
 apiRouter.use("/unitsOfMeasure", unitsOfMeasureRoutes);
+apiRouter.use("/productFormulas", productFormulasRoutes);
 
 expressApp.use("/api", apiRouter);
 expressApp.use(errorHandler);
