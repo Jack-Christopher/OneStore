@@ -40,3 +40,5 @@ services:
       - "27017:27017"
     volumes:
       - ./mongo_data:/data/db
+      - ./backend/mongod.conf:/etc/mongod.conf
+    command: ["mongod", "--config", "/etc/mongod.conf"]
