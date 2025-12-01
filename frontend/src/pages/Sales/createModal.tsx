@@ -14,6 +14,8 @@ import { useProductsStore } from "@/store/productsStore";
 import type { Product } from "@/services/api/products";
 import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import type { UnitOfMeasure } from "@/services/api/unitsOfMeasure";
+import type { CreateProductFormulaItem, ProductFormula } from "@/services/api/productFormulas";
+import { useProductFormulasStore } from "@/store/productFormulasStore";
 
 
 interface SalesCreateModalProps {
@@ -27,7 +29,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   const addManySaleItems = useSaleItemsStore((s) => s.addMany);
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
-
+  const { items: productFormulasItems, fetch: fetchProductFormulas } = useProductFormulasStore();
 
   const tenantId = useAuthStore.getState().authUser?.user?.tenantId || "orphan";
 
@@ -61,10 +63,10 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   };
 
 
-  const toSelectOption = (obj: UnitOfMeasure | Product) => {
+  const toSelectOption = (obj: UnitOfMeasure | Product | ProductFormula) => {
     return {
       value: obj._id,
-      label: obj.name
+      label: obj.name,
     }
   }
 
@@ -78,6 +80,11 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     fetchUnitsOfMeasure()
       .then(() => {
         setUnitsOfMeasure(unitsOfMeasureItems.map((uomi => toSelectOption(uomi))));
+      })
+
+    fetchProductFormulas()
+      .then(() => {
+        setProductFormulas(productFormulasItems.map((f) => toSelectOption(f)));
       })
   }, []);
 
@@ -98,6 +105,10 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   const [items, setItems] = useState<CreateSaleItemState[]>([]);
   const [products, setProducts] = useState<SelectOption[]>([]);
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
+  const [productFormulas, setProductFormulas] = useState<SelectOption[]>([]);
+
+  const [openFormulaModal, setOpenFormulaModal] = useState(false);
+  const [selectedFormula, setSelectedFormula] = useState<SelectOption | null>(null);
 
 
   const handleRemoveItem = (idx: number) => {
@@ -119,10 +130,54 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     setItems(prev => [...prev, createDefaultSaleItem()]);
   };
 
+  const FormulaModal = () => {
+
+    return (
+      <Modal open={openFormulaModal} onClose={() => { setOpenFormulaModal(false) }} className="flex items-center justify-center">
+        <Box sx={boxStyle}>
+          <h2 className="text-2xl font-bold mb-4 text-center">Aplicar Fórmula</h2>
+          <Select
+            options={productFormulas}
+            setFormInput={(value) => setSelectedFormula(productFormulas.find((f) => f.value === value) || null)}
+            styles="border rounded p-2 w-full mb-3"
+            value={selectedFormula?.value || ""}
+          />
+          <div className="flex justify-center mb-2 gap-2">
+            <Button variant="outlined" color="error" onClick={() => setOpenFormulaModal(false)}>Cancelar</Button>
+            <Button variant="outlined" color="primary" onClick={() => applyFormula()}>Aplicar</Button>
+          </div>
+        </Box>
+      </Modal>
+    );
+  };
+
+
+  const applyFormula = () => {
+    // the items should be updated with the formula items (product_id, unit_id, quantity) and the total amount should be updated
+    const formulaId = selectedFormula?.value;
+    const formula = productFormulasItems.find(f => f._id === formulaId);
+    if (!formula) {
+      return;
+    }
+    formula.items.forEach((item) => {
+      handleAddItemWithFormula({
+        id: uuidv4(),
+        // @ts-ignore TODO: fix this
+        productId: item.product_id,
+        // @ts-ignore TODO: fix this
+        unitId: item.unit_id,
+        quantity: item.quantity,
+      });
+    });
+    setOpenFormulaModal(false);
+    setSelectedFormula(null);
+  };
+
   const handleUpdateItem = (index: number, key: keyof CreateSaleItemState, value: any) => {
     setItems(prev => {
       const updated = prev.slice(); // shallow clone array
       const target = { ...updated[index] }; // clone target object
+      // @ts-ignore TODO: fix this
       target[key] = value;
 
       // recalc subtotal if needed
@@ -140,6 +195,11 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
       return updated;
     });
+  };
+
+
+  const handleAddItemWithFormula = (formulaItem: CreateProductFormulaItem) => {
+    setItems(prev => [...prev, { ...createDefaultSaleItem(), productId: formulaItem.productId, unitId: formulaItem.unitId, quantity: formulaItem.quantity }]);
   };
 
   function toCreateSaleItemPayload(item: CreateSaleItemState): CreateSaleItemPayload {
@@ -226,37 +286,35 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                 options={products}
                 setFormInput={(value) => handleUpdateItem(idx, "productId", value)}
                 styles="border rounded p-2 w-full mb-3"
+                value={item.productId}
               />
-
               <Select
                 options={unitsOfMeasure}
                 setFormInput={(value) => handleUpdateItem(idx, "unitId", value)}
                 styles="border rounded p-2 w-full mb-3"
+                value={item.unitId}
               />
-
               <input
                 type="number"
                 placeholder="Cantidad"
                 className="border rounded p-1 w-full mb-2"
-                value={item.quantity}
+                value={item.quantity || 0}
                 onChange={(e) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
               />
-
               <input
                 type="number"
                 placeholder="Precio Unitario"
                 className="border p-2 w-full mb-2 bg-gray-100"
-                value={item.unitPrice}
+                value={item.unitPrice || 0}
                 onChange={(e) => handleUpdateItem(idx, "unitPrice", Number(e.target.value))}
               />
 
               <input
                 type="number"
                 className="border p-2 w-full mb-2 bg-gray-100"
-                value={item.subtotal}
+                value={item.subtotal || 0}
                 readOnly
               />
-
               <Button
                 color="error"
                 variant="outlined"
@@ -267,11 +325,16 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             </Box>
           ))}
 
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center mb-2 gap-2">
             <Button variant="outlined" color="primary" onClick={addEmptyItem}>
               Agregar Item
             </Button>
+            <Button variant="outlined" color="primary" onClick={() => setOpenFormulaModal(true)}>
+              Aplicar Fórmula
+            </Button>
           </div>
+
+          <FormulaModal />
 
           {error && (
             <Alert
