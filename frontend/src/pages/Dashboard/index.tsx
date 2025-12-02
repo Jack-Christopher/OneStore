@@ -4,13 +4,26 @@ import { useSaleItemsStore } from "@/store/saleItemsStore";
 import { useSalesStore } from "@/store/salesStore";
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const user = useAuthStore.getState().authUser?.user;
   const { mostSold: mostSoldProducts, fetchMostSold: fetchMostSoldProducts, loading: mostSoldProductsLoading } = useProductsStore();
   const { items: sales, fetch: fetchSales, loading: salesLoading } = useSalesStore();
   const { items: saleItems, fetch: fetchSaleItems, loading: saleItemsLoading } = useSaleItemsStore();
+
+  const [productsPaginationModel, setProductsPaginationModel] = useState({
+    page: 0,
+    pageSize: 5,
+  });
+
+  const [salesPaginationModel, setSalesPaginationModel] = useState({
+    page: 0,
+    pageSize: 5,
+  });
+
+  // Ordenar ventas por total_amount descendente
+  const sortedSales = sales ? [...sales].sort((a, b) => ((b as any).total_amount || 0) - ((a as any).total_amount || 0)) : [];
 
   useEffect(() => {
     fetchSales()
@@ -20,7 +33,7 @@ export default function DashboardPage() {
       .catch((err) => {
         console.error("Error fetching sales:", err);
       });
-  }, [sales.length, fetchSales]);
+  }, []);
 
   useEffect(() => {
     fetchSaleItems()
@@ -31,7 +44,7 @@ export default function DashboardPage() {
         console.error("Error fetching sale items:", err);
       });
   }, [saleItems.length, fetchSaleItems]);
-  
+
   useEffect(() => {
     console.log("run fmsp");
     fetchMostSoldProducts()
@@ -47,7 +60,7 @@ export default function DashboardPage() {
     { field: '_id', headerName: 'ID', width: 70 },
     { field: 'status', headerName: 'Estado', flex: 1 },
     { field: 'payment_method', headerName: 'Método de pago', flex: 1 },
-    { field: 'total_amount', headerName: 'Monto Total', flex: 1 },
+    { field: 'total_amount', headerName: 'Monto Total', flex: 1, cellClassName: 'main-column', headerClassName: 'main-column' },
     { field: 'notes', headerName: 'Notas', flex: 1 },
   ];
 
@@ -56,7 +69,7 @@ export default function DashboardPage() {
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'sku', headerName: 'SKU', flex: 1 },
     { field: 'sale_price', headerName: 'Precio de Venta', flex: 1 },
-    { field: 'total_quantity_sold', headerName: 'Total de Ventas', flex: 1 },
+    { field: 'total_quantity_sold', headerName: 'Total de Ventas', flex: 1, cellClassName: 'main-column', headerClassName: 'main-column' },
   ];
 
   return (
@@ -71,12 +84,23 @@ export default function DashboardPage() {
             <CardContent>
               <Typography variant="h6">Productos más vendidos</Typography>
               <DataGrid
+                sx={{
+                  '& .MuiDataGrid-cell.main-column': {
+                    backgroundColor: '#1ADB42 !important',
+                  },
+                  '& .MuiDataGrid-headerCell.main-column': {
+                    backgroundColor: '#1ADB42 !important',
+                  },
+                }}
                 rows={mostSoldProducts ? mostSoldProducts : []}
                 columns={productGridColumns}
                 localeText={{
                   noRowsLabel: "Aún no hay productos vendidos.",
                 }}
                 getRowId={(row) => row._id}
+                paginationModel={productsPaginationModel}
+                onPaginationModelChange={setProductsPaginationModel}
+                pageSizeOptions={[5, 10, 25]}
               />
             </CardContent>
           </Card>
@@ -87,16 +111,23 @@ export default function DashboardPage() {
             <CardContent>
               <Typography variant="h6">Ventas más valoradas</Typography>
               <DataGrid
-                sortModel={[{ field: 'total_amount', sort: 'desc' }]}
-                onSortModelChange={(model) => {
-                  console.log(model);
+                sx={{
+                  '& .MuiDataGrid-cell.main-column': {
+                    backgroundColor: '#1ADB42 !important',
+                  },
+                  '& .MuiDataGrid-headerCell.main-column': {
+                    backgroundColor: '#1ADB42 !important',
+                  },
                 }}
-                rows={sales ? sales : []}
+                rows={sortedSales}
                 columns={saleGridColumns}
                 localeText={{
                   noRowsLabel: "Aún no hay ventas registradas.",
                 }}
                 getRowId={(row) => row._id}
+                paginationModel={salesPaginationModel}
+                onPaginationModelChange={setSalesPaginationModel}
+                pageSizeOptions={[5, 10, 25]}
               />
             </CardContent>
           </Card>
