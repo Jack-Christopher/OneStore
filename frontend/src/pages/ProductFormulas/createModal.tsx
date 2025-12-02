@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import { useProductsStore } from "@/store/productsStore";
 import type { SelectOption } from "@/components/Select";
+import Input from "@/components/Input";
 import type { Product } from "@/services/api/products";
 import type { UnitOfMeasure } from "@/services/api/unitsOfMeasure";
 import Select from "@/components/Select";
@@ -163,8 +164,7 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
                 styles="border rounded p-2 w-full mb-3"
               />
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
-              {/* take this out as a component of type NumberInput */}
-              <input type="number" min={0} onFocus={(e) => { if (e.target.value === "0") e.target.value = "" }} onBlur={(e) => { if (e.target.value === "") e.target.value = "0" }} placeholder="Cantidad" className="border rounded p-2 w-full mb-3" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
+              <Input type="number" placeholder="Cantidad" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
               <Button variant="outlined" color="error" onClick={() => removeItem(index)}>Eliminar</Button>
             </Box>
           ))}

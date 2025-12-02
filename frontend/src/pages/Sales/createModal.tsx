@@ -16,6 +16,7 @@ import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import type { UnitOfMeasure } from "@/services/api/unitsOfMeasure";
 import type { CreateProductFormulaItem, ProductFormula } from "@/services/api/productFormulas";
 import { useProductFormulasStore } from "@/store/productFormulasStore";
+import Input from "@/components/Input";
 
 
 interface SalesCreateModalProps {
@@ -225,6 +226,36 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       return;
     }
 
+    // Validate that all items have required fields filled
+    console.log("items", items);
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item.productId || item.productId === "") {
+        setError(`Producto requerido para el ítem ${i + 1}`);
+        setLoading(false);
+        return;
+      }
+      if (!item.unitId || item.unitId === "") {
+        setError(`Unidad de medida requerida para el ítem ${i + 1}`);
+        setLoading(false);
+        return;
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        setError(`Cantidad debe ser mayor a 0 para el ítem ${i + 1}`);
+        setLoading(false);
+        return;
+      }
+      if(!item.unitPrice || item.unitPrice <= 0) {
+        setError(`Precio unitario debe ser mayor a 0 para el ítem ${i + 1}`);
+        setLoading(false);
+        return;
+      }
+      if(!item.subtotal || item.subtotal <= 0) {
+        setError(`Subtotal debe ser mayor a 0 para el ítem ${i + 1}`);
+        setLoading(false);
+        return;
+      }
+    }
     try {
       await addSale({ ...saleForm });
       const saleId = lastAddedSale?._id;
@@ -292,28 +323,27 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                 value={item.unitId}
               />
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
-              <input
+              <Input
                 type="number"
                 placeholder="Cantidad"
-                className="border rounded p-1 w-full mb-2"
                 value={item.quantity || 0}
-                onChange={(e) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
               />
               <label className="block mb-2 text-sm font-medium">Precio Unitario</label>
-              <input
+              <Input
                 type="number"
                 placeholder="Precio Unitario"
-                className="border p-2 w-full mb-2 bg-gray-100"
                 value={item.unitPrice || 0}
-                onChange={(e) => handleUpdateItem(idx, "unitPrice", Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "unitPrice", Number(e.target.value))}
               />
 
               <label className="block mb-2 text-sm font-medium">Subtotal</label>
-              <input
+              <Input
                 type="number"
-                className="border p-2 w-full mb-2 bg-gray-100"
+                placeholder="Subtotal"
                 value={item.subtotal || 0}
                 readOnly
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "subtotal", Number(e.target.value))}
               />
               <Button
                 color="error"

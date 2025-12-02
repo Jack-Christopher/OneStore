@@ -9,6 +9,7 @@ import { useCategoriesStore } from "@/store/categoriesStore";
 import type { Category } from "@/services/api/categories";
 import type { CreateProductPayload } from "@/services/api/products";
 import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
+import Input from "@/components/Input";
 
 interface ProductsCreateModalProps {
   open: boolean;
@@ -84,6 +85,42 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
       return;
     }
 
+    if (!form.categoryId || form.categoryId === "") {
+      setError("Categoría requerida");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.unitId || form.unitId === "") {
+      setError("Unidad de medida requerida");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.purchasePrice || form.purchasePrice <= 0) {
+      setError("Precio de compra debe ser mayor a 0");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.salePrice || form.salePrice <= 0) {
+      setError("Precio de venta debe ser mayor a 0");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.minStock || form.minStock <= 0) {
+      setError("Stock mínimo debe ser mayor a 0");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.maxStock || form.maxStock <= 0) {
+      setError("Stock máximo debe ser mayor a 0");
+      setLoading(false);
+      return;
+    }
+
     try {
       await addProduct(form)
       onClose();
@@ -121,15 +158,42 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
           />
 
           <label className="block mb-2 text-sm font-medium">SKU</label>
-          <input type="text" placeholder="SKU" className="border rounded p-2 w-full mb-3" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+          <Input
+            type="text"
+            placeholder="SKU"
+            value={form.sku}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, sku: e.target.value })}
+          />
           <label className="block mb-2 text-sm font-medium">Precio de Compra</label>
-          <input type="number" placeholder="Precio de Compra" step="0.1" className="border rounded p-2 w-full mb-3" value={form.purchasePrice} onChange={e => setForm({ ...form, purchasePrice: parseFloat(e.target.value) })} />
+          <Input
+            type="number"
+            placeholder="Precio de Compra"
+            step={0.1}
+            value={form.purchasePrice}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, purchasePrice: parseFloat(e.target.value) })}
+          />
           <label className="block mb-2 text-sm font-medium">Precio de Venta</label>
-          <input type="number" placeholder="Precio de Venta" step="0.1" className="border rounded p-2 w-full mb-3" value={form.salePrice} onChange={e => setForm({ ...form, salePrice: parseFloat(e.target.value) })} />
+          <Input
+            type="number"
+            placeholder="Precio de Venta"
+            step={0.1}
+            value={form.salePrice}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, salePrice: parseFloat(e.target.value) })}
+          />
           <label className="block mb-2 text-sm font-medium">Stock Mínimo</label>
-          <input type="number" placeholder="Stock Mínimo" className="border rounded p-2 w-full mb-3" value={form.minStock} onChange={e => setForm({ ...form, minStock: +e.target.value })} />
+          <Input
+            type="number"
+            placeholder="Stock Mínimo"
+            value={form.minStock}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, minStock: +e.target.value })}
+          />
           <label className="block mb-2 text-sm font-medium">Stock Máximo</label>
-          <input type="number" placeholder="Stock Máximo" className="border rounded p-2 w-full mb-3" value={form.maxStock} onChange={e => setForm({ ...form, maxStock: +e.target.value })} />
+          <Input
+            type="number"
+            placeholder="Stock Máximo"
+            value={form.maxStock}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, maxStock: +e.target.value })}
+          />
           <label className="block mb-2 text-sm font-medium">Descripción</label>
           <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
 
