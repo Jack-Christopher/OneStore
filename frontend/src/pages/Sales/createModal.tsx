@@ -256,6 +256,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Venta</h2>
 
         <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Estado</label>
           <input
             type="text"
             placeholder="Estado"
@@ -264,6 +265,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             onChange={(e) => setSaleForm({ ...saleForm, status: e.target.value })}
           />
 
+          <label className="block mb-2 text-sm font-medium">Método de pago</label>
           <input
             type="text"
             placeholder="Método de pago"
@@ -272,6 +274,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             onChange={(e) => setSaleForm({ ...saleForm, paymentMethod: e.target.value })}
           />
 
+          <label className="block mb-2 text-sm font-medium">Notas</label>
           <input
             type="text"
             placeholder="Notas"
@@ -282,18 +285,22 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
           {items.map((item, idx) => (
             <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">
+              <label className="block mb-2 text-sm font-medium bg-blue-100 p-2 rounded text-center">Item {idx + 1}</label>
+              <label className="block mb-2 text-sm font-medium">Producto</label>
               <Select
                 options={products}
                 setFormInput={(value) => handleUpdateItem(idx, "productId", value)}
                 styles="border rounded p-2 w-full mb-3"
                 value={item.productId}
               />
+              <label className="block mb-2 text-sm font-medium">Unidad de Medida</label>
               <Select
                 options={unitsOfMeasure}
                 setFormInput={(value) => handleUpdateItem(idx, "unitId", value)}
                 styles="border rounded p-2 w-full mb-3"
                 value={item.unitId}
               />
+              <label className="block mb-2 text-sm font-medium">Cantidad</label>
               <input
                 type="number"
                 placeholder="Cantidad"
@@ -301,6 +308,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                 value={item.quantity || 0}
                 onChange={(e) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
               />
+              <label className="block mb-2 text-sm font-medium">Precio Unitario</label>
               <input
                 type="number"
                 placeholder="Precio Unitario"
@@ -309,6 +317,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                 onChange={(e) => handleUpdateItem(idx, "unitPrice", Number(e.target.value))}
               />
 
+              <label className="block mb-2 text-sm font-medium">Subtotal</label>
               <input
                 type="number"
                 className="border p-2 w-full mb-2 bg-gray-100"

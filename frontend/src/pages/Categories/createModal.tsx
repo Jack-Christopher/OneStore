@@ -56,8 +56,10 @@ export default function CategoriesCreateModal({ open, onClose }: CategoriesCreat
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Categoría</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Nombre</label>
           <input type="text" placeholder="Nombre" className="border rounded p-2 w-full mb-3" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-          <input type="text" placeholder="Descripcion" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          <label className="block mb-2 text-sm font-medium">Descripción</label>
+          <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
 
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 

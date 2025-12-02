@@ -140,22 +140,31 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Fórmula de Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Nombre</label>
           <input type="text" placeholder="Nombre" className="border rounded p-2 w-full mb-3" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-          <input type="text" placeholder="Descripcion" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          <label className="block mb-2 text-sm font-medium">Descripción</label>
+          <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
 
           {items.map((item: CreateProductFormulaItem, index: number) => (
             <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">
+
+              {/* mostrar numero de item de manera coloreada con color de fondo*/}
+              <label className="block mb-2 text-sm font-medium bg-blue-100 p-2 rounded text-center">Item {index + 1}</label>
+              <label className="block mb-2 text-sm font-medium">Producto</label>
               <Select
                 options={products}
                 setFormInput={(value: any) => setItems(items.map((i, idx) => idx === index ? { ...i, productId: value } : i))}
                 styles="border rounded p-2 w-full mb-3"
               />
+              <label className="block mb-2 text-sm font-medium">Unidad de Medida</label>
               <Select
                 options={unitsOfMeasure}
                 setFormInput={(value: any) => setItems(items.map((i, idx) => idx === index ? { ...i, unitId: value } : i))}
                 styles="border rounded p-2 w-full mb-3"
               />
-              <input type="number" placeholder="Cantidad" className="border rounded p-2 w-full mb-3" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
+              <label className="block mb-2 text-sm font-medium">Cantidad</label>
+              {/* take this out as a component of type NumberInput */}
+              <input type="number" min={0} onFocus={(e) => { if (e.target.value === "0") e.target.value = "" }} onBlur={(e) => { if (e.target.value === "") e.target.value = "0" }} placeholder="Cantidad" className="border rounded p-2 w-full mb-3" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
               <Button variant="outlined" color="error" onClick={() => removeItem(index)}>Eliminar</Button>
             </Box>
           ))}

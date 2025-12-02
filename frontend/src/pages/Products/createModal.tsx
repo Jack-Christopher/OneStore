@@ -43,6 +43,20 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
     }
   }
 
+  const boxStyle = {
+    position: 'absolute' as const,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    maxHeight: '80vh',
+    overflowY: 'auto',
+  };
+
   useEffect(() => {
     console.log("form", form);
   }, [form]);
@@ -86,36 +100,38 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
 
   return (
     <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
-      <Box sx={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '0.5rem',
-        boxShadow: 24,
-        width: 400,
-      }}>
+      <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Nombre</label>
           <input type="text" placeholder="Nombre" className="border rounded p-2 w-full mb-3" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
 
+          <label className="block mb-2 text-sm font-medium">Categoría</label>
           <Select
             options={categories}
             setFormInput={(value) => setForm({ ...form, categoryId: value })}
             styles="border rounded p-2 w-full mb-3"
           />
 
+          <label className="block mb-2 text-sm font-medium">Unidad de Medida</label>
           <Select
             options={unitsOfMeasure}
             setFormInput={(value) => setForm({ ...form, unitId: value })}
             styles="border rounded p-2 w-full mb-3"
           />
 
+          <label className="block mb-2 text-sm font-medium">SKU</label>
           <input type="text" placeholder="SKU" className="border rounded p-2 w-full mb-3" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+          <label className="block mb-2 text-sm font-medium">Precio de Compra</label>
           <input type="number" placeholder="Precio de Compra" step="0.1" className="border rounded p-2 w-full mb-3" value={form.purchasePrice} onChange={e => setForm({ ...form, purchasePrice: parseFloat(e.target.value) })} />
+          <label className="block mb-2 text-sm font-medium">Precio de Venta</label>
           <input type="number" placeholder="Precio de Venta" step="0.1" className="border rounded p-2 w-full mb-3" value={form.salePrice} onChange={e => setForm({ ...form, salePrice: parseFloat(e.target.value) })} />
+          <label className="block mb-2 text-sm font-medium">Stock Mínimo</label>
           <input type="number" placeholder="Stock Mínimo" className="border rounded p-2 w-full mb-3" value={form.minStock} onChange={e => setForm({ ...form, minStock: +e.target.value })} />
+          <label className="block mb-2 text-sm font-medium">Stock Máximo</label>
           <input type="number" placeholder="Stock Máximo" className="border rounded p-2 w-full mb-3" value={form.maxStock} onChange={e => setForm({ ...form, maxStock: +e.target.value })} />
-
-          <input type="text" placeholder="Descripcion" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          <label className="block mb-2 text-sm font-medium">Descripción</label>
+          <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
 
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
