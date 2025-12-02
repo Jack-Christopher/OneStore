@@ -256,15 +256,6 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Venta</h2>
 
         <form className="flex flex-col" onSubmit={onSubmit}>
-          <label className="block mb-2 text-sm font-medium">Estado</label>
-          <input
-            type="text"
-            placeholder="Estado"
-            className="border rounded p-2 w-full mb-3"
-            value={saleForm.status}
-            onChange={(e) => setSaleForm({ ...saleForm, status: e.target.value })}
-          />
-
           <label className="block mb-2 text-sm font-medium">Método de pago</label>
           <input
             type="text"
