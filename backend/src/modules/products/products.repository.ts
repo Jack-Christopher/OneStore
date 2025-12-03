@@ -71,7 +71,9 @@ module.exports = {
   },
 
   findById(id: string) {
-    return Product.findById(id);
+    return Product.findById(id)
+      .populate("category_id", "name")
+      .populate("unit_id", "name");
   },
 
   create(data: ProductDTO) {

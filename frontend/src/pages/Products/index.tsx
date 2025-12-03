@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
 import { Button } from '@mui/material'
 import { useProductsStore } from '@/store/productsStore'
 import ProductsCreateModal from './createModal'
+import { Eye, Pencil, Trash } from 'lucide-react'
+import DeleteModal from '@/components/DeleteModal'
+import ProductsViewModal from './viewModal'
+import ProductsEditModal from './editModal'
+import { deleteProduct } from '@/services/api/products'
 
 
 export default function ProductsPage() {
   const { items, fetch, loading } = useProductsStore()
   const [openCreateModal, setOpenCreateModal] = useState(false)
+  const [openViewModal, setOpenViewModal] = useState(false)
+  const [openEditModal, setOpenEditModal] = useState(false)
+  const [openDeleteModal, setOpenDeleteModal] = useState(false)
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch()
@@ -17,7 +26,7 @@ export default function ProductsPage() {
       .catch((err) => {
         console.error("Error fetching products:", err)
       })
-  }, [items.length, fetch]);
+  }, []);
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
@@ -30,6 +39,25 @@ export default function ProductsPage() {
     { field: 'min_stock', headerName: 'Stock mínimo', flex: 1 },
     { field: 'max_stock', headerName: 'Stock máximo', flex: 1 },
     { field: 'description', headerName: 'Description', flex: 1 },
+    { field: 'actions', headerName: 'Acciones', width: 250, renderCell: (params: GridRenderCellParams) => {
+      return (
+        <div style={{ display: 'flex', gap: 5 }}>
+          <Button variant="text" color="primary" size="small" onClick={() => {
+            setOpenViewModal(true)
+            setSelectedProductId(params.row._id as string)
+          }}><Eye /></Button>
+          <Button variant="text" style={{ color: '#FFC107' }} size="small" onClick={() => {
+            setOpenEditModal(true)
+            setSelectedProductId(params.row._id as string)
+          }}><Pencil /></Button>
+          <Button variant="text" color="error" size="small" onClick={() => {
+            setOpenDeleteModal(true)
+            setSelectedProductId(params.row._id as string)
+          }}><Trash /></Button>
+        </div>
+      )
+    }
+  },
   ]
 
   if (loading) return <p>Cargando...</p>
@@ -45,6 +73,29 @@ export default function ProductsPage() {
         Agregar Producto
       </Button>
       <ProductsCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <ProductsViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} productId={selectedProductId} />
+      <ProductsEditModal open={openEditModal} onClose={() => setOpenEditModal(false)} productId={selectedProductId} />
+      <DeleteModal 
+        open={openDeleteModal} 
+        onClose={() => setOpenDeleteModal(false)} 
+        title="Eliminar Producto" 
+        description="¿Estás seguro de querer eliminar este producto?" 
+        cancelButtonText="Cancelar" 
+        confirmButtonText="Confirmar" 
+        onCancel={() => setOpenDeleteModal(false)} 
+        onConfirm={() => {
+          deleteProduct(selectedProductId as string)
+          .then(() => {
+            fetch()
+            .catch((err) => {
+              console.error("Error deleting product:", err)
+            })
+            .finally(() => {
+              setOpenDeleteModal(false)
+            })
+          })
+        }}
+      />
       <div className="mt-4" style={{ height: 750 }}>
         <DataGrid
           rows={items ? items.map(p => ({

@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { getProducts, createProduct, deleteProduct, updateProduct, getMostSoldProducts } from "@/services/api/products"
+import { getProducts, createProduct, deleteProduct, updateProduct, getMostSoldProducts, getProduct } from "@/services/api/products"
 import type { Product, CreateProductPayload, UpdateProductPayload, MostSoldProduct } from "@/services/api/products"
 
 interface ProductsState {
@@ -7,7 +7,6 @@ interface ProductsState {
   mostSold: MostSoldProduct[]
   loading: boolean
   error: string | null
-
   fetch: () => Promise<void>
   fetchMostSold: () => Promise<void>
   add: (data: CreateProductPayload) => Promise<void>

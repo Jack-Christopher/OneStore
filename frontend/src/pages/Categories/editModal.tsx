@@ -65,6 +65,8 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
       setLoading(false);
     }
   }
+  
+  if (loading) return <p>Cargando...</p>
 
   return (
     <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
