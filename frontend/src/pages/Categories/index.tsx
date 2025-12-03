@@ -78,6 +78,12 @@ export default function CategoriesPage() {
         confirmButtonText="Confirmar"
         onConfirm={() => {
           remove(selectedCategoryId as string)
+          .then(() => {
+            fetch()
+            .catch((err) => {
+              console.error("Error deleting category:", err)
+            })
+          })
           setOpenDeleteModal(false)
         }}
         onCancel={() => {

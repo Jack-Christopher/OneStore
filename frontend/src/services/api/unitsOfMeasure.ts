@@ -5,18 +5,21 @@ export interface UnitOfMeasure {
   _id: string;
   tenantId: string;
   name: string;
+  code: string;
   description: string;
 }
 
 export interface CreateUnitOfMeasurePayload {
   tenantId: string;
   name: string
+  code: string
   description: string;
 }
 
 export interface UpdateUnitOfMeasurePayload {
   tenantId: string;
   name?: string
+  code?: string
   description?: string
 }
 

@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Box, Button, Modal } from "@mui/material"
 import { UnitsOfMeasureErrorMessages } from "@/constants/unitsOfMeasureErrors";
 import Alert from "@/components/Alert";
+import type { CreateUnitOfMeasurePayload } from "@/services/api/unitsOfMeasure";
 
 interface UnitsOfMeasureCreateModalProps {
   open: boolean;
@@ -13,7 +14,7 @@ interface UnitsOfMeasureCreateModalProps {
 export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeasureCreateModalProps) {
   const addUnitOfMeasure = useUnitsOfMeasureStore(s => s.add);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CreateUnitOfMeasurePayload>({
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     name: "",
     code: "",
