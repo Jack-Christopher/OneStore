@@ -1,6 +1,9 @@
 import api from "../lib/axios";
 import type { ApiResponse } from "@/types/api";
 
+// TODO: Add the created_by and updated_by fields
+// TODO: Add support for camelCase to snakeCase conversion
+
 export interface Category {
   _id: string;
   tenantId: string;
