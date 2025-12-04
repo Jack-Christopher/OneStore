@@ -19,14 +19,10 @@ module.exports = {
   },
 
   findAllBySaleId(sale_id: string) {
-    const saleItems = Sale.findOne({ _id: sale_id }).exec()
-      .then((sale: any) => {
-        const saleId = sale._id;
-
-        return SaleItem.find({ sale_id: saleId });
-      });
-
-    return saleItems;
+    return SaleItem.find({ sale_id: sale_id })
+      .populate("product_id", "name")
+      .populate("unit_id", "name")
+      .exec();
   },
 
   findById(id: string) {

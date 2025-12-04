@@ -29,6 +29,7 @@ async function remove(id: string) {
 
 module.exports = {
   getAll,
+  getOne,
   create,
   update,
   remove

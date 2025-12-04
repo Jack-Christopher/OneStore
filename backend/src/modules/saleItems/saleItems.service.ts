@@ -39,6 +39,8 @@ async function remove(id: string) {
 
 module.exports = {
   getAll,
+  getAllBySaleId,
+  getOne,
   create,
   createMany,
   update,

@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
 import { Button } from '@mui/material'
 import { useSalesStore } from '@/store/salesStore'
 import SalesCreateModal from './createModal'
-import { useSaleItemsStore } from '@/store/saleItemsStore'
+// import { useSaleItemsStore } from '@/store/saleItemsStore'
+import { Eye } from 'lucide-react'
+import SalesViewModal from './viewModal'
 
 
 export default function SalesPage() {
   const { items: sales, fetch: fetchSales, loading } = useSalesStore();
   // const { items: saleItems, fetch: fetchSaleItems } = useSaleItemsStore();
   const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSales()
@@ -39,6 +43,18 @@ export default function SalesPage() {
     { field: 'payment_method', headerName: 'Método de pago', flex: 1 },
     { field: 'total_amount', headerName: 'Monto Total', flex: 1 },
     { field: 'notes', headerName: 'Notas', flex: 1 },
+    {
+      field: 'actions', headerName: 'Acciones', width: 250, renderCell: (params: GridRenderCellParams) => {
+        return (
+          <div style={{ display: 'flex', gap: 5 }}>
+            <Button variant="text" color="primary" size="small" onClick={() => {
+              setOpenViewModal(true)
+              setSelectedSaleId(params.row._id as string)
+            }}><Eye /></Button>
+          </div>
+        )
+      }
+    },
   ]
 
   if (loading) return <p>Cargando...</p>
@@ -54,6 +70,7 @@ export default function SalesPage() {
         Agregar Venta
       </Button>
       <SalesCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <SalesViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} saleId={selectedSaleId} />
       <div className="mt-4" style={{ height: 750 }}>
         <DataGrid
           rows={sales ? sales : []}

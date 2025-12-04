@@ -54,7 +54,7 @@ export const getSaleItems = async () => {
 }
 
 export const getSaleItemsBySaleId = async (id: string) => {
-  const res = await api.get<ApiResponse<SaleItem>>(`${SALE_ITEM_API_BASE}/${id}`)
+  const res = await api.get<ApiResponse<SaleItem[]>>(`${SALE_ITEM_API_BASE}/sale/${id}`)
   return res.data
 }
 

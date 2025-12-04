@@ -4,8 +4,8 @@ const { Schema, model } = require("mongoose");
 const SaleItemSchema = new Schema({
   tenant_id: { type: String, required: true, index: true },
   sale_id: { type: String, required: true },
-  product_id: { type: String, required: true },
-  unit_id: { type: String, required: true },
+  product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+  unit_id: { type: Schema.Types.ObjectId, ref: "UnitOfMeasure", required: true },
   quantity: { type: Number, required: true },
   unit_price: { type: Number, required: true },
   subtotal: { type: Number, required: true },

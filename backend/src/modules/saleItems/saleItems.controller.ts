@@ -9,7 +9,7 @@ async function getAll(req: Req, res: Res) {
 }
 
 async function getAllbySaleId(req: Req, res: Res) {
-  const saleItems = await service.findAll(req.params.id);
+  const saleItems = await service.getAllBySaleId(req.params.id);
   if (!saleItems) return fail(res, "Sale Items not found", 404);
   return ok(res, saleItems);
 }

@@ -26,7 +26,6 @@ interface SalesCreateModalProps {
 
 export default function SalesCreateModal({ open, onClose }: SalesCreateModalProps) {
   const addSale = useSalesStore((s) => s.add);
-  const lastAddedSale = useSalesStore((s) => s.lastAdded);
   const addManySaleItems = useSaleItemsStore((s) => s.addMany);
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
@@ -245,24 +244,26 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         setLoading(false);
         return;
       }
-      if(!item.unitPrice || item.unitPrice <= 0) {
+      if (!item.unitPrice || item.unitPrice <= 0) {
         setError(`Precio unitario debe ser mayor a 0 para el ítem ${i + 1}`);
         setLoading(false);
         return;
       }
-      if(!item.subtotal || item.subtotal <= 0) {
+      if (!item.subtotal || item.subtotal <= 0) {
         setError(`Subtotal debe ser mayor a 0 para el ítem ${i + 1}`);
         setLoading(false);
         return;
       }
     }
     try {
-      await addSale({ ...saleForm });
-      const saleId = lastAddedSale?._id;
+      const createdSale = await addSale({ ...saleForm });
+      const saleId = createdSale?._id;
+      console.log("createdSale", createdSale);
+      console.log("saleId", saleId);
 
       const itemsToInsert: CreateSaleItemPayload[] = items.map(it => ({
         ...toCreateSaleItemPayload(it),
-        saleId: saleId ?? "orphan",
+        saleId: saleId || "orphan",
       }));
 
       await addManySaleItems(itemsToInsert);

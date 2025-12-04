@@ -9,7 +9,7 @@ interface SalesState {
   error: string | null
 
   fetch: () => Promise<void>
-  add: (data: CreateSalePayload) => Promise<void>
+  add: (data: CreateSalePayload) => Promise<Sale | null>
   edit: (id: string, data: UpdateSalePayload) => Promise<void>
   remove: (id: string) => Promise<void>
 }
@@ -34,9 +34,12 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   add: async (payload) => {
     const res = await createSale(payload)
     if (res.success && res.data) {
+      console.log("res.data", res.data);
       set({ items: [...get().items, res.data] });
       set({ lastAdded: res.data });
+      return res.data;
     }
+    return null;
   },
 
   edit: async (id, payload) => {
