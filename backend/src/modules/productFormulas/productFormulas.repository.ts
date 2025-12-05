@@ -18,7 +18,9 @@ module.exports = {
   },
 
   findById(id: string) {
-    return ProductFormula.findById(id);
+    return ProductFormula.findById(id)
+    .populate("items.product_id", "name")
+    .populate("items.unit_id", "name");
   },
 
   create(data: ProductFormulaDTO) {

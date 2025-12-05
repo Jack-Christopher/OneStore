@@ -5,7 +5,11 @@ import { useProductFormulasStore } from '@/store/productFormulasStore'
 import ProductFormulasCreateModal from './createModal'
 import { useProductsStore } from '@/store/productsStore'
 import { useUnitsOfMeasureStore } from '@/store/unitsOfMeasureStore'
-import { SquareDot } from 'lucide-react'
+import { Eye, Pencil, SquareDot, Trash } from 'lucide-react'
+import ProductFormulasViewModal from './viewModal'
+import DeleteModal from '@/components/DeleteModal'
+import { deleteProductFormula } from '@/services/api/productFormulas'
+import ProductFormulasEditModal from './editModal'
 
 
 export default function ProductFormulasPage() {
@@ -13,6 +17,11 @@ export default function ProductFormulasPage() {
   const [openCreateModal, setOpenCreateModal] = useState(false)
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
+  const [openViewModal, setOpenViewModal] = useState(false)
+  const [openEditModal, setOpenEditModal] = useState(false)
+  const [openDeleteModal, setOpenDeleteModal] = useState(false)
+  const [productFormulaId, setProductFormulaId] = useState<string | null>(null)
+
   useEffect(() => {
     fetchProductFormulas()
       .then(() => {
@@ -63,6 +72,26 @@ export default function ProductFormulasPage() {
         )
       }
     },
+    {
+      field: 'actions', headerName: 'Acciones', flex: 1, renderCell: (params: GridRenderCellParams) => {
+        return (
+          <div style={{ display: 'flex', gap: 5 }}>
+            <Button variant="text" color="primary" size="small" onClick={() => {
+              setOpenViewModal(true)
+              setProductFormulaId(params.row._id as string)
+            }}><Eye /></Button>
+            <Button variant="text" style={{ color: '#FFC107' }} size="small" onClick={() => {
+              setOpenEditModal(true)
+              setProductFormulaId(params.row._id as string)
+            }}><Pencil /></Button>
+            <Button variant="text" color="error" size="small" onClick={() => {
+              setOpenDeleteModal(true)
+              setProductFormulaId(params.row._id as string)
+            }}><Trash /></Button>
+          </div>
+        )
+      }
+    }
   ]
 
   if (loading) return <p>Cargando...</p>
@@ -85,6 +114,21 @@ export default function ProductFormulasPage() {
         Agregar Fórmula de Producto
       </Button>
       <ProductFormulasCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <ProductFormulasViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} productFormulaId={productFormulaId} />
+      <ProductFormulasEditModal open={openEditModal} onClose={() => setOpenEditModal(false)} productFormulaId={productFormulaId as string} />
+      <DeleteModal
+        open={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        onConfirm={() => deleteProductFormula(productFormulaId as string).then(() => {
+          fetchProductFormulas()
+          setOpenDeleteModal(false)
+        })}
+        onCancel={() => setOpenDeleteModal(false)}
+        title="Eliminar Fórmula de Producto"
+        description="¿Estás seguro de querer eliminar esta fórmula de producto?"
+        confirmButtonText="Eliminar"
+        cancelButtonText="Cancelar"
+      />
       <div className="mt-4" style={{ height: 750 }}>
         <DataGrid
           rows={productFormulas ? productFormulas : []}
