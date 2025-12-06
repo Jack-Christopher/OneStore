@@ -62,7 +62,7 @@ export default function DashboardPage() {
   ];
 
   const formatCurrency = (value: number | undefined) => {
-    return `$${(value || 0).toFixed(2)}`;
+    return value && value < 0 ? `-$${(value * -1).toFixed(2)}` : `$${(value || 0).toFixed(2)}`;
   };
 
   return (
@@ -109,14 +109,22 @@ export default function DashboardPage() {
         <Card className="bg-purple-50">
           <CardContent>
             <Typography variant="subtitle2" color="textSecondary">Resumen Financiero</Typography>
-            <Typography variant="h5" className="font-bold text-green-600">
+            <Typography variant="h6" className="font-bold text-green-600">
               Ingresos: {formatCurrency(dashboardStats?.financialSummary?.totalIncome)}
             </Typography>
-            <Typography variant="body2" className="text-red-600">
+            <Typography variant="h6" className="text-red-600">
               Gastos: {formatCurrency(dashboardStats?.financialSummary?.totalExpenses)}
             </Typography>
             <Typography variant="body1" className="font-semibold mt-1">
-              Ganancia: {formatCurrency(dashboardStats?.financialSummary?.netProfit)}
+              {dashboardStats?.financialSummary?.netProfit && dashboardStats?.financialSummary?.netProfit < 0 ? (
+                <Typography variant="body2" className="text-red-600">
+                  (Pérdida: {formatCurrency(dashboardStats?.financialSummary?.netProfit)})
+                </Typography>
+              ) : (
+                <Typography variant="body2" className="text-green-600">
+                  (Ganancia: {formatCurrency(dashboardStats?.financialSummary?.netProfit)})
+                </Typography>
+              )}
             </Typography>
           </CardContent>
         </Card>
@@ -149,11 +157,13 @@ export default function DashboardPage() {
               <Typography variant="h6">Productos más vendidos</Typography>
               <DataGrid
                 sx={{
-                  '& .MuiDataGrid-cell.main-column': {
-                    backgroundColor: '#1ADB42 !important',
-                  },
                   '& .MuiDataGrid-columnHeader.main-column': {
-                    backgroundColor: '#1ADB42 !important',
+                    backgroundColor: '#568748 !important',
+                    color: 'white !important',
+                  },
+                  '& .MuiDataGrid-cell.main-column': {
+                    backgroundColor: '#bdd6b8 !important',
+                    color: '#3b5736 !important',
                   },
                 }}
                 rows={dashboardStats?.topProducts?.map((p, idx) => ({ ...p, id: p.productId || idx })) || []}
@@ -177,11 +187,13 @@ export default function DashboardPage() {
               <Typography variant="h6">Categorías más vendidas</Typography>
               <DataGrid
                 sx={{
-                  '& .MuiDataGrid-cell.main-column': {
-                    backgroundColor: '#1ADB42 !important',
-                  },
                   '& .MuiDataGrid-columnHeader.main-column': {
-                    backgroundColor: '#1ADB42 !important',
+                    backgroundColor: '#568748 !important',
+                    color: 'white !important',
+                  },
+                  '& .MuiDataGrid-cell.main-column': {
+                    backgroundColor: '#bdd6b8 !important',
+                    color: '#3b5736 !important',
                   },
                 }}
                 rows={dashboardStats?.topCategories?.map((c, idx) => ({ ...c, id: c.categoryId || idx })) || []}
@@ -205,13 +217,13 @@ export default function DashboardPage() {
               <Typography variant="h6" className="text-orange-600">⚠️ Productos con stock bajo</Typography>
               <DataGrid
                 sx={{
-                  '& .MuiDataGrid-cell.warning-column': {
-                    backgroundColor: '#FFA726 !important',
-                    color: 'white !important',
-                  },
                   '& .MuiDataGrid-columnHeader.warning-column': {
                     backgroundColor: '#FFA726 !important',
                     color: 'white !important',
+                  },
+                  '& .MuiDataGrid-cell.warning-column': {
+                    backgroundColor: '#f9e2a8 !important',
+                    color: '#85775f !important',
                   },
                 }}
                 rows={dashboardStats?.lowStockProducts?.map((p, idx) => ({ ...p, id: p.productId || idx })) || []}
