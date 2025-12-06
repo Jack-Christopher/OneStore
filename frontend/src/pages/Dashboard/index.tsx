@@ -3,6 +3,7 @@ import { useReportsStore } from "@/store/reportsStore";
 import { Box, Card, CardContent, Typography, Chip } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
+import { formatCurrency } from "@/utils/currency";
 
 export default function DashboardPage() {
   const user = useAuthStore.getState().authUser?.user;
@@ -42,7 +43,7 @@ export default function DashboardPage() {
     { field: 'totalQuantity', headerName: 'Cantidad', flex: 1 },
     {
       field: 'totalAmount', headerName: 'Monto Total', flex: 1, cellClassName: 'main-column', headerClassName: 'main-column',
-      renderCell: (params: any) => `$${params.value?.toFixed(2) || '0.00'}`
+      renderCell: (params: any) => formatCurrency(params.value)
     },
   ];
 
@@ -51,7 +52,7 @@ export default function DashboardPage() {
     { field: 'totalQuantity', headerName: 'Cantidad', flex: 1 },
     {
       field: 'totalAmount', headerName: 'Monto Total', flex: 1, cellClassName: 'main-column', headerClassName: 'main-column',
-      renderCell: (params: any) => `$${params.value?.toFixed(2) || '0.00'}`
+      renderCell: (params: any) => formatCurrency(params.value)
     },
   ];
 
@@ -60,10 +61,6 @@ export default function DashboardPage() {
     { field: 'currentStock', headerName: 'Stock Actual', flex: 1, cellClassName: 'warning-column', headerClassName: 'warning-column' },
     { field: 'minStock', headerName: 'Stock Mínimo', flex: 1 },
   ];
-
-  const formatCurrency = (value: number | undefined) => {
-    return value && value < 0 ? `-$${(value * -1).toFixed(2)}` : `$${(value || 0).toFixed(2)}`;
-  };
 
   return (
     <div className="p-4">

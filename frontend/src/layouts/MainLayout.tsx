@@ -1,21 +1,46 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { useSettingsStore } from '@/store/settingsStore'
+import { useEffect } from 'react'
 
 export const MainLayout = () => {
   const navigate = useNavigate()
+  const { settings, fetch } = useSettingsStore()
+
+  useEffect(() => {
+    fetch()
+  }, [])
+
+  useEffect(() => {
+    // Apply theme to html element
+    if (settings.theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [settings.theme])
 
   const handleLogout = () => {
     useAuthStore.getState().logout();
     navigate('/login')
   }
 
+  const storeName = settings.store_name || 'OneStore'
+  const storeLogo = settings.store_logo_path || undefined
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
       <aside className="w-60 bg-slate-800 text-white flex flex-col justify-between">
         <div>
-          <h2 className="text-2xl font-bold p-4">OneStore</h2>
+          {storeLogo &&
+          // center the image
+          <div className="flex justify-center pt-6">
+            <img src={`${import.meta.env.VITE_API_URL}${storeLogo}`} alt="Store Logo" className="mx-auto object-contain max-w-32 max-h-32" />
+          </div>
+          }
+          <h2 className="text-2xl font-bold p-4">{storeName}</h2>
           <nav className="flex flex-col gap-2 p-4">
             <Link to="/" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><Home size={18} /> Dashboard</Link>
             <Link to="/categories" className="hover:bg-slate-700 rounded p-2 flex items-center gap-2"><Tag size={18} /> Categorías</Link>
