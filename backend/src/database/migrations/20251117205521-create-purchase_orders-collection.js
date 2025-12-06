@@ -17,7 +17,7 @@ module.exports = {
             user_id: { bsonType: "string" },
             status: { bsonType: "string", enum: ["pending", "received", "canceled"] },
             reference_number: { bsonType: ["string", "null"] },
-            total_amount: { bsonType: "double" },
+            total_amount: { bsonType: ["double", "int", "null"] },
             notes: { bsonType: ["string", "null"] },
             metadata: { bsonType: ["object", "null"] },
             created_at: { bsonType: "date" },
