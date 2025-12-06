@@ -9,6 +9,13 @@ const saleItemsRoutes = require("./modules/saleItems/saleItems.routes");
 const categoriesRoutes = require("./modules/categories/categories.routes");
 const unitsOfMeasureRoutes = require("./modules/unitsOfMeasure/unitsOfMeasure.routes");
 const productFormulasRoutes = require("./modules/productFormulas/productFormulas.routes");
+const suppliersRoutes = require("./modules/suppliers/suppliers.routes");
+const customersRoutes = require("./modules/customers/customers.routes");
+const warehousesRoutes = require("./modules/warehouses/warehouses.routes");
+const purchaseOrdersRoutes = require("./modules/purchaseOrders/purchaseOrders.routes");
+const stockMovementsRoutes = require("./modules/stockMovements/stockMovements.routes");
+const warehouseProductsRoutes = require("./modules/warehouseProducts/warehouseProducts.routes");
+const reportsRoutes = require("./modules/reports/reports.routes");
 const errorHandler = require("./shared/middlewares/errorHandler");
 
 const expressApp = express();
@@ -25,6 +32,13 @@ apiRouter.use("/saleItems", saleItemsRoutes);
 apiRouter.use("/categories", categoriesRoutes);
 apiRouter.use("/unitsOfMeasure", unitsOfMeasureRoutes);
 apiRouter.use("/productFormulas", productFormulasRoutes);
+apiRouter.use("/suppliers", suppliersRoutes);
+apiRouter.use("/customers", customersRoutes);
+apiRouter.use("/warehouses", warehousesRoutes);
+apiRouter.use("/purchaseOrders", purchaseOrdersRoutes);
+apiRouter.use("/stockMovements", stockMovementsRoutes);
+apiRouter.use("/warehouseProducts", warehouseProductsRoutes);
+apiRouter.use("/reports", reportsRoutes);
 
 expressApp.use("/api", apiRouter);
 expressApp.use(errorHandler);

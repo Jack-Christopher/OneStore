@@ -13,6 +13,10 @@ import { PrivateRoute } from '@/routes/PrivateRoute'
 import CategoriesPage from '@/pages/Categories'
 import UnitsOfMeasurePage from '@/pages/UnitsOfMeasure'
 import ProductFormulas from '@/pages/ProductFormulas'
+import SuppliersPage from '@/pages/Suppliers'
+import CustomersPage from '@/pages/Customers'
+import WarehousesPage from '@/pages/Warehouses'
+import PurchaseOrdersPage from '@/pages/PurchaseOrders'
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -40,6 +44,10 @@ export const AppRoutes = () => (
         <Route path="unitsOfMeasure" element={<UnitsOfMeasurePage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="productFormulas" element={<ProductFormulas />} />
+        <Route path="suppliers" element={<SuppliersPage />} />
+        <Route path="customers" element={<CustomersPage />} />
+        <Route path="warehouses" element={<WarehousesPage />} />
+        <Route path="purchaseOrders" element={<PurchaseOrdersPage />} />
         <Route path="sales" element={<SalesPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
