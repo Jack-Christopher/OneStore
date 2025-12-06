@@ -15,7 +15,7 @@ module.exports = {
             warehouse_id: { bsonType: "string" },
             product_id: { bsonType: "string" },
             movement_type: { bsonType: "string", enum: ["purchase", "sale", "adjustment_in", "adjustment_out", "transfer_in", "transfer_out"] },
-            quantity: { bsonType: "double" },
+            quantity: { bsonType: ["double", "int", "null"] },
             related_id: { bsonType: ["string", "null"] },
             comment: { bsonType: ["string", "null"] },
             metadata: { bsonType: ["object", "null"] },
