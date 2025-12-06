@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { getSettings, updateSettings, uploadLogo } from "@/services/api/settings";
 import type { Settings, UpdateSettingsPayload } from "@/services/api/settings";
+import { applyTheme, type ThemeName } from "@/theme.config";
 
 interface SettingsState {
   settings: Settings;
@@ -22,7 +23,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       set({ loading: true, error: null });
       const res = await getSettings();
       if (res.success) {
-        set({ settings: res.data || {} });
+        const newSettings = res.data || {};
+        set({ settings: newSettings });
+        
+        // Apply theme immediately when fetched
+        if (newSettings.theme) {
+          applyTheme(newSettings.theme as ThemeName);
+        }
       } else {
         set({ error: res.message || "Error fetching settings" });
       }
@@ -38,7 +45,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       set({ loading: true, error: null });
       const res = await updateSettings(payload);
       if (res.success && res.data) {
-        set({ settings: { ...get().settings, ...res.data } });
+        const updatedSettings = { ...get().settings, ...res.data };
+        set({ settings: updatedSettings });
+        
+        // Apply theme immediately when updated
+        if (payload.theme) {
+          applyTheme(payload.theme as ThemeName);
+        }
       } else {
         set({ error: res.message || "Error updating settings" });
       }
@@ -68,4 +81,3 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 }));
-

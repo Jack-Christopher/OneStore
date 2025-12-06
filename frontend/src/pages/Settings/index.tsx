@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 import { Button } from '@mui/material'
 import { useSettingsStore } from '@/store/settingsStore'
 import Alert from '@/components/Alert'
+import { applyTheme, type ThemeName } from '@/theme.config'
+
+// TODO: fix bug when changing theme, the theme is applied immediately 
+// even if the form is not submitted and the theme is not saved
 
 const CURRENCIES = [
   { value: 'PEN', label: 'PEN - Sol Peruano' },
@@ -116,7 +120,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Configuración del Sistema</h1>
+      <h1 className="text-xl font-semibold mb-4 text-text-main">Configuración del Sistema</h1>
 
       {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
       {formError && <Alert type="error" boldMessage="Error: " message={formError} styles="mb-4" />}
@@ -124,29 +128,29 @@ export default function SettingsPage() {
 
       <form className="space-y-4 max-w-2xl" onSubmit={handleSubmit}>
         <div>
-          <label className="block mb-2 text-sm font-medium">Nombre de la tienda</label>
+          <label className="block mb-2 text-sm font-medium text-text-main">Nombre de la tienda</label>
           <input
             type="text"
             placeholder="Nombre de la tienda"
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             value={form.store_name}
             onChange={(e) => setForm({ ...form, store_name: e.target.value })}
           />
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">RUC / Número fiscal</label>
+          <label className="block mb-2 text-sm font-medium text-text-main">RUC / Número fiscal</label>
           <input
             type="text"
             placeholder="RUC / Número fiscal"
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             value={form.store_ruc}
             onChange={(e) => setForm({ ...form, store_ruc: e.target.value })}
           />
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Logo</label>
+          <label className="block mb-2 text-sm font-medium text-text-main">Logo</label>
           {logoPreview && (
             <div className="mb-2">
               <img
@@ -159,16 +163,16 @@ export default function SettingsPage() {
           <input
             type="file"
             accept="image/*"
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             onChange={handleFileChange}
           />
-          <p className="text-xs text-gray-500 mt-1">Formatos permitidos: JPG, PNG, GIF, WEBP. Tamaño máximo: 5MB</p>
+          <p className="text-xs text-text-secondary mt-1">Formatos permitidos: JPG, PNG, GIF, WEBP. Tamaño máximo: 5MB</p>
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Formato de fecha preferida</label>
+          <label className="block mb-2 text-sm font-medium text-text-main">Formato de fecha preferida</label>
           <select
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             value={form.date_format}
             onChange={(e) => setForm({ ...form, date_format: e.target.value })}
           >
@@ -181,21 +185,27 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Tema</label>
+          <label className="block mb-2 text-sm font-medium text-text-main">Tema</label>
           <select
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             value={form.theme}
-            onChange={(e) => setForm({ ...form, theme: e.target.value })}
+            onChange={(e) => {
+              const newTheme = e.target.value as ThemeName
+              setForm({ ...form, theme: newTheme })
+              // Apply theme immediately for instant preview
+              applyTheme(newTheme)
+            }}
           >
             <option value="light">Claro</option>
             <option value="dark">Oscuro</option>
           </select>
+          <p className="text-xs text-text-secondary mt-1">El tema se aplica inmediatamente. Guarda para persistir el cambio.</p>
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Moneda</label>
+          <label className="block mb-2 text-sm font-medium text-text-main">Moneda</label>
           <select
-            className="border rounded p-2 w-full"
+            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             value={form.currency}
             onChange={(e) => setForm({ ...form, currency: e.target.value })}
           >

@@ -2,6 +2,10 @@ import { useEffect } from "react"
 import { AppRoutes } from '@/routes/AppRoutes'
 import { useAuthStore } from "@/store/authStore"
 import { useSettingsStore } from "@/store/settingsStore"
+import { applyTheme, initializeTheme, type ThemeName } from "@/theme.config"
+
+// Initialize theme early to prevent flash
+initializeTheme()
 
 export default function App() {
   const fetchProfile = useAuthStore((s) => s.fetchProfile)
@@ -13,12 +17,10 @@ export default function App() {
     fetchSettings()
   }, [])
 
-  // Apply theme from settings
+  // Apply theme from settings when it changes
   useEffect(() => {
-    if (settings.theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
+    if (settings.theme) {
+      applyTheme(settings.theme as ThemeName)
     }
   }, [settings.theme])
 

@@ -1,1 +1,65 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+
+  --color-text-main: var(--text-main);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-inverted: var(--text-inverted);
+}
+
+/* 
+ * Theme colors are set via CSS variables from theme.config.ts
+ * Edit that file to change colors!
+ * 
+ * Light Theme:
+ *   background: #F9F8F6
+ *   primary: #EFE9E3
+ *   secondary: #D9CFC7
+ *   accent: #C9B59C
+ *
+ * Dark Theme:
+ *   background: #132440
+ *   primary: #16476A
+ *   secondary: #3B9797
+ *   accent: #BF092F
+ */
+
+/* Default/Fallback values (light theme) */
+:root {
+  --background: #F9F8F6;
+  --primary: #EFE9E3;
+  --secondary: #D9CFC7;
+  --accent: #C9B59C;
+
+  --text-main: #132440;
+  --text-secondary: #4a5568;
+  --text-inverted: #F9F8F6;
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base body styles */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--text-main);
+}
+
+/* Smooth transitions when theme changes */
+*,
+*::before,
+*::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
