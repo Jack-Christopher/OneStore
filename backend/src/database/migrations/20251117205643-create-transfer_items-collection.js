@@ -14,7 +14,7 @@ module.exports = {
             tenant_id: { bsonType: "string" },
             transfer_id: { bsonType: "string" },
             product_id: { bsonType: "string" },
-            quantity: { bsonType: "double" },
+            quantity: { bsonType: ["double", "int", "null"] },
             created_at: { bsonType: "date" },
             updated_at: { bsonType: ["date", "null"] },
             created_by: { bsonType: ["string", "null"] },
