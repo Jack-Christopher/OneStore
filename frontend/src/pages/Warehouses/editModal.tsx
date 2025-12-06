@@ -1,0 +1,154 @@
+import { useEffect, useState } from "react";
+import { useWarehousesStore } from "@/store/warehousesStore";
+import { Box, Button, Modal, Checkbox, FormControlLabel } from "@mui/material";
+import Alert from "@/components/Alert";
+import { getWarehouse } from "@/services/api/warehouses";
+import type { UpdateWarehousePayload } from "@/services/api/warehouses";
+
+interface WarehousesEditModalProps {
+  open: boolean;
+  onClose: () => void;
+  warehouseId: string | null;
+}
+
+export default function WarehousesEditModal({ open, onClose, warehouseId }: WarehousesEditModalProps) {
+  const editWarehouse = useWarehousesStore((s) => s.edit);
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const boxStyle = {
+    position: 'absolute' as const,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    maxHeight: '80vh',
+    overflowY: 'auto',
+  };
+
+  const [formData, setFormData] = useState<UpdateWarehousePayload>({
+    name: "",
+    address: "",
+    phone: "",
+    isActive: true,
+  });
+
+  useEffect(() => {
+    if (warehouseId && open) {
+      setLoading(true);
+      getWarehouse(warehouseId)
+        .then((res) => {
+          if (res.success && res.data) {
+            const w = res.data as any;
+            setFormData({
+              name: w.name || "",
+              address: w.address || "",
+              phone: w.phone || "",
+              isActive: w.is_active ?? true,
+            });
+          }
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [warehouseId, open]);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (!formData.name) {
+      setError("El nombre es requerido");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await editWarehouse(warehouseId as string, formData);
+      onClose();
+    } catch (error: any) {
+      console.error("Edit warehouse error:", error);
+      setError("Error al editar la bodega");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+      <Box sx={boxStyle}>
+        <h2 className="text-2xl font-bold mb-4 text-center">Editar Bodega</h2>
+
+        <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Nombre *</label>
+          <input
+            type="text"
+            placeholder="Nombre"
+            className="border rounded p-2 w-full mb-3"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+
+          <label className="block mb-2 text-sm font-medium">Dirección</label>
+          <input
+            type="text"
+            placeholder="Dirección"
+            className="border rounded p-2 w-full mb-3"
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          />
+
+          <label className="block mb-2 text-sm font-medium">Teléfono</label>
+          <input
+            type="text"
+            placeholder="Teléfono"
+            className="border rounded p-2 w-full mb-3"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              />
+            }
+            label="Activa"
+            className="mb-3"
+          />
+
+          {error && (
+            <Alert
+              type="error"
+              boldMessage="Error: "
+              message={error}
+              styles="mb-4"
+            />
+          )}
+
+          <div className="flex justify-between mt-4">
+            <Button variant="contained" color="error" onClick={onClose}>
+              Cancelar
+            </Button>
+
+            <Button
+              variant="contained"
+              color="success"
+              type="submit"
+              disabled={loading}
+            >
+              Guardar Cambios
+            </Button>
+          </div>
+        </form>
+      </Box>
+    </Modal>
+  );
+}
+
