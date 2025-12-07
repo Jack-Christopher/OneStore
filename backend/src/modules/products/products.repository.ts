@@ -3,18 +3,33 @@ import { ProductDTO } from '../products/products.types';
 const Product = require("../../database/models/Product");
 const User = require("../../database/models/User");
 const SaleItem = require("../../database/models/SaleItem");
+const WarehouseProduct = require("../../database/models/WarehouseProduct");
 
 module.exports = {
   findAll(user_id: string) {
     const products = User.findOne({ _id: user_id }).exec()
-      .then((user: any) => {
+      .then(async (user: any) => {
         const tenantId = user.tenant_id;
 
         if (tenantId == "orphan") return [];
 
-        return Product.find({ tenant_id: tenantId })
+        const productsList = await Product.find({ tenant_id: tenantId })
           .populate("category_id", "name")
-          .populate("unit_id", "name");
+          .populate("unit_id", "name")
+          .lean();
+
+        const warehouseProducts = await WarehouseProduct.find({ tenant_id: tenantId }).lean();
+
+        const stockMap = new Map<string, number>();
+        warehouseProducts.forEach((wp: { product_id: string; quantity?: number }) => {
+          const current = stockMap.get(wp.product_id) || 0;
+          stockMap.set(wp.product_id, current + (wp.quantity || 0));
+        });
+
+        return productsList.map((product: { _id: { toString: () => string };[key: string]: any }) => ({
+          ...product,
+          currentStock: stockMap.get(product._id.toString()) || 0
+        }));
       });
 
     return products;
@@ -53,7 +68,7 @@ module.exports = {
         }
 
         // Step 4: Attach total_quantity_sold to each product (default to 0 for products with no sales)
-        const mergedProducts = allProducts.map(product => ({
+        const mergedProducts = allProducts.map((product: any) => ({
           _id: product._id,
           name: product.name,
           sku: product.sku,
@@ -62,7 +77,7 @@ module.exports = {
         }));
 
         // Step 5: Sort in descending order by total_quantity_sold
-        mergedProducts.sort((a, b) => b.total_quantity_sold - a.total_quantity_sold);
+        mergedProducts.sort((a: any, b: any) => b.total_quantity_sold - a.total_quantity_sold);
 
         return mergedProducts;
       });

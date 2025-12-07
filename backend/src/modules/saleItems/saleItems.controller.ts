@@ -21,13 +21,18 @@ async function getOne(req: Req, res: Res) {
 }
 
 async function create(req: Req, res: Res) {
-  const saleItem = await service.create(req.body);
-  return ok(res, saleItem);
+  try {
+    const saleItem = await service.create(req.body, req?.user?.id);
+    return ok(res, saleItem);
+  } catch (error) {
+    console.log(JSON.stringify(error, null, 2));
+    return fail(res, "Sale item couldn't be created", 409);
+  }
 }
 
 async function createMany(req: Req, res: Res) {
   try {
-    const saleItems = await service.createMany(req.body);
+    const saleItems = await service.createMany(req.body, req?.user?.id);
     return ok(res, saleItems);
   } catch (error) {
     console.log(JSON.stringify(error, null, 2));

@@ -244,6 +244,18 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         setLoading(false);
         return;
       }
+
+      // Validate stock availability
+      const product = productItems.find(p => p._id === item.productId);
+      if (product) {
+        const availableStock = product.currentStock || 0;
+        if (item.quantity > availableStock) {
+          setError(`Stock insuficiente para el producto "${product.name}" en el ítem ${i + 1}. Stock disponible: ${availableStock}, solicitado: ${item.quantity}`);
+          setLoading(false);
+          return;
+        }
+      }
+
       if (!item.unitPrice || item.unitPrice <= 0) {
         setError(`Precio unitario debe ser mayor a 0 para el ítem ${i + 1}`);
         setLoading(false);
@@ -324,12 +336,34 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                 value={item.unitId}
               />
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
-              <Input
-                type="number"
-                placeholder="Cantidad"
-                value={item.quantity || 0}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
-              />
+              {(() => {
+                const selectedProduct = productItems.find(p => p._id === item.productId);
+                const availableStock = selectedProduct?.currentStock || 0;
+                const quantity = item.quantity || 0;
+                const exceedsStock = quantity > availableStock;
+
+                return (
+                  <>
+                    <Input
+                      type="number"
+                      placeholder="Cantidad"
+                      value={item.quantity || 0}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
+                      style={exceedsStock ? { borderColor: 'red', borderWidth: '2px' } : {}}
+                    />
+                    {item.productId && (
+                      <div className="text-sm mt-1">
+                        <span className={availableStock > 0 ? 'text-green-600' : 'text-red-600'}>
+                          Stock disponible: {availableStock}
+                        </span>
+                        {exceedsStock && (
+                          <span className="text-red-600 block">⚠️ La cantidad excede el stock disponible</span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               <label className="block mb-2 text-sm font-medium">Precio Unitario</label>
               <Input
                 type="number"

@@ -13,6 +13,7 @@ export interface Product {
   minStock: number;
   maxStock: number;
   description: string;
+  currentStock?: number;
 }
 
 export interface MostSoldProduct extends Product {
