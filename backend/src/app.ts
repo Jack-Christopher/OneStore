@@ -4,6 +4,8 @@ const body = require("body-parser");
 const path = require("path");
 
 const authRoutes = require("./modules/auth/auth.routes");
+const adminRoutes = require("./modules/admin/admin.routes");
+const managerRoutes = require("./modules/manager/manager.routes");
 const productsRoutes = require("./modules/products/products.routes");
 const salesRoutes = require("./modules/sales/sales.routes");
 const saleItemsRoutes = require("./modules/saleItems/saleItems.routes");
@@ -31,6 +33,8 @@ expressApp.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 const apiRouter = express.Router();
 
 apiRouter.use("/auth", authRoutes);
+apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/manager", managerRoutes);
 apiRouter.use("/products", productsRoutes);
 apiRouter.use("/sales", salesRoutes);
 apiRouter.use("/saleItems", saleItemsRoutes);

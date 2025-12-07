@@ -27,7 +27,7 @@ export const LoginPage = () => {
       useAuthStore.setState({ loading: false });
       return;
     }
-    
+
     try {
       await loginUser(form)
       navigate("/")
@@ -80,10 +80,6 @@ export const LoginPage = () => {
         >
           {loading ? "Cargando..." : "Iniciar sesión"}
         </button>
-
-        <p className="text-center text-sm mt-4 text-gray-600">
-          ¿Aún no tienes cuenta? <a href="/register" className="text-blue-600 hover:underline">Regístrate</a>
-        </p>
       </form>
     </div>
   )

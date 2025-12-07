@@ -9,6 +9,7 @@ const TenantSchema = new Schema({
   address: { type: String },
   phone: { type: String },
   email: { type: String },
+  is_active: { type: Boolean, default: true },
   created_by: { type: String },
   updated_by: { type: String },
   metadata: Schema.Types.Mixed

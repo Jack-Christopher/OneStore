@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useEffect, useState } from 'react'
@@ -42,20 +42,49 @@ export const MainLayout = () => {
             <h2 className="text-2xl font-bold p-4 text-center whitespace-nowrap">{storeName}</h2>
           </div>
           <nav className="flex flex-col gap-2 p-4">
-            {[
-              { to: "/", icon: <Home size={20} />, label: "Dashboard" },
-              { to: "/categories", icon: <Tag size={20} />, label: "Categorías" },
-              { to: "/unitsOfMeasure", icon: <RulerDimensionLine size={20} />, label: "Unidades de Medida" },
-              { to: "/products", icon: <Package size={20} />, label: "Productos" },
-              { to: "/productFormulas", icon: <Calculator size={20} />, label: "Fórmulas de Productos" },
-              { to: "/suppliers", icon: <Truck size={20} />, label: "Proveedores" },
-              { to: "/customers", icon: <Users size={20} />, label: "Clientes" },
-              { to: "/warehouses", icon: <Warehouse size={20} />, label: "Bodegas" },
-              { to: "/purchaseOrders", icon: <ShoppingCart size={20} />, label: "Compras" },
-              { to: "/sales", icon: <DollarSign size={20} />, label: "Ventas" },
-              { to: "/profile", icon: <User size={20} />, label: "Perfil" },
-              { to: "/settings", icon: <Settings size={20} />, label: "Configuración" },
-            ].map((link) => (
+            {(() => {
+              const user = useAuthStore.getState().authUser?.user;
+              const role = user?.role;
+              
+              const baseLinks = [
+                { to: "/", icon: <Home size={20} />, label: "Dashboard" },
+                { to: "/categories", icon: <Tag size={20} />, label: "Categorías" },
+                { to: "/unitsOfMeasure", icon: <RulerDimensionLine size={20} />, label: "Unidades de Medida" },
+                { to: "/products", icon: <Package size={20} />, label: "Productos" },
+                { to: "/productFormulas", icon: <Calculator size={20} />, label: "Fórmulas de Productos" },
+                { to: "/suppliers", icon: <Truck size={20} />, label: "Proveedores" },
+                { to: "/customers", icon: <Users size={20} />, label: "Clientes" },
+                { to: "/warehouses", icon: <Warehouse size={20} />, label: "Bodegas" },
+                { to: "/purchaseOrders", icon: <ShoppingCart size={20} />, label: "Compras" },
+                { to: "/sales", icon: <DollarSign size={20} />, label: "Ventas" },
+              ];
+
+              const adminLinks = [
+                { to: "/admin/tenants", icon: <Building2 size={20} />, label: "Tenants" },
+                { to: "/admin/managers", icon: <UserCog size={20} />, label: "Managers" },
+              ];
+
+              const managerLinks = [
+                { to: "/manager/clerks", icon: <UserCheck size={20} />, label: "Clerks" },
+              ];
+
+              const commonLinks = [
+                { to: "/profile", icon: <User size={20} />, label: "Perfil" },
+                { to: "/settings", icon: <Settings size={20} />, label: "Configuración" },
+              ];
+
+              let links = [...baseLinks];
+              
+              if (role === "admin") {
+                links = [...links, ...adminLinks];
+              } else if (role === "manager") {
+                links = [...links, ...managerLinks];
+              }
+              
+              links = [...links, ...commonLinks];
+              
+              return links;
+            })().map((link) => (
               <Link
                 key={link.to}
                 to={link.to}

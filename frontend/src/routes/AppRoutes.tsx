@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { LoginPage } from '@/pages/LoginPage'
-import { RegisterPage } from '@/pages/RegisterPage'
 import DashboardPage from '@/pages/Dashboard'
 import ProductsPage from '@/pages/Products'
 import SalesPage from '@/pages/Sales'
@@ -17,6 +16,9 @@ import SuppliersPage from '@/pages/Suppliers'
 import CustomersPage from '@/pages/Customers'
 import WarehousesPage from '@/pages/Warehouses'
 import PurchaseOrdersPage from '@/pages/PurchaseOrders'
+import AdminTenantsPage from '@/pages/AdminTenants'
+import AdminManagersPage from '@/pages/AdminManagers'
+import ManagerClerksPage from '@/pages/ManagerClerks'
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -24,11 +26,6 @@ export const AppRoutes = () => (
       <Route path="/login" element={
         <PublicRoute>
           <LoginPage />
-        </PublicRoute>
-      } />
-      <Route path="/register" element={
-        <PublicRoute>
-          <RegisterPage />
         </PublicRoute>
       } />
       <Route
@@ -49,6 +46,9 @@ export const AppRoutes = () => (
         <Route path="warehouses" element={<WarehousesPage />} />
         <Route path="purchaseOrders" element={<PurchaseOrdersPage />} />
         <Route path="sales" element={<SalesPage />} />
+        <Route path="admin/tenants" element={<AdminTenantsPage />} />
+        <Route path="admin/managers" element={<AdminManagersPage />} />
+        <Route path="manager/clerks" element={<ManagerClerksPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
