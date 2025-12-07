@@ -8,17 +8,18 @@ interface SelectProps {
   setFormInput: (value: any) => void;
   styles?: string;
   value?: string;
+  disabled?: boolean;
 }
 
 
-export default function Select({ options, setFormInput, styles, value }: SelectProps) {
+export default function Select({ options, setFormInput, styles, value, disabled }: SelectProps) {
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormInput(event.target.value); 
+    setFormInput(event.target.value);
   };
 
   return (
-    <select className={styles} onChange={handleChange} value={value}>
+    <select className={styles} onChange={handleChange} value={value} disabled={disabled}>
       <option value="">Seleccione una opción</option>
       {options && options.map((o) => {
         return <option key={o.value} value={o.value} >{o.label}</option>

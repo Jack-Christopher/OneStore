@@ -180,8 +180,25 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       // @ts-ignore TODO: fix this
       target[key] = value;
 
+      // When product is selected, autocomplete unitPrice and unitId
+      if (key === "productId" && value) {
+        const selectedProduct = productItems.find(p => p._id === value);
+        if (selectedProduct) {
+          // Autocomplete unitPrice with salePrice (handle both snake_case and camelCase)
+          target.unitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+
+          // Autocomplete unitId with product's unitId (handle both snake_case and camelCase, and object/string cases)
+          const unitIdField = (selectedProduct as any).unitId || (selectedProduct as any).unit_id;
+          if (typeof unitIdField === 'object' && unitIdField !== null) {
+            target.unitId = unitIdField._id || "";
+          } else {
+            target.unitId = unitIdField || "";
+          }
+        }
+      }
+
       // recalc subtotal if needed
-      if (key === "quantity" || key === "unitPrice") {
+      if (key === "quantity" || key === "unitPrice" || key === "productId") {
         const qty = Number(target.quantity) || 0;
         const price = Number(target.unitPrice) || 0;
         target.subtotal = qty * price;
@@ -199,7 +216,32 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
 
   const handleAddItemWithFormula = (formulaItem: CreateProductFormulaItem) => {
-    setItems(prev => [...prev, { ...createDefaultSaleItem(), productId: formulaItem.productId, unitId: formulaItem.unitId, quantity: formulaItem.quantity }]);
+    const newItem = { ...createDefaultSaleItem(), productId: formulaItem.productId, unitId: formulaItem.unitId, quantity: formulaItem.quantity };
+
+    // Autocomplete unitPrice from product's salePrice (handle both snake_case and camelCase)
+    const selectedProduct = productItems.find(p => p._id === formulaItem.productId);
+    if (selectedProduct) {
+      newItem.unitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+
+      // Ensure unitId matches product's unitId (handle both snake_case and camelCase, and object/string cases)
+      const unitIdField = (selectedProduct as any).unitId || (selectedProduct as any).unit_id;
+      if (typeof unitIdField === 'object' && unitIdField !== null) {
+        newItem.unitId = unitIdField._id || formulaItem.unitId;
+      } else {
+        newItem.unitId = unitIdField || formulaItem.unitId;
+      }
+
+      // Recalculate subtotal
+      newItem.subtotal = (newItem.quantity || 0) * (newItem.unitPrice || 0);
+    }
+
+    setItems(prev => {
+      const updated = [...prev, newItem];
+      // Recalculate total
+      const total = updated.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+      setSaleForm(s => ({ ...s, totalAmount: total }));
+      return updated;
+    });
   };
 
   function toCreateSaleItemPayload(item: CreateSaleItemState): CreateSaleItemPayload {
@@ -334,6 +376,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                 setFormInput={(value) => handleUpdateItem(idx, "unitId", value)}
                 styles="border rounded p-2 w-full mb-3"
                 value={item.unitId}
+                disabled={!!item.productId}
               />
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
               {(() => {
