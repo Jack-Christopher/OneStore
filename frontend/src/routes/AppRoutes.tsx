@@ -19,6 +19,7 @@ import PurchaseOrdersPage from '@/pages/PurchaseOrders'
 import AdminTenantsPage from '@/pages/AdminTenants'
 import AdminManagersPage from '@/pages/AdminManagers'
 import ManagerClerksPage from '@/pages/ManagerClerks'
+import AuditPage from '@/pages/Audit'
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -49,6 +50,7 @@ export const AppRoutes = () => (
         <Route path="admin/tenants" element={<AdminTenantsPage />} />
         <Route path="admin/managers" element={<AdminManagersPage />} />
         <Route path="manager/clerks" element={<ManagerClerksPage />} />
+        <Route path="audit" element={<AuditPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

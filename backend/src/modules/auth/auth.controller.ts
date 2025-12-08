@@ -2,6 +2,7 @@ export { }; // Empty export to force module scope
 
 const service = require("./auth.service");
 const { ok, fail } = require("../../shared/utils/response");
+const { logAudit } = require("../../shared/services/audit.service");
 
 async function login(req: Req, res: Res) {
   const result = await service.login(req.body);
@@ -10,6 +11,17 @@ async function login(req: Req, res: Res) {
   const { id, tenantId, role, fullname, email, isActive, token } = result.data;
 
   console.log("Login successful for user:", result.data);
+
+  // Audit login
+  await logAudit({
+    tenant_id: tenantId || "orphan",
+    user_id: id,
+    action: "login",
+    entity: "User",
+    entity_id: id,
+    old_data: null,
+    new_data: { email, role }
+  });
 
   return ok(res, ({
     user: {
@@ -38,4 +50,24 @@ async function register(req: Req, res: Res) {
   });
 }
 
-module.exports = { login, register }; 
+async function logout(req: Req, res: Res) {
+  const user_id = req.user?.id;
+  const tenant_id = req.user?.tenant_id || "orphan";
+
+  // Audit logout
+  if (user_id) {
+    await logAudit({
+      tenant_id: tenant_id,
+      user_id: user_id,
+      action: "logout",
+      entity: "User",
+      entity_id: user_id,
+      old_data: null,
+      new_data: null
+    });
+  }
+
+  return ok(res, { message: "Logged out successfully" });
+}
+
+module.exports = { login, register, logout }; 

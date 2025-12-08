@@ -9,9 +9,10 @@ const AuditLogSchema = new Schema({
   entity_id: { type: String },
   old_data: Schema.Types.Mixed,
   new_data: Schema.Types.Mixed,
-  performed_at: { type: Date, required: true },
-  created_by: { type: String },
-  updated_by: { type: String }
+  performed_at: { type: Date, default: () => new Date(), required: true },
 }, { collection: 'audit_logs', timestamps: false });
-AuditLogSchema.index({ performed_at: -1 });
+
+AuditLogSchema.index({ tenant_id: 1, performed_at: -1 });
+AuditLogSchema.index({ user_id: 1, performed_at: -1 });
+
 module.exports = model('AuditLog', AuditLogSchema);

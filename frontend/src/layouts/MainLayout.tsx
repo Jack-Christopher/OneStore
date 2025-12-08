@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck } from 'lucide-react'
+import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useEffect, useState } from 'react'
@@ -45,7 +45,7 @@ export const MainLayout = () => {
             {(() => {
               const user = useAuthStore.getState().authUser?.user;
               const role = user?.role;
-              
+
               const baseLinks = [
                 { to: "/", icon: <Home size={20} />, label: "Dashboard" },
                 { to: "/categories", icon: <Tag size={20} />, label: "Categorías" },
@@ -69,20 +69,21 @@ export const MainLayout = () => {
               ];
 
               const commonLinks = [
+                { to: "/audit", icon: <FileText size={20} />, label: "Auditoría" },
                 { to: "/profile", icon: <User size={20} />, label: "Perfil" },
                 { to: "/settings", icon: <Settings size={20} />, label: "Configuración" },
               ];
 
               let links = [...baseLinks];
-              
+
               if (role === "admin") {
                 links = [...links, ...adminLinks];
               } else if (role === "manager") {
                 links = [...links, ...managerLinks];
               }
-              
+
               links = [...links, ...commonLinks];
-              
+
               return links;
             })().map((link) => (
               <Link
