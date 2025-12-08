@@ -8,7 +8,7 @@ async function login(req: Req, res: Res) {
   const result = await service.login(req.body);
   if (!result.ok) return fail(res, result.code.message, result.code.name, result.status);
 
-  const { id, tenantId, role, fullname, email, isActive, token } = result.data;
+  const { id, tenantId, role, fullname, email, rubro, isActive, token } = result.data;
 
   console.log("Login successful for user:", result.data);
 
@@ -30,6 +30,7 @@ async function login(req: Req, res: Res) {
       email: email,
       fullname: fullname,
       role: role,
+      rubro: rubro,
       isActive: isActive
     },
     token: token
@@ -90,6 +91,7 @@ async function getProfile(req: Req, res: Res) {
       email: result.data.email,
       fullname: result.data.fullname,
       role: result.data.role,
+      rubro: result.data.rubro,
       isActive: result.data.isActive
     },
     token: token
@@ -129,6 +131,7 @@ async function updateProfile(req: Req, res: Res) {
       email: result.data.email,
       fullname: result.data.fullname,
       role: result.data.role,
+      rubro: result.data.rubro,
       isActive: result.data.isActive
     },
     token: token

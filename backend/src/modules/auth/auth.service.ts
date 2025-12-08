@@ -37,6 +37,7 @@ module.exports = {
         role: user.role,
         fullname: user.full_name,
         email: user.email,
+        rubro: user.rubro,
         isActive: user.is_active,
         token
       }
@@ -89,12 +90,13 @@ module.exports = {
         role: user.role,
         fullname: user.full_name,
         email: user.email,
+        rubro: user.rubro,
         isActive: user.is_active
       }
     }
   },
 
-  async updateProfile(userId: string, { fullname, email, password }: { fullname?: string; email?: string; password?: string }) {
+  async updateProfile(userId: string, { fullname, email, password, rubro }: { fullname?: string; email?: string; password?: string; rubro?: string }) {
     const user = await User.findById(userId)
     if (!user) {
       return {
@@ -127,6 +129,9 @@ module.exports = {
     if (password !== undefined && password.trim() !== '') {
       updateData.password = await bcrypt.hash(password, 10)
     }
+    if (rubro !== undefined) {
+      updateData.rubro = rubro
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -150,6 +155,7 @@ module.exports = {
         role: updatedUser.role,
         fullname: updatedUser.full_name,
         email: updatedUser.email,
+        rubro: updatedUser.rubro,
         isActive: updatedUser.is_active
       }
     }

@@ -20,6 +20,7 @@ export interface User {
   fullname: string
   email: string
   role: string
+  rubro?: string
   isActive: boolean
 }
 
@@ -61,6 +62,7 @@ export interface UpdateProfilePayload {
   fullname?: string;
   email?: string;
   password?: string;
+  rubro?: string;
 }
 
 export async function updateProfile(payload: UpdateProfilePayload) {

@@ -30,4 +30,5 @@ export interface UpdateProfileDTO {
   fullname?: string;
   email?: string;
   password?: string;
+  rubro?: string;
 }

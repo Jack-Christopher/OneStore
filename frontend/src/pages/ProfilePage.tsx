@@ -1,15 +1,30 @@
 import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { BriefcaseBusiness, Mail, User, Activity, Edit2, Save, X } from "lucide-react";
+import { BriefcaseBusiness, Mail, User, Activity, Edit2, Save, X, Building2 } from "lucide-react";
 import { Button, TextField, Box, Alert, Snackbar } from "@mui/material";
+import Select, { type SelectOption } from "@/components/Select";
 
 export const ProfilePage = () => {
   const { authUser, updateUserProfile, loading } = useAuthStore();
   const user = authUser?.user;
   const [isEditing, setIsEditing] = useState(false);
+  const rubroOptions: SelectOption[] = [
+    { value: "retail", label: "Retail / Comercio" },
+    { value: "alimentacion", label: "Alimentación / Restaurantes" },
+    { value: "tecnologia", label: "Tecnología / Software" },
+    { value: "construccion", label: "Construcción" },
+    { value: "salud", label: "Salud / Farmacia" },
+    { value: "educacion", label: "Educación" },
+    { value: "servicios", label: "Servicios Profesionales" },
+    { value: "manufactura", label: "Manufactura / Industria" },
+    { value: "transporte", label: "Transporte / Logística" },
+    { value: "otros", label: "Otros" },
+  ];
+
   const [formData, setFormData] = useState({
     fullname: user?.fullname || "",
     email: user?.email || "",
+    rubro: user?.rubro || "",
     password: "",
     confirmPassword: "",
   });
@@ -23,6 +38,7 @@ export const ProfilePage = () => {
     setFormData({
       fullname: user?.fullname || "",
       email: user?.email || "",
+      rubro: user?.rubro || "",
       password: "",
       confirmPassword: "",
     });
@@ -34,6 +50,7 @@ export const ProfilePage = () => {
     setFormData({
       fullname: user?.fullname || "",
       email: user?.email || "",
+      rubro: user?.rubro || "",
       password: "",
       confirmPassword: "",
     });
@@ -102,6 +119,7 @@ export const ProfilePage = () => {
       const payload: any = {
         fullname: formData.fullname.trim(),
         email: formData.email.trim(),
+        rubro: formData.rubro || undefined,
       };
 
       // Only include password if it was provided
@@ -208,6 +226,26 @@ export const ProfilePage = () => {
                   />
                 ) : (
                   user.email
+                )}
+              </dd>
+            </div>
+
+            {/* Rubro */}
+            <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500 flex items-center">
+                <Building2 className="inline-block mr-2 mb-1" size={16} />
+                Rubro
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {isEditing ? (
+                  <Select
+                    options={rubroOptions}
+                    setFormInput={(value) => setFormData(prev => ({ ...prev, rubro: value }))}
+                    styles="border rounded p-2 w-full mb-3"
+                    value={formData.rubro}
+                  />
+                ) : (
+                  rubroOptions.find(r => r.value === user.rubro)?.label || user.rubro || '-'
                 )}
               </dd>
             </div>

@@ -8,6 +8,7 @@ const UserSchema = new Schema({
   email: { type: String, required: true },
   full_name: { type: String },
   role: { type: String, enum: ['admin', 'manager', 'clerk'], default: 'clerk' },
+  rubro: { type: String },
   is_active: { type: Boolean, default: true },
   last_login_at: { type: Date },
   metadata: Schema.Types.Mixed,
