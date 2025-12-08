@@ -16,6 +16,8 @@ import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import type { UnitOfMeasure } from "@/services/api/unitsOfMeasure";
 import type { CreateProductFormulaItem, ProductFormula } from "@/services/api/productFormulas";
 import { useProductFormulasStore } from "@/store/productFormulasStore";
+import { useCustomersStore } from "@/store/customersStore";
+import type { Customer } from "@/services/api/customers";
 import Input from "@/components/Input";
 
 
@@ -30,6 +32,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
   const { items: productFormulasItems, fetch: fetchProductFormulas } = useProductFormulasStore();
+  const { items: customerItems, fetch: fetchCustomers } = useCustomersStore();
 
   const tenantId = useAuthStore.getState().authUser?.user?.tenantId || "orphan";
 
@@ -54,7 +57,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     tenantId: tenantId,
     warehouseId: "main",
     userId: useAuthStore.getState().authUser?.user?.id || "ghost",
-    customerName: "",
+    customerName: "Cliente varios",
     customerDocument: "",
     status: "completed",
     paymentMethod: "En efectivo",
@@ -70,23 +73,59 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     }
   }
 
+  const toCustomerSelectOption = (customer: Customer) => {
+    return {
+      value: customer._id,
+      label: `${customer.name}${customer.document ? ` (${customer.document})` : ''}`,
+    }
+  }
+
 
   useEffect(() => {
-    fetchProducts()
-      .then(() => {
-        setProducts(productItems.map((pi) => toSelectOption(pi)));
+    if (open) {
+      fetchProducts();
+      fetchUnitsOfMeasure();
+      fetchProductFormulas();
+      fetchCustomers();
+    }
+  }, [open]);
+
+  // Update products when productItems change
+  useEffect(() => {
+    setProducts(productItems.map((pi) => toSelectOption(pi)));
+  }, [productItems]);
+
+  // Update units of measure when unitsOfMeasureItems change
+  useEffect(() => {
+    setUnitsOfMeasure(unitsOfMeasureItems.map((uomi => toSelectOption(uomi))));
+  }, [unitsOfMeasureItems]);
+
+  // Update product formulas when productFormulasItems change
+  useEffect(() => {
+    setProductFormulas(productFormulasItems.map((f) => toSelectOption(f)));
+  }, [productFormulasItems]);
+
+  // Update customers when customerItems change
+  useEffect(() => {
+    console.log("customerItems updated:", customerItems);
+    if (customerItems && customerItems.length > 0) {
+      // Filter active customers - handle both camelCase and snake_case
+      const activeCustomers = customerItems.filter(c => {
+        const isActive = (c as any).isActive !== undefined
+          ? (c as any).isActive
+          : (c as any).is_active !== undefined
+            ? (c as any).is_active
+            : true; // Default to active if not specified
+        return isActive !== false;
       });
-
-    fetchUnitsOfMeasure()
-      .then(() => {
-        setUnitsOfMeasure(unitsOfMeasureItems.map((uomi => toSelectOption(uomi))));
-      })
-
-    fetchProductFormulas()
-      .then(() => {
-        setProductFormulas(productFormulasItems.map((f) => toSelectOption(f)));
-      })
-  }, []);
+      console.log("activeCustomers:", activeCustomers);
+      const customerOptions = activeCustomers.map((c) => toCustomerSelectOption(c));
+      console.log("customerOptions:", customerOptions);
+      setCustomers(customerOptions);
+    } else {
+      setCustomers([]);
+    }
+  }, [customerItems]);
 
 
   // factory that creates a fresh item object (new id every time)
@@ -106,6 +145,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   const [products, setProducts] = useState<SelectOption[]>([]);
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
   const [productFormulas, setProductFormulas] = useState<SelectOption[]>([]);
+  const [customers, setCustomers] = useState<SelectOption[]>([]);
 
   const [openFormulaModal, setOpenFormulaModal] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<SelectOption | null>(null);
@@ -342,6 +382,30 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Venta</h2>
 
         <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Cliente</label>
+          <Select
+            options={[
+              { value: "varios", label: "Cliente varios" },
+              ...(customers || [])
+            ]}
+            setFormInput={(value) => {
+              if (value === "varios" || value === "") {
+                setSaleForm({ ...saleForm, customerName: "Cliente varios", customerDocument: "" });
+              } else {
+                const selectedCustomer = customerItems.find(c => c._id === value);
+                if (selectedCustomer) {
+                  setSaleForm({
+                    ...saleForm,
+                    customerName: selectedCustomer.name,
+                    customerDocument: selectedCustomer.document || ""
+                  });
+                }
+              }
+            }}
+            styles="border rounded p-2 w-full mb-3"
+            value={saleForm.customerName === "Cliente varios" ? "varios" : customerItems.find(c => c.name === saleForm.customerName && (c.document || "") === (saleForm.customerDocument || ""))?._id || "varios"}
+          />
+
           <label className="block mb-2 text-sm font-medium">Método de pago</label>
           <input
             type="text"
