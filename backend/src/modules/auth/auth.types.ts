@@ -25,3 +25,9 @@ export interface AuthTokenPayloadDTO {
   id: string;
   email: string;
 }
+
+export interface UpdateProfileDTO {
+  fullname?: string;
+  email?: string;
+  password?: string;
+}

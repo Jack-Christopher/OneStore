@@ -85,8 +85,72 @@ module.exports = {
       ok: true,
       data: {
         id: user._id,
-        name: user.name,
-        email: user.email
+        tenantId: user.tenant_id,
+        role: user.role,
+        fullname: user.full_name,
+        email: user.email,
+        isActive: user.is_active
+      }
+    }
+  },
+
+  async updateProfile(userId: string, { fullname, email, password }: { fullname?: string; email?: string; password?: string }) {
+    const user = await User.findById(userId)
+    if (!user) {
+      return {
+        ok: false,
+        code: AuthErrorCode.UNAUTHORIZED,
+        status: 401
+      }
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } })
+      if (existingUser) {
+        return {
+          ok: false,
+          code: AuthErrorCode.EMAIL_ALREADY_EXISTS,
+          status: 400
+        }
+      }
+    }
+
+    const updateData: any = {}
+    if (fullname !== undefined) {
+      updateData.full_name = fullname
+      updateData.username = fullname // Update username too
+    }
+    if (email !== undefined) {
+      updateData.email = email
+    }
+    if (password !== undefined && password.trim() !== '') {
+      updateData.password = await bcrypt.hash(password, 10)
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { ...updateData, updated_by: userId },
+      { new: true }
+    )
+
+    if (!updatedUser) {
+      return {
+        ok: false,
+        code: AuthErrorCode.UNAUTHORIZED,
+        status: 401
+      }
+    }
+
+    return {
+      ok: true,
+      data: {
+        id: updatedUser._id,
+        tenantId: updatedUser.tenant_id,
+        role: updatedUser.role,
+        fullname: updatedUser.full_name,
+        email: updatedUser.email,
+        isActive: updatedUser.is_active
       }
     }
   }

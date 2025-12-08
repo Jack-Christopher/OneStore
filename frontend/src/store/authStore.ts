@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
-import { login, register, getProfile } from "@/services/api/auth"
-import type { AuthUser, LoginPayload, RegisterPayload } from "@/services/api/auth"
+import { login, register, getProfile, updateProfile } from "@/services/api/auth"
+import type { AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from "@/services/api/auth"
 
 interface AuthState {
   authUser: AuthUser | null
@@ -11,6 +11,7 @@ interface AuthState {
   loginUser: (payload: LoginPayload) => Promise<void>
   registerUser: (payload: RegisterPayload) => Promise<void>
   fetchProfile: () => Promise<void>
+  updateUserProfile: (payload: UpdateProfilePayload) => Promise<void>
   logout: () => void
 };
 
@@ -53,6 +54,21 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           set({ authUser: null });
           useAuthStore.persist.clearStorage();
+        }
+      },
+
+      updateUserProfile: async (payload: UpdateProfilePayload) => {
+        set({ loading: true });
+        try {
+          const res = await updateProfile(payload);
+          if (res.success && res.data) {
+            set({ authUser: res.data });
+          }
+        } catch (error) {
+          console.error("Error updating profile:", error);
+          throw error;
+        } finally {
+          set({ loading: false });
         }
       },
 

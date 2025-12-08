@@ -56,3 +56,14 @@ export async function getProfile() {
   const res = await api.get<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/profile`);
   return res.data;
 }
+
+export interface UpdateProfilePayload {
+  fullname?: string;
+  email?: string;
+  password?: string;
+}
+
+export async function updateProfile(payload: UpdateProfilePayload) {
+  const res = await api.put<ApiResponse<AuthUser>>(`${AUTH_API_BASE}/profile`, payload);
+  return res.data;
+}

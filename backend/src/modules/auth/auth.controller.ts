@@ -70,4 +70,69 @@ async function logout(req: Req, res: Res) {
   return ok(res, { message: "Logged out successfully" });
 }
 
-module.exports = { login, register, logout }; 
+async function getProfile(req: Req, res: Res) {
+  const userId = req?.user?.id;
+  if (!userId) {
+    return fail(res, "User not authenticated", "UNAUTHORIZED", 401);
+  }
+
+  const result = await service.profile(userId);
+  if (!result.ok) {
+    return fail(res, result.code.message, result.code.name, result.status);
+  }
+
+  const token = req.headers.authorization?.split(" ")[1] || "";
+
+  return ok(res, {
+    user: {
+      id: result.data.id,
+      tenantId: result.data.tenantId,
+      email: result.data.email,
+      fullname: result.data.fullname,
+      role: result.data.role,
+      isActive: result.data.isActive
+    },
+    token: token
+  });
+}
+
+async function updateProfile(req: Req, res: Res) {
+  const userId = req?.user?.id;
+  if (!userId) {
+    return fail(res, "User not authenticated", "UNAUTHORIZED", 401);
+  }
+
+  const oldUser = await service.profile(userId);
+  const result = await service.updateProfile(userId, req.body);
+  
+  if (!result.ok) {
+    return fail(res, result.code.message, result.code.name, result.status);
+  }
+
+  // Audit profile update
+  await logAudit({
+    tenant_id: result.data.tenantId || "orphan",
+    user_id: userId,
+    action: "update",
+    entity: "User",
+    entity_id: userId,
+    old_data: oldUser.ok ? oldUser.data : null,
+    new_data: result.data
+  });
+
+  const token = req.headers.authorization?.split(" ")[1] || "";
+
+  return ok(res, {
+    user: {
+      id: result.data.id,
+      tenantId: result.data.tenantId,
+      email: result.data.email,
+      fullname: result.data.fullname,
+      role: result.data.role,
+      isActive: result.data.isActive
+    },
+    token: token
+  });
+}
+
+module.exports = { login, register, logout, getProfile, updateProfile }; 
