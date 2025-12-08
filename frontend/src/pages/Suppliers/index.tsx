@@ -33,6 +33,7 @@ export default function SuppliersPage() {
     { field: 'phone', headerName: 'Teléfono', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'address', headerName: 'Dirección', flex: 1 },
+    { field: 'ruc', headerName: 'RUC', flex: 1 },
     {
       field: 'actions', headerName: 'Acciones', width: 250, renderCell: (params: GridRenderCellParams) => {
         return (

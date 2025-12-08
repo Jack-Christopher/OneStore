@@ -79,6 +79,10 @@ export default function CustomersViewModal({ open, onClose, customerId }: Custom
                 <td className="py-3 px-4 text-left">{customer?.address || '-'}</td>
               </tr>
               <tr className="border-t border-gray-200">
+                <td className="py-3 px-4 text-left font-medium text-gray-600">RUC</td>
+                <td className="py-3 px-4 text-left">{customer?.ruc || '-'}</td>
+              </tr>
+              <tr className="border-t border-gray-200">
                 <td className="py-3 px-4 text-left font-medium text-gray-600">Activo</td>
                 <td className="py-3 px-4 text-left">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${(customer as any)?.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

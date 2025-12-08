@@ -5,6 +5,7 @@ export interface SupplierDTO {
   phone: string;
   email: string;
   address: string;
+  ruc?: string;
   metadata?: any;
 }
 
@@ -16,6 +17,7 @@ export interface SupplierEntity {
   phone: string;
   email: string;
   address: string;
+  ruc?: string;
   metadata?: any;
 }
 
@@ -26,6 +28,7 @@ export interface SupplierUpdateDTO {
   phone?: string;
   email?: string;
   address?: string;
+  ruc?: string;
   metadata?: any;
 }
 

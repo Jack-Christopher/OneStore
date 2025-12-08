@@ -37,6 +37,7 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
     phone: "",
     email: "",
     address: "",
+    ruc: "",
   });
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
               phone: s.phone || "",
               email: s.email || "",
               address: s.address || "",
+              ruc: s.ruc || "",
             });
           }
         })
@@ -130,6 +132,15 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
             className="border rounded p-2 w-full mb-3"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          />
+
+          <label className="block mb-2 text-sm font-medium">RUC</label>
+          <input
+            type="text"
+            placeholder="RUC"
+            className="border rounded p-2 w-full mb-3"
+            value={formData.ruc || ""}
+            onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
           />
 
           {error && (

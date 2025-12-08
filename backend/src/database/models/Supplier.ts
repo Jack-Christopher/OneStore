@@ -8,6 +8,7 @@ const SupplierSchema = new Schema({
   phone: { type: String },
   email: { type: String },
   address: { type: String },
+  ruc: { type: String },
   metadata: Schema.Types.Mixed,
   created_by: { type: String },
   updated_by: { type: String }

@@ -57,7 +57,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     customerName: "",
     customerDocument: "",
     status: "completed",
-    paymentMethod: "",
+    paymentMethod: "En efectivo",
     totalAmount: 0,
     notes: "",
   };

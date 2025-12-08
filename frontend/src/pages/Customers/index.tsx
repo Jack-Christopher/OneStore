@@ -30,6 +30,7 @@ export default function CustomersPage() {
     { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'document', headerName: 'Documento', flex: 1 },
+    { field: 'ruc', headerName: 'RUC', flex: 1 },
     { field: 'phone', headerName: 'Teléfono', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'address', headerName: 'Dirección', flex: 1 },

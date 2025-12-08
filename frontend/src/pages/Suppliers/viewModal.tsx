@@ -54,6 +54,7 @@ export default function SuppliersViewModal({ open, onClose, supplierId }: Suppli
             <p><strong>Teléfono:</strong> {supplier.phone || '-'}</p>
             <p><strong>Email:</strong> {supplier.email || '-'}</p>
             <p><strong>Dirección:</strong> {supplier.address || '-'}</p>
+            <p><strong>RUC:</strong> {supplier.ruc || '-'}</p>
           </div>
         )}
 

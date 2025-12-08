@@ -8,6 +8,7 @@ const CustomerSchema = new Schema({
   phone: { type: String },
   email: { type: String },
   address: { type: String },
+  ruc: { type: String },
   is_active: { type: Boolean, default: true },
   metadata: Schema.Types.Mixed,
   created_by: { type: String },

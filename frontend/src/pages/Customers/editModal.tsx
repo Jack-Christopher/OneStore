@@ -37,6 +37,7 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
     phone: "",
     email: "",
     address: "",
+    ruc: "",
     isActive: true,
   });
 
@@ -53,6 +54,7 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
               phone: c.phone || "",
               email: c.email || "",
               address: c.address || "",
+              ruc: c.ruc || "",
               isActive: c.is_active ?? true,
             });
           }
@@ -132,6 +134,15 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
             className="border rounded p-2 w-full mb-3"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          />
+
+          <label className="block mb-2 text-sm font-medium">RUC</label>
+          <input
+            type="text"
+            placeholder="RUC"
+            className="border rounded p-2 w-full mb-3"
+            value={formData.ruc || ""}
+            onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
           />
 
           <FormControlLabel

@@ -9,6 +9,7 @@ export interface Customer {
   phone: string;
   email: string;
   address: string;
+  ruc?: string;
   isActive: boolean;
   metadata?: any;
 }
@@ -20,6 +21,7 @@ export interface CreateCustomerPayload {
   phone: string;
   email: string;
   address: string;
+  ruc?: string;
   isActive: boolean;
 }
 
@@ -30,6 +32,7 @@ export interface UpdateCustomerPayload {
   phone?: string;
   email?: string;
   address?: string;
+  ruc?: string;
   isActive?: boolean;
 }
 

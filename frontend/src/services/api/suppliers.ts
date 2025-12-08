@@ -9,6 +9,7 @@ export interface Supplier {
   phone: string;
   email: string;
   address: string;
+  ruc?: string;
   metadata?: any;
 }
 
@@ -19,6 +20,7 @@ export interface CreateSupplierPayload {
   phone: string;
   email: string;
   address: string;
+  ruc?: string;
 }
 
 export interface UpdateSupplierPayload {
@@ -28,6 +30,7 @@ export interface UpdateSupplierPayload {
   phone?: string;
   email?: string;
   address?: string;
+  ruc?: string;
 }
 
 const SUPPLIER_API_BASE = "/api/suppliers";
