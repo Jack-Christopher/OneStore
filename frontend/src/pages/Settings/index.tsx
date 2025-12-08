@@ -186,21 +186,12 @@ export default function SettingsPage() {
 
         <div>
         <label className="block mb-2 text-sm font-medium text-text-main">Tema</label>
-        <Alert
-            type="info"
-            boldMessage="Información: "
-            message="El tema se aplica inmediatamente. Puede ver el cambio en otras páginas, pero no se guardará hasta que guarde la configuración. Para deshacer el cambio, vuelva a la página de configuración o recargue la página."
-            styles="mb-4"
-          />
-
           <select
             className="border rounded p-2 w-full bg-background text-text-main border-secondary"
             value={form.theme}
             onChange={(e) => {
               const newTheme = e.target.value as ThemeName
               setForm({ ...form, theme: newTheme })
-              // Apply theme immediately for instant preview
-              applyTheme(newTheme)
             }}
           >
             <option value="light">Claro</option>
