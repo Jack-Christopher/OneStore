@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck, FileText } from 'lucide-react'
+import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck, FileText, HelpCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useEffect, useState } from 'react'
@@ -72,6 +72,7 @@ export const MainLayout = () => {
                 { to: "/audit", icon: <FileText size={20} />, label: "Auditoría" },
                 { to: "/profile", icon: <User size={20} />, label: "Perfil" },
                 { to: "/settings", icon: <Settings size={20} />, label: "Configuración" },
+                { to: "/support", icon: <HelpCircle size={20} />, label: "Soporte" },
               ];
 
               let links = [...baseLinks];
