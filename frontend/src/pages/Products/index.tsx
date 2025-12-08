@@ -8,6 +8,7 @@ import DeleteModal from '@/components/DeleteModal'
 import ProductsViewModal from './viewModal'
 import ProductsEditModal from './editModal'
 import { deleteProduct } from '@/services/api/products'
+import ExportImportButtons from '@/components/ExportImportButtons'
 
 
 export default function ProductsPage() {
@@ -76,6 +77,11 @@ export default function ProductsPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Productos </h1>
+      <ExportImportButtons 
+        module="products" 
+        moduleLabel="Productos"
+        onImportSuccess={() => fetch()}
+      />
       <Button
         variant="contained"
         color="primary"

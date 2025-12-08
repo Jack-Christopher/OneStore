@@ -7,6 +7,7 @@ import { Eye, Pencil, Trash } from 'lucide-react'
 import CategoriesViewModal from './viewModal'
 import CategoriesEditModal from './editModal'
 import DeleteModal from '@/components/DeleteModal'
+import ExportImportButtons from '@/components/ExportImportButtons'
 
 
 export default function CategoriesPage() {
@@ -58,6 +59,11 @@ export default function CategoriesPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Categorías </h1>
+      <ExportImportButtons 
+        module="categories" 
+        moduleLabel="Categorías"
+        onImportSuccess={() => fetch()}
+      />
       <Button
         variant="contained"
         color="primary"

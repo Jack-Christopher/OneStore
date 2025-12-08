@@ -21,6 +21,8 @@ const warehouseProductsRoutes = require("./modules/warehouseProducts/warehousePr
 const reportsRoutes = require("./modules/reports/reports.routes");
 const settingsRoutes = require("./modules/settings/settings.routes");
 const auditLogsRoutes = require("./modules/auditLogs/auditLogs.routes");
+const exportsRoutes = require("./modules/exports/exports.routes");
+const importsRoutes = require("./modules/imports/imports.routes");
 const errorHandler = require("./shared/middlewares/errorHandler");
 
 const expressApp = express();
@@ -51,6 +53,8 @@ apiRouter.use("/warehouseProducts", warehouseProductsRoutes);
 apiRouter.use("/reports", reportsRoutes);
 apiRouter.use("/settings", settingsRoutes);
 apiRouter.use("/audit-logs", auditLogsRoutes);
+apiRouter.use("/exports", exportsRoutes);
+apiRouter.use("/imports", importsRoutes);
 
 expressApp.use("/api", apiRouter);
 expressApp.use(errorHandler);

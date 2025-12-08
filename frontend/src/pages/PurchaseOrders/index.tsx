@@ -7,6 +7,7 @@ import { Eye, Check, Trash } from 'lucide-react'
 import DeleteModal from '@/components/DeleteModal'
 import PurchaseOrdersViewModal from './viewModal'
 import { deletePurchaseOrder } from '@/services/api/purchaseOrders'
+import ExportImportButtons from '@/components/ExportImportButtons'
 
 
 export default function PurchaseOrdersPage() {
@@ -82,6 +83,11 @@ export default function PurchaseOrdersPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Órdenes de Compra</h1>
+      <ExportImportButtons 
+        module="purchaseOrders" 
+        moduleLabel="Órdenes de Compra"
+        onImportSuccess={() => fetch()}
+      />
       <Button
         variant="contained"
         color="primary"
