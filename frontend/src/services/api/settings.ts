@@ -46,3 +46,25 @@ export const uploadLogo = async (file: File) => {
   return res.data;
 };
 
+export const getBaseCurrency = async () => {
+  const res = await api.get<ApiResponse<{ baseCurrency: string | null }>>(
+    `${SETTINGS_API_BASE}/base-currency`
+  );
+  return res.data;
+};
+
+export const setBaseCurrency = async (currency: string) => {
+  const res = await api.post<ApiResponse<{ baseCurrency: string }>>(
+    `${SETTINGS_API_BASE}/base-currency`,
+    { currency }
+  );
+  return res.data;
+};
+
+export const getCurrencyRates = async (refresh: boolean = false) => {
+  const res = await api.get<ApiResponse<{ rates: Record<string, number> }>>(
+    `${SETTINGS_API_BASE}/currency/rates${refresh ? "?refresh=true" : ""}`
+  );
+  return res.data;
+};
+

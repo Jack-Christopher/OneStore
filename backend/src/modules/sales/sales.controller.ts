@@ -32,9 +32,9 @@ async function createWithItems(req: Req, res: Res) {
     const sale = await service.createWithItems(req.body, req?.user?.id);
     await auditCreate("Sale", sale, req);
     return ok(res, sale);
-  } catch (error) {
+  } catch (error: any) {
     console.log(JSON.stringify(error, null, 2));
-    return fail(res, "Sale couldn't be created", 409);
+    return fail(res, error.message || "Sale couldn't be created", 409);
   }
 }
 

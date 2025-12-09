@@ -34,6 +34,10 @@ export interface CreatePurchaseOrderPayload {
   referenceNumber: string;
   totalAmount: number;
   notes: string;
+  useForeignCurrency?: boolean;
+  currencyCode?: string;
+  exchangeRate?: number;
+  totalOriginal?: number;
 }
 
 export interface CreatePurchaseOrderItemPayload {

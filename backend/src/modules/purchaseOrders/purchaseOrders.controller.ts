@@ -29,12 +29,12 @@ async function create(req: Req, res: Res) {
 
 async function createWithItems(req: Req, res: Res) {
   try {
-    const order = await service.createWithItems(req.body);
+    const order = await service.createWithItems(req.body, req?.user?.id);
     await auditCreate("PurchaseOrder", order, req);
     return ok(res, order);
-  } catch (error) {
+  } catch (error: any) {
     console.log(JSON.stringify(error, null, 2));
-    return fail(res, "Purchase order couldn't be created", 409);
+    return fail(res, error.message || "Purchase order couldn't be created", 409);
   }
 }
 

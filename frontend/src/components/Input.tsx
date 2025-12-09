@@ -4,7 +4,7 @@ interface InputProps {
   value: string | number | boolean | undefined;
   min?: number;
   max?: number;
-  step?: number;
+  step?: number | "any";
   readOnly?: boolean;
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;

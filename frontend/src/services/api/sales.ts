@@ -24,6 +24,10 @@ export interface CreateSalePayload {
   paymentMethod: string,
   totalAmount: number,
   notes: string,
+  useForeignCurrency?: boolean;
+  currencyCode?: string;
+  exchangeRate?: number;
+  totalOriginal?: number;
 }
 
 export interface UpdateSalePayload {
@@ -55,6 +59,23 @@ export const getSale = async (id: string) => {
 
 export const createSale = async (payload: CreateSalePayload) => {
   const res = await api.post<ApiResponse<Sale>>(SALE_API_BASE, payload)
+  return res.data
+}
+
+export interface CreateSaleWithItemsPayload {
+  sale: CreateSalePayload;
+  items: Array<{
+    tenantId: string;
+    productId: string;
+    unitId: string;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+  }>;
+}
+
+export const createSaleWithItems = async (payload: CreateSaleWithItemsPayload) => {
+  const res = await api.post<ApiResponse<Sale>>(`${SALE_API_BASE}/with-items`, payload)
   return res.data
 }
 

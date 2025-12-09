@@ -7,7 +7,9 @@ const SaleItemSchema = new Schema({
   product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true },
   unit_id: { type: Schema.Types.ObjectId, ref: "UnitOfMeasure", required: true },
   quantity: { type: Number, required: true },
-  unit_price: { type: Number, required: true },
+  unit_price_original: { type: Number, required: true },
+  unit_price_base: { type: Number, required: true },
+  unit_price: { type: Number, required: true }, // Keep for backward compatibility
   subtotal: { type: Number, required: true },
   created_by: { type: String },
   updated_by: { type: String }

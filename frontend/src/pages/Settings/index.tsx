@@ -3,6 +3,7 @@ import { Button } from '@mui/material'
 import { useSettingsStore } from '@/store/settingsStore'
 import Alert from '@/components/Alert'
 import { applyTheme, type ThemeName } from '@/theme.config'
+import { getBaseCurrency, setBaseCurrency } from '@/services/api/settings'
 
 // TODO: fix bug when changing theme, the theme is applied immediately 
 // even if the form is not submitted and the theme is not saved
@@ -32,6 +33,8 @@ export default function SettingsPage() {
     theme: 'light',
     currency: 'PEN',
   })
+  const [baseCurrency, setBaseCurrencyState] = useState<string | null>(null)
+  const [baseCurrencyLoading, setBaseCurrencyLoading] = useState(false)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
@@ -39,7 +42,39 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetch()
+    fetchBaseCurrency()
   }, [])
+
+  const fetchBaseCurrency = async () => {
+    try {
+      const res = await getBaseCurrency()
+      if (res.success) {
+        setBaseCurrencyState(res.data?.baseCurrency || null)
+      }
+    } catch (error) {
+      console.error('Error fetching base currency:', error)
+    }
+  }
+
+  const handleSetBaseCurrency = async (currency: string) => {
+    if (baseCurrency) {
+      setFormError('La moneda base ya está configurada y no puede ser cambiada')
+      return
+    }
+
+    setBaseCurrencyLoading(true)
+    setFormError('')
+    try {
+      await setBaseCurrency(currency)
+      setBaseCurrencyState(currency)
+      setSuccessMessage('Moneda base configurada exitosamente. Esta configuración no puede ser cambiada.')
+      await fetchBaseCurrency()
+    } catch (error: any) {
+      setFormError(error?.response?.data?.message || 'Error al configurar la moneda base')
+    } finally {
+      setBaseCurrencyLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (settings) {
@@ -97,7 +132,7 @@ export default function SettingsPage() {
         }
       }
 
-      // Then update all settings
+      // Then update all settings (excluding base_currency which is handled separately)
       await update({
         store_name: form.store_name,
         store_ruc: form.store_ruc,
@@ -201,18 +236,47 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium text-text-main">Moneda</label>
-          <select
-            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
-            value={form.currency}
-            onChange={(e) => setForm({ ...form, currency: e.target.value })}
-          >
-            {CURRENCIES.map((currency) => (
-              <option key={currency.value} value={currency.value}>
-                {currency.label}
-              </option>
-            ))}
-          </select>
+          <label className="block mb-2 text-sm font-medium text-text-main">Moneda Base *</label>
+          {baseCurrency ? (
+            <>
+              <input
+                type="text"
+                className="border rounded p-2 w-full bg-background text-text-main border-secondary"
+                value={baseCurrency}
+                readOnly
+                disabled
+              />
+              <p className="text-xs text-text-secondary mt-1">
+                ⚠️ La moneda base ya está configurada y no puede ser cambiada. Esta configuración es permanente.
+              </p>
+            </>
+          ) : (
+            <>
+              <select
+                className="border rounded p-2 w-full bg-background text-text-main border-secondary"
+                value={form.currency}
+                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+              >
+                {CURRENCIES.filter(c => ['PEN', 'USD', 'EUR'].includes(c.value)).map((currency) => (
+                  <option key={currency.value} value={currency.value}>
+                    {currency.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-text-secondary mt-1">
+                ⚠️ Selecciona tu moneda base. Esta configuración no puede ser cambiada después de guardar.
+              </p>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => handleSetBaseCurrency(form.currency)}
+                disabled={baseCurrencyLoading}
+                className="mt-2"
+              >
+                {baseCurrencyLoading ? 'Guardando...' : 'Configurar Moneda Base'}
+              </Button>
+            </>
+          )}
         </div>
 
         <Button

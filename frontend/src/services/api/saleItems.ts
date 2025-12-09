@@ -19,8 +19,10 @@ export interface CreateSaleItemState {
   productId: string,
   unitId: string,
   quantity: number,
-  unitPrice: number,
-  subtotal: number,
+  unitPrice: number, // Precio unitario en moneda base
+  subtotal: number, // Subtotal en moneda base
+  unitPriceOriginal?: number, // Precio unitario en moneda alternativa
+  subtotalOriginal?: number, // Subtotal en moneda alternativa
 }
 
 export interface CreateSaleItemPayload {

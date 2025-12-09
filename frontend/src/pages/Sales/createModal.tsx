@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { useSalesStore } from "@/store/salesStore";
-import { useSaleItemsStore } from "@/store/saleItemsStore";
 import { useAuthStore } from "@/store/authStore";
-import { Box, Button, Modal } from "@mui/material";
+import { Box, Button, Modal, Checkbox, FormControlLabel } from "@mui/material";
 import { SalesErrorMessages } from "@/constants/salesErrors";
 import Alert from "@/components/Alert";
-import type { CreateSalePayload } from "@/services/api/sales";
+import type { CreateSalePayload, CreateSaleWithItemsPayload } from "@/services/api/sales";
 import type { CreateSaleItemState } from "@/services/api/saleItems";
 import type { CreateSaleItemPayload } from "@/services/api/saleItems";
 import { v4 as uuidv4 } from 'uuid';
@@ -19,6 +17,8 @@ import { useProductFormulasStore } from "@/store/productFormulasStore";
 import { useCustomersStore } from "@/store/customersStore";
 import type { Customer } from "@/services/api/customers";
 import Input from "@/components/Input";
+import { getBaseCurrency, getCurrencyRates } from "@/services/api/settings";
+import { createSaleWithItems } from "@/services/api/sales";
 
 
 interface SalesCreateModalProps {
@@ -27,8 +27,6 @@ interface SalesCreateModalProps {
 }
 
 export default function SalesCreateModal({ open, onClose }: SalesCreateModalProps) {
-  const addSale = useSalesStore((s) => s.add);
-  const addManySaleItems = useSaleItemsStore((s) => s.addMany);
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
   const { items: productFormulasItems, fetch: fetchProductFormulas } = useProductFormulasStore();
@@ -82,12 +80,62 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
 
   useEffect(() => {
-    if (open) {
-      fetchProducts();
-      fetchUnitsOfMeasure();
-      fetchProductFormulas();
-      fetchCustomers();
-    }
+    const initialize = async () => {
+      if (open) {
+        await fetchProducts();
+        await fetchUnitsOfMeasure();
+        await fetchProductFormulas();
+        await fetchCustomers();
+
+        // Get base currency
+        try {
+          const res = await getBaseCurrency();
+          if (res.success) {
+            const currentBaseCurrency = res.data?.baseCurrency;
+            setBaseCurrency(currentBaseCurrency || null);
+
+            if (currentBaseCurrency) {
+              // Fetch currency rates only if base currency is set
+              try {
+                const ratesRes = await getCurrencyRates(false);
+                if (ratesRes.success && ratesRes.data?.rates) {
+                  setCurrencyRates(ratesRes.data.rates);
+
+                  // Build available currencies list
+                  const currencies: SelectOption[] = [];
+                  Object.keys(ratesRes.data.rates).forEach(key => {
+                    const upperKey = key.toUpperCase();
+                    if (upperKey !== currentBaseCurrency) {
+                      currencies.push({ value: upperKey, label: upperKey });
+                    }
+                  });
+                  setAvailableCurrencies(currencies);
+                }
+              } catch (ratesError) {
+                console.error("Error fetching currency rates:", ratesError);
+              }
+            } else {
+              // If base currency is not set, show all available currencies
+              setAvailableCurrencies([
+                { value: "USD", label: "USD" },
+                { value: "EUR", label: "EUR" },
+                { value: "PEN", label: "PEN" },
+              ]);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching base currency:", error);
+          // Show available currencies even if there's an error
+          setAvailableCurrencies([
+            { value: "USD", label: "USD" },
+            { value: "EUR", label: "EUR" },
+            { value: "PEN", label: "PEN" },
+          ]);
+        }
+      }
+    };
+
+    initialize();
   }, [open]);
 
   // Update products when productItems change
@@ -146,6 +194,12 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
   const [productFormulas, setProductFormulas] = useState<SelectOption[]>([]);
   const [customers, setCustomers] = useState<SelectOption[]>([]);
+  const [useForeignCurrency, setUseForeignCurrency] = useState(false);
+  const [currencyCode, setCurrencyCode] = useState("");
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [baseCurrency, setBaseCurrency] = useState<string | null>(null);
+  const [currencyRates, setCurrencyRates] = useState<Record<string, number>>({});
+  const [availableCurrencies, setAvailableCurrencies] = useState<SelectOption[]>([]);
 
   const [openFormulaModal, setOpenFormulaModal] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<SelectOption | null>(null);
@@ -225,7 +279,15 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         const selectedProduct = productItems.find(p => p._id === value);
         if (selectedProduct) {
           // Autocomplete unitPrice with salePrice (handle both snake_case and camelCase)
-          target.unitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+          const basePrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+          target.unitPrice = basePrice;
+
+          // Si se usa moneda alternativa, convertir
+          if (useForeignCurrency && exchangeRate > 0) {
+            target.unitPriceOriginal = basePrice * exchangeRate;
+          } else {
+            target.unitPriceOriginal = basePrice;
+          }
 
           // Autocomplete unitId with product's unitId (handle both snake_case and camelCase, and object/string cases)
           const unitIdField = (selectedProduct as any).unitId || (selectedProduct as any).unit_id;
@@ -242,6 +304,13 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         const qty = Number(target.quantity) || 0;
         const price = Number(target.unitPrice) || 0;
         target.subtotal = qty * price;
+
+        // Si se usa moneda alternativa, convertir subtotal
+        if (useForeignCurrency && exchangeRate > 0) {
+          target.subtotalOriginal = target.subtotal * exchangeRate;
+        } else {
+          target.subtotalOriginal = target.subtotal;
+        }
       }
 
       updated[index] = target;
@@ -253,6 +322,60 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       return updated;
     });
   };
+
+  // Actualizar conversiones cuando cambia el tipo de cambio o la moneda
+  useEffect(() => {
+    if (useForeignCurrency && exchangeRate > 0) {
+      setItems(prev => prev.map(item => ({
+        ...item,
+        unitPriceOriginal: (item.unitPrice || 0) * exchangeRate,
+        subtotalOriginal: (item.subtotal || 0) * exchangeRate,
+      })));
+    } else {
+      setItems(prev => prev.map(item => ({
+        ...item,
+        unitPriceOriginal: item.unitPrice,
+        subtotalOriginal: item.subtotal,
+      })));
+    }
+  }, [useForeignCurrency, exchangeRate]);
+
+  const getTotalOriginal = () => {
+    // Total en moneda alternativa (si se usa)
+    if (useForeignCurrency) {
+      return items.reduce((sum, item) => sum + (item.subtotalOriginal || 0), 0);
+    }
+    return items.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+  };
+
+  const getTotalBase = () => {
+    // Total en moneda base
+    if (useForeignCurrency && exchangeRate > 0) {
+      // Convertir de alternativa a base: dividir por tipo de cambio
+      return getTotalOriginal() / exchangeRate;
+    }
+    return items.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+  };
+
+  useEffect(() => {
+    if (useForeignCurrency && currencyCode && baseCurrency) {
+      // Auto-fill exchange rate from API
+      const rateKey = currencyCode.toLowerCase();
+      if (currencyRates[rateKey]) {
+        setExchangeRate(currencyRates[rateKey]);
+      }
+    } else if (!useForeignCurrency) {
+      setExchangeRate(1);
+      setCurrencyCode(baseCurrency || "");
+    }
+  }, [useForeignCurrency, currencyCode, baseCurrency]);
+
+  // Separate effect to update exchange rate when currency rates are loaded
+  useEffect(() => {
+    if (useForeignCurrency && currencyCode && baseCurrency && currencyRates[currencyCode.toLowerCase()]) {
+      setExchangeRate(currencyRates[currencyCode.toLowerCase()]);
+    }
+  }, [currencyRates]);
 
 
   const handleAddItemWithFormula = (formulaItem: CreateProductFormulaItem) => {
@@ -307,6 +430,19 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       return;
     }
 
+    if (useForeignCurrency) {
+      if (!currencyCode) {
+        setError("Debe seleccionar un código de moneda");
+        setLoading(false);
+        return;
+      }
+      if (!exchangeRate || exchangeRate <= 0) {
+        setError("La tasa de cambio debe ser mayor a 0");
+        setLoading(false);
+        return;
+      }
+    }
+
     // Validate that all items have required fields filled
     console.log("items", items);
     for (let i = 0; i < items.length; i++) {
@@ -350,26 +486,36 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       }
     }
     try {
-      const createdSale = await addSale({ ...saleForm });
-      const saleId = createdSale?._id;
-      console.log("createdSale", createdSale);
-      console.log("saleId", saleId);
+      const totalOriginal = getTotalOriginal();
+      const totalBase = getTotalBase();
 
-      const itemsToInsert: CreateSaleItemPayload[] = items.map(it => ({
-        ...toCreateSaleItemPayload(it),
-        saleId: saleId || "orphan",
-      }));
+      const salePayload: CreateSalePayload = {
+        ...saleForm,
+        totalAmount: totalBase,
+        useForeignCurrency,
+        currencyCode: useForeignCurrency ? currencyCode : undefined,
+        exchangeRate: useForeignCurrency ? exchangeRate : undefined,
+        totalOriginal: useForeignCurrency ? totalOriginal : undefined,
+      };
 
-      await addManySaleItems(itemsToInsert);
+      const payload: CreateSaleWithItemsPayload = {
+        sale: salePayload,
+        items: items.map(it => toCreateSaleItemPayload(it)),
+      };
+
+      await createSaleWithItems(payload);
 
       setItems([]);
       setSaleForm(defaultSaleFormData);
+      setUseForeignCurrency(false);
+      setCurrencyCode("");
+      setExchangeRate(1);
       onClose();
     } catch (error: any) {
       console.log(JSON.stringify(error, null, 2));
       console.error("Create sale error:", error);
       const code = error?.response?.data?.code;
-      const msg = SalesErrorMessages[code] || "Unexpected error";
+      const msg = SalesErrorMessages[code] || error?.response?.data?.message || "Unexpected error";
       setError(msg);
     } finally {
       setLoading(false);
@@ -424,6 +570,8 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             onChange={(e) => setSaleForm({ ...saleForm, notes: e.target.value })}
           />
 
+          <hr className="my-3" />
+
           {items.map((item, idx) => (
             <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">
               <label className="block mb-2 text-sm font-medium bg-blue-100 p-2 rounded text-center">Item {idx + 1}</label>
@@ -451,13 +599,14 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
                 return (
                   <>
-                    <Input
-                      type="number"
-                      placeholder="Cantidad"
-                      value={item.quantity || 0}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
-                      style={exceedsStock ? { borderColor: 'red', borderWidth: '2px' } : {}}
-                    />
+                    <div className={exceedsStock ? "border-2 border-red-500 rounded" : ""}>
+                      <Input
+                        type="number"
+                        placeholder="Cantidad"
+                        value={item.quantity || 0}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
+                      />
+                    </div>
                     {item.productId && (
                       <div className="text-sm mt-1">
                         <span className={availableStock > 0 ? 'text-green-600' : 'text-red-600'}>
@@ -471,22 +620,45 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                   </>
                 );
               })()}
-              <label className="block mb-2 text-sm font-medium">Precio Unitario</label>
+              <label className="block mb-2 text-sm font-medium">
+                Precio Unitario {useForeignCurrency && currencyCode ? `(${currencyCode})` : `(${baseCurrency || 'Base'})`}
+              </label>
               <Input
                 type="number"
                 placeholder="Precio Unitario"
-                value={item.unitPrice || 0}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "unitPrice", Number(e.target.value))}
+                step="any"
+                value={useForeignCurrency ? (item.unitPriceOriginal || 0) : (item.unitPrice || 0)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = Number(e.target.value);
+                  if (useForeignCurrency && exchangeRate > 0) {
+                    // Si está en moneda alternativa, convertir a base
+                    handleUpdateItem(idx, "unitPrice", value / exchangeRate);
+                  } else {
+                    handleUpdateItem(idx, "unitPrice", value);
+                  }
+                }}
               />
+              {useForeignCurrency && (
+                <p className="text-xs text-gray-500 mt-1">
+                  En {baseCurrency}: {(item.unitPrice || 0).toFixed(2)}
+                </p>
+              )}
 
-              <label className="block mb-2 text-sm font-medium">Subtotal</label>
+              <label className="block mb-2 text-sm font-medium">
+                Subtotal {useForeignCurrency && currencyCode ? `(${currencyCode})` : `(${baseCurrency || 'Base'})`}
+              </label>
               <Input
                 type="number"
                 placeholder="Subtotal"
-                value={item.subtotal || 0}
+                value={useForeignCurrency ? (item.subtotalOriginal || 0) : (item.subtotal || 0)}
                 readOnly
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "subtotal", Number(e.target.value))}
+                onChange={() => { }}
               />
+              {useForeignCurrency && (
+                <p className="text-xs text-gray-500 mt-1">
+                  En {baseCurrency}: {(item.subtotal || 0).toFixed(2)}
+                </p>
+              )}
               <Button
                 color="error"
                 variant="outlined"
@@ -507,6 +679,83 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
           </div>
 
           <FormulaModal />
+
+          <hr className="my-3" />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={useForeignCurrency}
+                onChange={(e) => setUseForeignCurrency(e.target.checked)}
+              />
+            }
+            label="Registrar usando una moneda diferente"
+            className="mb-3"
+          />
+
+          {useForeignCurrency && (
+            <>
+              <label className="block mb-2 text-sm font-medium">Código de Moneda *</label>
+              {availableCurrencies.length > 0 ? (
+                <Select
+                  options={availableCurrencies}
+                  setFormInput={(value) => setCurrencyCode(value)}
+                  styles="border rounded p-2 w-full mb-3"
+                  value={currencyCode}
+                />
+              ) : (
+                <>
+                  <Select
+                    options={[
+                      { value: "USD", label: "USD" },
+                      { value: "EUR", label: "EUR" },
+                      { value: "PEN", label: "PEN" },
+                    ]}
+                    setFormInput={(value) => setCurrencyCode(value)}
+                    styles="border rounded p-2 w-full mb-3"
+                    value={currencyCode}
+                  />
+                  {!baseCurrency && (
+                    <p className="text-xs text-yellow-600 mt-1">
+                      ⚠️ Configura primero la moneda base en Configuración para obtener tasas de cambio automáticas
+                    </p>
+                  )}
+                </>
+              )}
+
+              <label className="block mb-2 text-sm font-medium">Tasa de Cambio *</label>
+              <Input
+                type="number"
+                placeholder="Tasa de Cambio"
+                step="any"
+                value={exchangeRate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExchangeRate(Number(e.target.value))}
+              />
+              {baseCurrency && currencyCode && currencyRates[currencyCode.toLowerCase()] && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Tasa automática: {currencyRates[currencyCode.toLowerCase()].toFixed(4)}
+                </p>
+              )}
+
+              <label className="block mb-2 text-sm font-medium mt-3">Total (Moneda Original: {currencyCode})</label>
+              <Input
+                type="number"
+                placeholder="Total Original"
+                step="any"
+                value={getTotalOriginal()}
+                onChange={() => { }}
+              />
+            </>
+          )}
+
+          <label className="block mb-2 text-sm font-medium mt-3">Total (Moneda Base: {baseCurrency || "No configurada"})</label>
+          <Input
+            type="number"
+            placeholder="Total Base"
+            value={getTotalBase()}
+            readOnly
+            onChange={() => { }}
+          />
 
           {error && (
             <Alert

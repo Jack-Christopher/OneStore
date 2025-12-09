@@ -6,7 +6,9 @@ const PurchaseOrderItemSchema = new Schema({
   purchase_order_id: { type: String, required: true },
   product_id: { type: String, required: true },
   quantity: { type: Number, required: true },
-  unit_price: { type: Number, required: true },
+  unit_cost_original: { type: Number, required: true },
+  unit_cost_base: { type: Number, required: true },
+  unit_price: { type: Number, required: true }, // Keep for backward compatibility
   subtotal: { type: Number, required: true },
   received_quantity: { type: Number, default: 0 },
   created_by: { type: String },
