@@ -11,7 +11,6 @@ interface ManagerClerksCreateModalProps {
 export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerksCreateModalProps) {
   const [error, setError] = useState("");
   const [form, setForm] = useState<CreateClerkPayload>({
-    username: "",
     email: "",
     password: "",
     full_name: "",
@@ -24,7 +23,7 @@ export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerk
     setLoading(true);
     setError("")
 
-    if (!form.username || !form.email || !form.password) {
+    if (!form.email || !form.password) {
       setError("Debe completar todos los campos requeridos");
       setLoading(false);
       return;
@@ -35,7 +34,6 @@ export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerk
       if (res.success) {
         onClose();
         setForm({
-          username: "",
           email: "",
           password: "",
           full_name: "",
@@ -62,9 +60,6 @@ export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerk
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Clerk</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
-          <label className="block mb-2 text-sm font-medium">Usuario *</label>
-          <input type="text" placeholder="Usuario" className="border rounded p-2 w-full mb-3" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} required />
-          
           <label className="block mb-2 text-sm font-medium">Email *</label>
           <input type="email" placeholder="Email" className="border rounded p-2 w-full mb-3" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
           

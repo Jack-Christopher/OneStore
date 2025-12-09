@@ -17,19 +17,9 @@ module.exports = {
       };
     }
 
-    const existingUsername = await User.findOne({ tenant_id: tenantId, username: dto.username });
-    if (existingUsername) {
-      return {
-        ok: false,
-        message: "Username already exists in this tenant",
-        status: 400
-      };
-    }
-
     const hashed = await bcrypt.hash(dto.password, 10);
     const userData = {
       tenant_id: tenantId,
-      username: dto.username,
       email: dto.email,
       password: hashed,
       full_name: dto.full_name || null,
@@ -81,17 +71,6 @@ module.exports = {
         return {
           ok: false,
           message: "User with this email already exists",
-          status: 400
-        };
-      }
-    }
-
-    if (dto.username && dto.username !== user.username) {
-      const existingUsername = await User.findOne({ tenant_id: tenantId, username: dto.username });
-      if (existingUsername) {
-        return {
-          ok: false,
-          message: "Username already exists in this tenant",
           status: 400
         };
       }

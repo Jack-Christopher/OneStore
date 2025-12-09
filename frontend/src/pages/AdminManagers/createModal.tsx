@@ -13,7 +13,6 @@ interface AdminManagersCreateModalProps {
 export default function AdminManagersCreateModal({ open, onClose, tenants, onSuccess }: AdminManagersCreateModalProps) {
   const [error, setError] = useState("");
   const [form, setForm] = useState<CreateManagerPayload>({
-    username: "",
     email: "",
     password: "",
     full_name: "",
@@ -27,7 +26,7 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
     setLoading(true);
     setError("")
 
-    if (!form.username || !form.email || !form.password || !form.tenant_id) {
+    if (!form.email || !form.password || !form.tenant_id) {
       setError("Debe completar todos los campos requeridos");
       setLoading(false);
       return;
@@ -38,7 +37,6 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
       if (res.success) {
         onSuccess();
         setForm({
-          username: "",
           email: "",
           password: "",
           full_name: "",
@@ -80,9 +78,6 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
               </option>
             ))}
           </select>
-
-          <label className="block mb-2 text-sm font-medium">Usuario *</label>
-          <input type="text" placeholder="Usuario" className="border rounded p-2 w-full mb-3" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} required />
           
           <label className="block mb-2 text-sm font-medium">Email *</label>
           <input type="email" placeholder="Email" className="border rounded p-2 w-full mb-3" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />

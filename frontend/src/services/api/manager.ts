@@ -4,7 +4,6 @@ import type { ApiResponse } from "@/types/api";
 export interface Clerk {
   _id: string;
   tenant_id: string;
-  username: string;
   email: string;
   full_name?: string;
   role: string;
@@ -16,14 +15,12 @@ export interface Clerk {
 }
 
 export interface CreateClerkPayload {
-  username: string;
   email: string;
   password: string;
   full_name?: string;
 }
 
 export interface UpdateClerkPayload {
-  username?: string;
   email?: string;
   full_name?: string;
   is_active?: boolean;

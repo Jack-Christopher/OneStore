@@ -10,7 +10,6 @@ export interface CreateTenantDTO {
 }
 
 export interface CreateManagerDTO {
-  username: string;
   email: string;
   password: string;
   full_name?: string;

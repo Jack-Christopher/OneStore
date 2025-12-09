@@ -36,7 +36,6 @@ export interface UpdateTenantStatusPayload {
 export interface Manager {
   _id: string;
   tenant_id: string;
-  username: string;
   email: string;
   full_name?: string;
   role: string;
@@ -46,7 +45,6 @@ export interface Manager {
 }
 
 export interface CreateManagerPayload {
-  username: string;
   email: string;
   password: string;
   full_name?: string;

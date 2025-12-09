@@ -36,10 +36,6 @@ const AdminManagersViewModal = ({ open, onClose, managerId, manager: propManager
             </thead>
             <tbody>
               <tr>
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Usuario</td>
-                <td className="py-3 px-4 text-left">{manager?.username || 'N/A'}</td>
-              </tr>
-              <tr className="bg-gray-50">
                 <td className="py-3 px-4 text-left font-medium text-gray-600">Email</td>
                 <td className="py-3 px-4 text-left">{manager?.email || 'N/A'}</td>
               </tr>

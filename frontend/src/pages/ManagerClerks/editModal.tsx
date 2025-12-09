@@ -13,7 +13,6 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
   const [error, setError] = useState("");
   const [clerk, setClerk] = useState<Clerk | null>(null);
   const [form, setForm] = useState<UpdateClerkPayload>({
-    username: "",
     email: "",
     full_name: "",
     is_active: true,
@@ -29,7 +28,6 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
             if (found) {
               setClerk(found)
               setForm({
-                username: found.username || "",
                 email: found.email || "",
                 full_name: found.full_name || "",
                 is_active: found.is_active,
@@ -49,7 +47,7 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
     setLoading(true);
     setError("")
 
-    if (!form.username || !form.email) {
+    if (!form.email) {
       setError("Debe completar todos los campos requeridos");
       setLoading(false);
       return;
@@ -83,9 +81,6 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Clerk</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
-          <label className="block mb-2 text-sm font-medium">Usuario *</label>
-          <input type="text" placeholder="Usuario" className="border rounded p-2 w-full mb-3" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} required />
-          
           <label className="block mb-2 text-sm font-medium">Email *</label>
           <input type="email" placeholder="Email" className="border rounded p-2 w-full mb-3" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
           

@@ -55,7 +55,7 @@ module.exports = {
     }
 
     const hashed = await bcrypt.hash(password, 10)
-    const userData = { tenantId: "orphan", fullname, email, password: hashed, username: fullname };
+    const userData = { tenantId: "orphan", fullname, email, password: hashed };
 
     const user = await User.create(toSnakeCase(userData));
 
@@ -121,7 +121,6 @@ module.exports = {
     const updateData: any = {}
     if (fullname !== undefined) {
       updateData.full_name = fullname
-      updateData.username = fullname // Update username too
     }
     if (email !== undefined) {
       updateData.email = email

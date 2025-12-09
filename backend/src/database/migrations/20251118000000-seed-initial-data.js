@@ -32,7 +32,6 @@ module.exports = {
 
     const adminUser = {
       tenant_id: newTenant.insertedId.toString(),
-      username: "admin",
       password: hashed,
       email: "admin@example.com",
       full_name: "System Administrator",

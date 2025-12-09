@@ -51,10 +51,6 @@ const ManagerClerksViewModal = ({ open, onClose, clerkId }: ManagerClerksViewMod
             </thead>
             <tbody>
               <tr>
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Usuario</td>
-                <td className="py-3 px-4 text-left">{clerk?.username}</td>
-              </tr>
-              <tr className="bg-gray-50">
                 <td className="py-3 px-4 text-left font-medium text-gray-600">Email</td>
                 <td className="py-3 px-4 text-left">{clerk?.email}</td>
               </tr>

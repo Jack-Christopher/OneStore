@@ -49,7 +49,6 @@ export default function AdminManagersPage() {
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
-    { field: 'username', headerName: 'Usuario', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'full_name', headerName: 'Nombre Completo', flex: 1 },
     {

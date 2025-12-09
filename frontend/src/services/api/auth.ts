@@ -33,7 +33,6 @@ export function toUser(dto: RegisterPayload) {
   const registerUser = {
     tenantId: "orphan",
     fullname: dto.fullname,
-    username: dto.fullname,
     email: dto.email,
     password: dto.password,
     role: "clerk",

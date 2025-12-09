@@ -9,10 +9,9 @@ module.exports = {
       validator: {
         $jsonSchema: {
           bsonType: "object",
-          required: ["tenant_id", "username", "password", "email"],
+          required: ["tenant_id", "password", "email"],
           properties: {
             tenant_id: { bsonType: "string" },
-            username: { bsonType: "string" },
             password: { bsonType: "string" },
             email: { bsonType: "string" },
             full_name: { bsonType: ["string", "null"] },
@@ -34,7 +33,6 @@ module.exports = {
     await db.collection("users").createIndexes([
       { key: { _id: 1 } },
       { key: { tenant_id: 1 } },
-      { key: { tenant_id: 1, username: 1 }, unique: true },
       { key: { email: 1 }, sparse: true }
     ]);
   },

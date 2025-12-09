@@ -45,15 +45,6 @@ module.exports = {
       };
     }
 
-    const existingUsername = await User.findOne({ tenant_id: dto.tenant_id, username: dto.username });
-    if (existingUsername) {
-      return {
-        ok: false,
-        message: "Username already exists in this tenant",
-        status: 400
-      };
-    }
-
     const tenant = await Tenant.findById(dto.tenant_id);
     if (!tenant) {
       return {
@@ -66,7 +57,6 @@ module.exports = {
     const hashed = await bcrypt.hash(dto.password, 10);
     const userData = {
       tenant_id: dto.tenant_id,
-      username: dto.username,
       email: dto.email,
       password: hashed,
       full_name: dto.full_name || null,
