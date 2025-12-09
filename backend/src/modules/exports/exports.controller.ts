@@ -54,22 +54,27 @@ async function exportModule(req: Req, res: Res) {
 }
 
 async function getAvailableModules(req: Req, res: Res) {
-  const modules = [
-    { name: 'sales', label: 'Sales' },
-    { name: 'products', label: 'Products' },
-    { name: 'categories', label: 'Categories' },
-    { name: 'customers', label: 'Customers' },
-    { name: 'suppliers', label: 'Suppliers' },
-    { name: 'warehouses', label: 'Warehouses' },
-    { name: 'purchaseOrders', label: 'Purchase Orders' },
-    { name: 'stockMovements', label: 'Stock Movements' },
-    { name: 'warehouseProducts', label: 'Warehouse Products' },
-    { name: 'unitsOfMeasure', label: 'Units of Measure' },
-    { name: 'productFormulas', label: 'Product Formulas' },
-    { name: 'saleItems', label: 'Sale Items' },
-  ];
+  try {
+    const modules = [
+      { name: 'sales', label: 'Sales' },
+      { name: 'products', label: 'Products' },
+      { name: 'categories', label: 'Categories' },
+      { name: 'customers', label: 'Customers' },
+      { name: 'suppliers', label: 'Suppliers' },
+      { name: 'warehouses', label: 'Warehouses' },
+      { name: 'purchaseOrders', label: 'Purchase Orders' },
+      { name: 'stockMovements', label: 'Stock Movements' },
+      { name: 'warehouseProducts', label: 'Warehouse Products' },
+      { name: 'unitsOfMeasure', label: 'Units of Measure' },
+      { name: 'productFormulas', label: 'Product Formulas' },
+      { name: 'saleItems', label: 'Sale Items' },
+    ];
 
-  return ok(res, modules);
+    return ok(res, modules);
+  } catch (error) {
+    console.error("Error in getAvailableModules:", error);
+    return fail(res, "Failed to get available modules", "INTERNAL_ERROR", 500);
+  }
 }
 
 module.exports = {

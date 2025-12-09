@@ -6,14 +6,24 @@ const { auditCreate, auditUpdate, auditDelete } = require("../../shared/middlewa
 const PurchaseOrder = require("../../database/models/PurchaseOrder");
 
 async function getAll(req: Req, res: Res) {
-  const data = await service.getAll(req?.user?.id);
-  return ok(res, data);
+  try {
+    const data = await service.getAll(req?.user?.id);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getAll purchaseOrders:", error);
+    return fail(res, "Failed to fetch purchase orders", "INTERNAL_ERROR", 500);
+  }
 }
 
 async function getOne(req: Req, res: Res) {
-  const order = await service.getOne(req.params.id);
-  if (!order) return fail(res, "Purchase order not found", 404);
-  return ok(res, order);
+  try {
+    const order = await service.getOne(req.params.id);
+    if (!order) return fail(res, "Purchase order not found", "NOT_FOUND", 404);
+    return ok(res, order);
+  } catch (error) {
+    console.error("Error in getOne purchaseOrder:", error);
+    return fail(res, "Failed to fetch purchase order", "INTERNAL_ERROR", 500);
+  }
 }
 
 async function create(req: Req, res: Res) {
@@ -22,8 +32,8 @@ async function create(req: Req, res: Res) {
     await auditCreate("PurchaseOrder", order, req);
     return ok(res, order);
   } catch (error) {
-    console.log(JSON.stringify(error, null, 2));
-    return fail(res, "Purchase order couldn't be created", 409);
+    console.error("Error in create purchaseOrder:", error);
+    return fail(res, "Purchase order couldn't be created", "CREATE_ERROR", 409);
   }
 }
 
@@ -33,42 +43,58 @@ async function createWithItems(req: Req, res: Res) {
     await auditCreate("PurchaseOrder", order, req);
     return ok(res, order);
   } catch (error: any) {
-    console.log(JSON.stringify(error, null, 2));
-    return fail(res, error.message || "Purchase order couldn't be created", 409);
+    console.error("Error in createWithItems purchaseOrder:", error);
+    return fail(res, error.message || "Purchase order couldn't be created", "CREATE_ERROR", 409);
   }
 }
 
 async function update(req: Req, res: Res) {
-  const oldRecord = await PurchaseOrder.findById(req.params.id);
-  const updated = await service.update(req.params.id, req.body);
-  if (!updated) return fail(res, "Purchase order not found", 404);
-  await auditUpdate("PurchaseOrder", oldRecord, updated, req);
-  return ok(res, updated);
+  try {
+    const oldRecord = await PurchaseOrder.findById(req.params.id);
+    if (!oldRecord) return fail(res, "Purchase order not found", "NOT_FOUND", 404);
+    const updated = await service.update(req.params.id, req.body);
+    if (!updated) return fail(res, "Purchase order not found", "NOT_FOUND", 404);
+    await auditUpdate("PurchaseOrder", oldRecord, updated, req);
+    return ok(res, updated);
+  } catch (error) {
+    console.error("Error in update purchaseOrder:", error);
+    return fail(res, "Failed to update purchase order", "UPDATE_ERROR", 500);
+  }
 }
 
 async function remove(req: Req, res: Res) {
-  const oldRecord = await PurchaseOrder.findById(req.params.id);
-  if (!oldRecord) return fail(res, "Purchase order not found", 404);
-  const result = await service.remove(req.params.id);
-  await auditDelete("PurchaseOrder", oldRecord, req);
-  return ok(res, result);
+  try {
+    const oldRecord = await PurchaseOrder.findById(req.params.id);
+    if (!oldRecord) return fail(res, "Purchase order not found", "NOT_FOUND", 404);
+    const result = await service.remove(req.params.id);
+    await auditDelete("PurchaseOrder", oldRecord, req);
+    return ok(res, result);
+  } catch (error) {
+    console.error("Error in remove purchaseOrder:", error);
+    return fail(res, "Failed to delete purchase order", "DELETE_ERROR", 500);
+  }
 }
 
 async function receiveOrder(req: Req, res: Res) {
   try {
     const result = await service.receiveOrder(req.params.id, req?.user?.id);
-    if (!result) return fail(res, "Purchase order not found", 404);
+    if (!result) return fail(res, "Purchase order not found", "NOT_FOUND", 404);
     return ok(res, result);
   } catch (error) {
-    console.log(JSON.stringify(error, null, 2));
-    return fail(res, "Purchase order couldn't be received", 409);
+    console.error("Error in receiveOrder:", error);
+    return fail(res, "Purchase order couldn't be received", "RECEIVE_ERROR", 409);
   }
 }
 
 // Items
 async function getItemsByOrderId(req: Req, res: Res) {
-  const items = await service.getItemsByOrderId(req.params.id);
-  return ok(res, items);
+  try {
+    const items = await service.getItemsByOrderId(req.params.id);
+    return ok(res, items);
+  } catch (error) {
+    console.error("Error in getItemsByOrderId:", error);
+    return fail(res, "Failed to fetch purchase order items", "INTERNAL_ERROR", 500);
+  }
 }
 
 async function createItem(req: Req, res: Res) {
@@ -76,8 +102,8 @@ async function createItem(req: Req, res: Res) {
     const item = await service.createItem(req.body);
     return ok(res, item);
   } catch (error) {
-    console.log(JSON.stringify(error, null, 2));
-    return fail(res, "Purchase order item couldn't be created", 409);
+    console.error("Error in createItem:", error);
+    return fail(res, "Purchase order item couldn't be created", "CREATE_ERROR", 409);
   }
 }
 
@@ -86,21 +112,31 @@ async function createManyItems(req: Req, res: Res) {
     const items = await service.createManyItems(req.body);
     return ok(res, items);
   } catch (error) {
-    console.log(JSON.stringify(error, null, 2));
-    return fail(res, "Purchase order items couldn't be created", 409);
+    console.error("Error in createManyItems:", error);
+    return fail(res, "Purchase order items couldn't be created", "CREATE_ERROR", 409);
   }
 }
 
 async function updateItem(req: Req, res: Res) {
-  const updated = await service.updateItem(req.params.itemId, req.body);
-  if (!updated) return fail(res, "Purchase order item not found", 404);
-  return ok(res, updated);
+  try {
+    const updated = await service.updateItem(req.params.itemId, req.body);
+    if (!updated) return fail(res, "Purchase order item not found", "NOT_FOUND", 404);
+    return ok(res, updated);
+  } catch (error) {
+    console.error("Error in updateItem:", error);
+    return fail(res, "Failed to update purchase order item", "UPDATE_ERROR", 500);
+  }
 }
 
 async function removeItem(req: Req, res: Res) {
-  const result = await service.removeItem(req.params.itemId);
-  if (!result) return fail(res, "Purchase order item not found", 404);
-  return ok(res, result);
+  try {
+    const result = await service.removeItem(req.params.itemId);
+    if (!result) return fail(res, "Purchase order item not found", "NOT_FOUND", 404);
+    return ok(res, result);
+  } catch (error) {
+    console.error("Error in removeItem:", error);
+    return fail(res, "Failed to delete purchase order item", "DELETE_ERROR", 500);
+  }
 }
 
 module.exports = {

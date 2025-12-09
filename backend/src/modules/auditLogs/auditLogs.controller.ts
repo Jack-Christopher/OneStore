@@ -47,7 +47,7 @@ async function listAuditLogs(req: Req, res: Res) {
 async function getOne(req: Req, res: Res) {
   try {
     const log = await repository.findById(req.params.id);
-    if (!log) return fail(res, "Audit log not found", 404);
+    if (!log) return fail(res, "Audit log not found", "NOT_FOUND", 404);
     
     // Security check: ensure user can only access logs from their tenant
     const userRole = req.user?.role;
