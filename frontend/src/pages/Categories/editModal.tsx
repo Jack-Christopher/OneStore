@@ -22,6 +22,7 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
     name: category?.name || "",
     description: category?.description || "",
   });
+  const [initialForm, setInitialForm] = useState<UpdateCategoryPayload | null>(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -31,15 +32,29 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
         .then((res: ApiResponse<Category>) => {
           if (res.success) {
             setCategory(res.data)
-            setForm({
+            const initialData = {
               tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
               name: res.data?.name ?? "",
               description: res.data?.description ?? "",
-            })
+            };
+            setForm(initialData);
+            setInitialForm(initialData);
           }
         })
     }
   }, [categoryId])
+
+  const resetForm = () => {
+    if (initialForm) {
+      setForm(initialForm);
+    }
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -55,6 +70,7 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
 
     try {
       await editCategory(categoryId as string, form)
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Edit category error:", error);
@@ -69,7 +85,11 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
   if (loading) return <p>Cargando...</p>
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -87,7 +107,7 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Guardar</Button>
           </div>
         </form>

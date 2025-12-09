@@ -267,6 +267,22 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     setSelectedFormula(null);
   };
 
+  const resetForm = () => {
+    setSaleForm(defaultSaleFormData);
+    setItems([]);
+    setUseForeignCurrency(false);
+    setCurrencyCode("");
+    setExchangeRate(1);
+    setError("");
+    setOpenFormulaModal(false);
+    setSelectedFormula(null);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const handleUpdateItem = (index: number, key: keyof CreateSaleItemState, value: any) => {
     setItems(prev => {
       const updated = prev.slice(); // shallow clone array
@@ -505,11 +521,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
       await createSaleWithItems(payload);
 
-      setItems([]);
-      setSaleForm(defaultSaleFormData);
-      setUseForeignCurrency(false);
-      setCurrencyCode("");
-      setExchangeRate(1);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.log(JSON.stringify(error, null, 2));
@@ -523,7 +535,11 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Venta</h2>
 
@@ -770,11 +786,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             <Button
               variant="contained"
               color="error"
-              onClick={() => {
-                setSaleForm(defaultSaleFormData);
-                setItems([]);
-                onClose();
-              }}
+              onClick={handleClose}
             >
               Cancelar
             </Button>

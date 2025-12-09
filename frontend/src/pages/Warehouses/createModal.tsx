@@ -41,6 +41,16 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
 
   const [formData, setFormData] = useState<CreateWarehousePayload>(defaultFormData);
 
+  const resetForm = () => {
+    setFormData(defaultFormData);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -54,7 +64,7 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
 
     try {
       await addWarehouse(formData);
-      setFormData(defaultFormData);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Create warehouse error:", error);
@@ -65,7 +75,11 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Bodega</h2>
 
@@ -121,10 +135,7 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
             <Button
               variant="contained"
               color="error"
-              onClick={() => {
-                setFormData(defaultFormData);
-                onClose();
-              }}
+              onClick={handleClose}
             >
               Cancelar
             </Button>

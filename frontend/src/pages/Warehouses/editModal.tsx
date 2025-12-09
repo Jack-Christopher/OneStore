@@ -38,6 +38,8 @@ export default function WarehousesEditModal({ open, onClose, warehouseId }: Ware
     isActive: true,
   });
 
+  const [initialFormData, setInitialFormData] = useState<UpdateWarehousePayload | null>(null);
+
   useEffect(() => {
     if (warehouseId && open) {
       setLoading(true);
@@ -45,17 +47,31 @@ export default function WarehousesEditModal({ open, onClose, warehouseId }: Ware
         .then((res) => {
           if (res.success && res.data) {
             const w = res.data as any;
-            setFormData({
+            const initialData = {
               name: w.name || "",
               address: w.address || "",
               phone: w.phone || "",
               isActive: w.is_active ?? true,
-            });
+            };
+            setFormData(initialData);
+            setInitialFormData(initialData);
           }
         })
         .finally(() => setLoading(false));
     }
   }, [warehouseId, open]);
+
+  const resetForm = () => {
+    if (initialFormData) {
+      setFormData(initialFormData);
+    }
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,6 +86,7 @@ export default function WarehousesEditModal({ open, onClose, warehouseId }: Ware
 
     try {
       await editWarehouse(warehouseId as string, formData);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Edit warehouse error:", error);
@@ -80,7 +97,11 @@ export default function WarehousesEditModal({ open, onClose, warehouseId }: Ware
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Bodega</h2>
 
@@ -133,7 +154,7 @@ export default function WarehousesEditModal({ open, onClose, warehouseId }: Ware
           )}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>
+            <Button variant="contained" color="error" onClick={handleClose}>
               Cancelar
             </Button>
 

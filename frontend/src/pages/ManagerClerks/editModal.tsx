@@ -17,6 +17,7 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
     full_name: "",
     is_active: true,
   });
+  const [initialForm, setInitialForm] = useState<UpdateClerkPayload | null>(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -27,11 +28,13 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
             const found = res.data.find((c: Clerk) => c._id === clerkId)
             if (found) {
               setClerk(found)
-              setForm({
+              const initialData = {
                 email: found.email || "",
                 full_name: found.full_name || "",
                 is_active: found.is_active,
-              })
+              };
+              setForm(initialData);
+              setInitialForm(initialData);
             }
           }
         })
@@ -40,6 +43,18 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
         })
     }
   }, [clerkId])
+
+  const resetForm = () => {
+    if (initialForm) {
+      setForm(initialForm);
+    }
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -56,6 +71,7 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
     try {
       const res = await updateClerk(clerkId as string, form);
       if (res.success) {
+        resetForm();
         onClose();
       } else {
         setError(res.message || "Error al actualizar clerk");
@@ -71,7 +87,11 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
   if (loading && !clerk) return <p>Cargando...</p>
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -100,7 +120,7 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Guardar</Button>
           </div>
         </form>

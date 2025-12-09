@@ -44,6 +44,16 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
 
   const [formData, setFormData] = useState<CreateCustomerPayload>(defaultFormData);
 
+  const resetForm = () => {
+    setFormData(defaultFormData);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -57,7 +67,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
 
     try {
       await addCustomer(formData);
-      setFormData(defaultFormData);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Create customer error:", error);
@@ -68,7 +78,11 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Cliente</h2>
 
@@ -151,10 +165,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
             <Button
               variant="contained"
               color="error"
-              onClick={() => {
-                setFormData(defaultFormData);
-                onClose();
-              }}
+              onClick={handleClose}
             >
               Cancelar
             </Button>

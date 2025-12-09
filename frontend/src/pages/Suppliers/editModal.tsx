@@ -40,6 +40,8 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
     ruc: "",
   });
 
+  const [initialFormData, setInitialFormData] = useState<UpdateSupplierPayload | null>(null);
+
   useEffect(() => {
     if (supplierId && open) {
       setLoading(true);
@@ -47,19 +49,33 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
         .then((res) => {
           if (res.success && res.data) {
             const s = res.data as any;
-            setFormData({
+            const initialData = {
               name: s.name || "",
               contactName: s.contact_name || "",
               phone: s.phone || "",
               email: s.email || "",
               address: s.address || "",
               ruc: s.ruc || "",
-            });
+            };
+            setFormData(initialData);
+            setInitialFormData(initialData);
           }
         })
         .finally(() => setLoading(false));
     }
   }, [supplierId, open]);
+
+  const resetForm = () => {
+    if (initialFormData) {
+      setFormData(initialFormData);
+    }
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,6 +90,7 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
 
     try {
       await editSupplier(supplierId as string, formData);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Edit supplier error:", error);
@@ -84,7 +101,11 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Proveedor</h2>
 
@@ -153,7 +174,7 @@ export default function SuppliersEditModal({ open, onClose, supplierId }: Suppli
           )}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>
+            <Button variant="contained" color="error" onClick={handleClose}>
               Cancelar
             </Button>
 

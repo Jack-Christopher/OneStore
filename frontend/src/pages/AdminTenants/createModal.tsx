@@ -10,7 +10,7 @@ interface AdminTenantsCreateModalProps {
 
 export default function AdminTenantsCreateModal({ open, onClose }: AdminTenantsCreateModalProps) {
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CreateTenantPayload>({
+  const initialForm: CreateTenantPayload = {
     name: "",
     legal_name: "",
     document_type: "",
@@ -18,8 +18,19 @@ export default function AdminTenantsCreateModal({ open, onClose }: AdminTenantsC
     address: "",
     phone: "",
     email: "",
-  });
+  };
+  const [form, setForm] = useState<CreateTenantPayload>(initialForm);
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -45,16 +56,8 @@ export default function AdminTenantsCreateModal({ open, onClose }: AdminTenantsC
       };
       const res = await createTenant(payload);
       if (res.success) {
+        resetForm();
         onClose();
-        setForm({
-          name: "",
-          legal_name: "",
-          document_type: "",
-          document_number: "",
-          address: "",
-          phone: "",
-          email: "",
-        });
       } else {
         setError(res.message || "Error al crear tenant");
       }
@@ -67,7 +70,11 @@ export default function AdminTenantsCreateModal({ open, onClose }: AdminTenantsC
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -103,7 +110,7 @@ export default function AdminTenantsCreateModal({ open, onClose }: AdminTenantsC
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Agregar</Button>
           </div>
         </form>

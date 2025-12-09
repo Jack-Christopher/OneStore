@@ -50,13 +50,25 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
 
 
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
+  const initialForm = {
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     name: "",
     description: "",
     items: [],
-  });
+  };
+  const [form, setForm] = useState(initialForm);
   const [items, setItems] = useState<CreateProductFormulaItem[]>([]);
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setItems([]);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
@@ -109,6 +121,7 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
     try {
       // merge items into form for submission
       await addProductFormula({ ...form, items })
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Create product formula error:", error);
@@ -137,7 +150,11 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
   }, [items]);
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Fórmula de Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
@@ -177,7 +194,7 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="success" type="submit" disabled={loading}>Agregar</Button>
           </div>
         </form>

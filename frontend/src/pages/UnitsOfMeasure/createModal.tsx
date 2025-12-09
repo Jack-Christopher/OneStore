@@ -14,13 +14,24 @@ interface UnitsOfMeasureCreateModalProps {
 export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeasureCreateModalProps) {
   const addUnitOfMeasure = useUnitsOfMeasureStore(s => s.add);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CreateUnitOfMeasurePayload>({
+  const initialForm: CreateUnitOfMeasurePayload = {
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     name: "",
     code: "",
     description: "",
-  });
+  };
+  const [form, setForm] = useState<CreateUnitOfMeasurePayload>(initialForm);
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -36,6 +47,7 @@ export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeas
 
     try {
       await addUnitOfMeasure(form)
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Create unit of measure error:", error);
@@ -48,7 +60,11 @@ export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeas
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -68,7 +84,7 @@ export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeas
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Agregar</Button>
           </div>
         </form>

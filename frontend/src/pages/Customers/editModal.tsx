@@ -41,6 +41,8 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
     isActive: true,
   });
 
+  const [initialFormData, setInitialFormData] = useState<UpdateCustomerPayload | null>(null);
+
   useEffect(() => {
     if (customerId && open) {
       setLoading(true);
@@ -48,7 +50,7 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
         .then((res) => {
           if (res.success && res.data) {
             const c = res.data as any;
-            setFormData({
+            const initialData = {
               name: c.name || "",
               document: c.document || "",
               phone: c.phone || "",
@@ -56,12 +58,26 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
               address: c.address || "",
               ruc: c.ruc || "",
               isActive: c.is_active ?? true,
-            });
+            };
+            setFormData(initialData);
+            setInitialFormData(initialData);
           }
         })
         .finally(() => setLoading(false));
     }
   }, [customerId, open]);
+
+  const resetForm = () => {
+    if (initialFormData) {
+      setFormData(initialFormData);
+    }
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -76,6 +92,7 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
 
     try {
       await editCustomer(customerId as string, formData);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Edit customer error:", error);
@@ -86,7 +103,11 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Cliente</h2>
 
@@ -166,7 +187,7 @@ export default function CustomersEditModal({ open, onClose, customerId }: Custom
           )}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>
+            <Button variant="contained" color="error" onClick={handleClose}>
               Cancelar
             </Button>
 

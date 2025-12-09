@@ -10,12 +10,23 @@ interface ManagerClerksCreateModalProps {
 
 export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerksCreateModalProps) {
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CreateClerkPayload>({
+  const initialForm: CreateClerkPayload = {
     email: "",
     password: "",
     full_name: "",
-  });
+  };
+  const [form, setForm] = useState<CreateClerkPayload>(initialForm);
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -32,12 +43,8 @@ export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerk
     try {
       const res = await createClerk(form);
       if (res.success) {
+        resetForm();
         onClose();
-        setForm({
-          email: "",
-          password: "",
-          full_name: "",
-        });
       } else {
         setError(res.message || "Error al crear clerk");
       }
@@ -50,7 +57,11 @@ export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerk
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -72,7 +83,7 @@ export default function ManagerClerksCreateModal({ open, onClose }: ManagerClerk
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Agregar</Button>
           </div>
         </form>

@@ -12,13 +12,24 @@ interface AdminManagersCreateModalProps {
 
 export default function AdminManagersCreateModal({ open, onClose, tenants, onSuccess }: AdminManagersCreateModalProps) {
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CreateManagerPayload>({
+  const initialForm: CreateManagerPayload = {
     email: "",
     password: "",
     full_name: "",
     tenant_id: "",
-  });
+  };
+  const [form, setForm] = useState<CreateManagerPayload>(initialForm);
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -35,13 +46,8 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
     try {
       const res = await createManager(form);
       if (res.success) {
+        resetForm();
         onSuccess();
-        setForm({
-          email: "",
-          password: "",
-          full_name: "",
-          tenant_id: "",
-        });
       } else {
         setError(res.message || "Error al crear manager");
       }
@@ -54,7 +60,11 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal
+      open={open}
+      onClose={(_e, reason) => { if (reason !== 'backdropClick') handleClose(); }}
+      className="flex items-center justify-center"
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -65,9 +75,9 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Manager</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
           <label className="block mb-2 text-sm font-medium">Tenant *</label>
-          <select 
-            className="border rounded p-2 w-full mb-3" 
-            value={form.tenant_id} 
+          <select
+            className="border rounded p-2 w-full mb-3"
+            value={form.tenant_id}
             onChange={e => setForm({ ...form, tenant_id: e.target.value })}
             required
           >
@@ -78,20 +88,20 @@ export default function AdminManagersCreateModal({ open, onClose, tenants, onSuc
               </option>
             ))}
           </select>
-          
+
           <label className="block mb-2 text-sm font-medium">Email *</label>
           <input type="email" placeholder="Email" className="border rounded p-2 w-full mb-3" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
-          
+
           <label className="block mb-2 text-sm font-medium">Contraseña *</label>
           <input type="password" placeholder="Contraseña" className="border rounded p-2 w-full mb-3" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required />
-          
+
           <label className="block mb-2 text-sm font-medium">Nombre Completo</label>
           <input type="text" placeholder="Nombre Completo" className="border rounded p-2 w-full mb-3" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} />
 
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Agregar</Button>
           </div>
         </form>

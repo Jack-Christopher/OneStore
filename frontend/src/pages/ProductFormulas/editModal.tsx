@@ -121,6 +121,21 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
     setItems(items.filter((_, i) => i !== index));
   }
 
+  const resetForm = () => {
+    setForm({
+      tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
+      name: "",
+      description: "",
+    });
+    setItems([]);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -168,6 +183,7 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
         }))
       };
       await updateProductFormula(productFormulaId!, payload);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Error updating product formula:", error);
@@ -184,7 +200,11 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Fórmula de Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
@@ -219,7 +239,7 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
           </div>
           {error && <p className="text-red-500">{error}</p>}
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" type="button" onClick={onClose} disabled={loading}>Cancelar</Button>
+            <Button variant="contained" color="error" type="button" onClick={handleClose} disabled={loading}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Guardar</Button>
           </div>
         </form>

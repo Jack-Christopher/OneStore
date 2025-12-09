@@ -43,6 +43,16 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
 
   const [formData, setFormData] = useState<CreateSupplierPayload>(defaultFormData);
 
+  const resetForm = () => {
+    setFormData(defaultFormData);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -56,7 +66,7 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
 
     try {
       await addSupplier(formData);
-      setFormData(defaultFormData);
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Create supplier error:", error);
@@ -67,7 +77,11 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center">
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center"
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Proveedor</h2>
 
@@ -139,10 +153,7 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
             <Button
               variant="contained"
               color="error"
-              onClick={() => {
-                setFormData(defaultFormData);
-                onClose();
-              }}
+              onClick={handleClose}
             >
               Cancelar
             </Button>

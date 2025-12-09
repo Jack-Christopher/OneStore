@@ -21,7 +21,7 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
   const { items: categoryItems, fetch: fetchCategories } = useCategoriesStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CreateProductPayload>({
+  const initialForm: CreateProductPayload = {
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     categoryId: "",
     unitId: "",
@@ -32,7 +32,8 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
     minStock: 0,
     maxStock: 0,
     description: "",
-  });
+  };
+  const [form, setForm] = useState<CreateProductPayload>(initialForm);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
@@ -72,6 +73,16 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
         setUnitsOfMeasure(unitsOfMeasureItems.map((uomi) => toSelectOption(uomi)));
       });
   }, [])
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -123,6 +134,7 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
 
     try {
       await addProduct(form)
+      resetForm();
       onClose();
     } catch (error: any) {
       console.log(JSON.stringify(error, null, 2));
@@ -136,7 +148,11 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
@@ -200,7 +216,7 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Agregar</Button>
           </div>
         </form>

@@ -25,6 +25,8 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
   });
   const [loading, setLoading] = useState(false);
   
+  const [initialForm, setInitialForm] = useState<UpdateUnitOfMeasurePayload | null>(null);
+
   useEffect(() => {
     if (unitOfMeasureId && unitOfMeasureId !== null) {
       console.log("fetching unit of measure", unitOfMeasureId)
@@ -32,16 +34,30 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
         .then((res: ApiResponse<UnitOfMeasure>) => {
           if (res.success) {
             setUnitOfMeasure(res.data)
-            setForm({
+            const initialData = {
               tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
               name: res.data?.name || "",
               code: res.data?.code || "",
               description: res.data?.description || "",
-            })
+            };
+            setForm(initialData);
+            setInitialForm(initialData);
           }
         })
     }
   }, [unitOfMeasureId])
+
+  const resetForm = () => {
+    if (initialForm) {
+      setForm(initialForm);
+    }
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
   
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -57,6 +73,7 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
 
     try {
       await editUnitOfMeasure(unitOfMeasureId as string, form)
+      resetForm();
       onClose();
     } catch (error: any) {
       console.error("Edit unit of measure error:", error);
@@ -71,7 +88,11 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
   if (!open) return null;
   
     return (
-    <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+    <Modal 
+      open={open} 
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+      className="flex items-center justify-center" 
+    >
       <Box sx={{
         backgroundColor: 'white',
         padding: '2rem',
@@ -91,7 +112,7 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
           {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
-            <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+            <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             <Button variant="contained" color="primary" type="submit" disabled={loading}>Editar</Button>
           </div>
         </form>

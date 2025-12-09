@@ -61,12 +61,14 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
         }
       }
       
+    const [initialForm, setInitialForm] = useState<UpdateProductPayload | null>(null);
+
     useEffect(() => {
         if (productId) {
             getProduct(productId)
             .then((res) => {
                 setProduct(res.data)
-                setForm({
+                const initialData = {
                     name: res.data?.name || "",
                     categoryId: res.data?.category_id?._id || "",
                     unitId: res.data?.unit_id?._id || "",
@@ -76,10 +78,24 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
                     salePrice: res.data?.sale_price || 0,
                     minStock: res.data?.min_stock || 0,
                     maxStock: res.data?.max_stock || 0,
-                })
+                };
+                setForm(initialData);
+                setInitialForm(initialData);
             })
         }
     }, [productId]);
+
+    const resetForm = () => {
+        if (initialForm) {
+            setForm(initialForm);
+        }
+        setError("");
+    };
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
+    };
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -92,6 +108,7 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
         }
         try {
             await updateProduct(productId as string, form);
+            resetForm();
             onClose();
         } catch (error: any) {
             console.error("Error updating product:", error);
@@ -103,7 +120,11 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
     if (loading) return <p>Cargando...</p>
 
     return (
-        <Modal open={open} onClose={onClose} className="flex items-center justify-center" >
+        <Modal 
+            open={open} 
+            onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+            className="flex items-center justify-center" 
+        >
             <Box sx={{
                 backgroundColor: 'white',
                 padding: '2rem',
@@ -133,7 +154,7 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
                     <Input type="number" placeholder="Stock máximo" value={form.maxStock} onChange={e => setForm({ ...form, maxStock: Number(e.target.value) })} />
                 </form>
                 <Button variant="contained" color="primary" type="submit" onClick={(e: React.MouseEvent<HTMLButtonElement>) => onSubmit(e)}>Guardar</Button>
-                <Button variant="contained" color="error" onClick={onClose}>Cancelar</Button>
+                <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
             </Box>
         </Modal>
     )
