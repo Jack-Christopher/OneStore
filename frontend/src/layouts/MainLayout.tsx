@@ -28,7 +28,20 @@ export const MainLayout = () => {
       <aside className={`${isCollapsed ? 'w-20' : 'w-64'} bg-primary text-primary-foreground border-r border-border flex flex-col justify-between transition-all duration-300 relative`}>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-9 bg-primary text-primary-foreground rounded-full p-1 border border-border hover:bg-secondary hover:text-secondary-foreground z-50 shadow-md"
+          className="absolute -right-3 top-9 rounded-full p-2 border z-50 shadow-lg transition-all duration-200 collapse-sidebar-btn"
+          style={{
+            backgroundColor: 'var(--card)',
+            color: 'var(--card-foreground)',
+            borderColor: 'var(--border)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--secondary)';
+            e.currentTarget.style.color = 'var(--secondary-foreground)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--card)';
+            e.currentTarget.style.color = 'var(--card-foreground)';
+          }}
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>

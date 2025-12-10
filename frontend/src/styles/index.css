@@ -205,3 +205,67 @@ body {
 .auth-page .auth-card [role="alert"] svg {
   color: #BF092F;
 }
+
+/* ===========================================================
+   CUSTOM SCROLLBAR - ELEGANT STYLING
+   =========================================================== */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+  border: 2px solid var(--muted);
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--primary);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--muted);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--muted);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===========================================================
+   COLLAPSE SIDEBAR BUTTON - SOLID BACKGROUND
+   =========================================================== */
+.collapse-sidebar-btn {
+  background-color: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border: 2px solid var(--border) !important;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapse-sidebar-btn:hover {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+}
