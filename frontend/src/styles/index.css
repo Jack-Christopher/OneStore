@@ -132,3 +132,76 @@ body {
 .datagrid-theme .MuiTablePagination-root {
   color: var(--foreground);
 }
+
+/* ===========================================================
+   AUTH PAGES - FIXED NEUTRAL STYLE (NOT AFFECTED BY THEME)
+   =========================================================== */
+.auth-page {
+  /* Dark gradient background using dark theme palette */
+  background: linear-gradient(135deg, #132440 0%, #16476A 50%, #1A2E53 100%);
+  min-height: 100vh;
+}
+
+.auth-page .auth-card {
+  background: #FFFFFF;
+  color: #1A1A1A;
+  border: 1px solid #D7D5D2;
+}
+
+.auth-page .auth-card h1,
+.auth-page .auth-card h2 {
+  color: #1A1A1A;
+}
+
+.auth-page .auth-card label {
+  color: #1A1A1A;
+}
+
+.auth-page .auth-card input {
+  background: #FFFFFF;
+  color: #1A1A1A;
+  border-color: #D7D5D2;
+}
+
+.auth-page .auth-card input::placeholder {
+  color: #6A6A6A;
+}
+
+.auth-page .auth-card button {
+  background: #16476A;
+  color: #F0F4FF;
+}
+
+.auth-page .auth-card button:hover:not(:disabled) {
+  background: #1A2E53;
+  opacity: 0.9;
+}
+
+.auth-page .auth-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-page .auth-card a {
+  color: #16476A;
+}
+
+.auth-page .auth-card a:hover {
+  color: #1A2E53;
+  text-decoration: underline;
+}
+
+.auth-page .auth-card .text-muted {
+  color: #6A6A6A;
+}
+
+/* Alert styles within auth pages */
+.auth-page .auth-card [role="alert"] {
+  background: #FFFFFF;
+  color: #1A1A1A;
+  border-left-color: #BF092F;
+}
+
+.auth-page .auth-card [role="alert"] svg {
+  color: #BF092F;
+}

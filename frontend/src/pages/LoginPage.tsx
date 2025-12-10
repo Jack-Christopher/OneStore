@@ -43,31 +43,31 @@ export const LoginPage = () => {
 
 
   return (
-    <div className="flex items-center justify-center h-screen bg-background">
+    <div className="auth-page flex items-center justify-center h-screen">
       <form
         onSubmit={onSubmit}
-        className="bg-card p-8 rounded-2xl shadow-md w-96 border border-border"
+        className="auth-card p-8 rounded-2xl shadow-md w-96"
       >
-        <h1 className="text-2xl font-bold mb-4 text-center text-card-foreground">Iniciar sesión</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">Iniciar sesión</h1>
 
         {error && (
           <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />
         )}
 
-        <label className="block mb-2 text-sm font-medium text-card-foreground">Correo electrónico</label>
+        <label className="block mb-2 text-sm font-medium">Correo electrónico</label>
         <input
           type="email"
           placeholder="Correo electrónico"
-          className="border border-border p-2 w-full rounded mb-4 bg-card text-card-foreground placeholder:text-muted-foreground"
+          className="border p-2 w-full rounded mb-4"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
 
-        <label className="block mb-2 text-sm font-medium text-card-foreground">Contraseña</label>
+        <label className="block mb-2 text-sm font-medium">Contraseña</label>
         <input
           type="password"
           placeholder="Contraseña"
-          className="border border-border p-2 w-full rounded mb-4 bg-card text-card-foreground placeholder:text-muted-foreground"
+          className="border p-2 w-full rounded mb-4"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
@@ -76,7 +76,7 @@ export const LoginPage = () => {
         <button
           type="submit"
           disabled={loading}
-          className="bg-primary text-primary-foreground w-full py-2 rounded hover:opacity-90 transition-opacity"
+          className="w-full py-2 rounded transition-opacity"
         >
           {loading ? "Cargando..." : "Iniciar sesión"}
         </button>
