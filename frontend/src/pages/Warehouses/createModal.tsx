@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Box, Button, Modal, Checkbox, FormControlLabel } from "@mui/material";
 import Alert from "@/components/Alert";
 import type { CreateWarehousePayload } from "@/services/api/warehouses";
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface WarehousesCreateModalProps {
   open: boolean;
@@ -63,7 +64,9 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
     }
 
     try {
-      await addWarehouse(formData);
+      // Trim all string values before submitting
+      const trimmedFormData = trimStringValues(formData);
+      await addWarehouse(trimmedFormData);
       resetForm();
       onClose();
     } catch (error: any) {
@@ -91,6 +94,7 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
             className="border rounded p-2 w-full mb-3"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'name')}
           />
 
           <label className="block mb-2 text-sm font-medium">Dirección</label>
@@ -100,6 +104,7 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
             className="border rounded p-2 w-full mb-3"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'address')}
           />
 
           <label className="block mb-2 text-sm font-medium">Teléfono</label>
@@ -109,6 +114,7 @@ export default function WarehousesCreateModal({ open, onClose }: WarehousesCreat
             className="border rounded p-2 w-full mb-3"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'phone')}
           />
 
           <FormControlLabel

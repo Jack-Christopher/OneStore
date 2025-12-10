@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Box, Button, Modal } from "@mui/material";
 import Alert from "@/components/Alert";
 import type { CreateSupplierPayload } from "@/services/api/suppliers";
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface SuppliersCreateModalProps {
   open: boolean;
@@ -65,7 +66,9 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
     }
 
     try {
-      await addSupplier(formData);
+      // Trim all string values before submitting
+      const trimmedFormData = trimStringValues(formData);
+      await addSupplier(trimmedFormData);
       resetForm();
       onClose();
     } catch (error: any) {

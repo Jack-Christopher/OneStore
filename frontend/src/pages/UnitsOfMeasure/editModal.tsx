@@ -6,6 +6,7 @@ import { UnitsOfMeasureErrorMessages } from "@/constants/unitsOfMeasureErrors";
 import Alert from "@/components/Alert";
 import { getUnitOfMeasure, type UnitOfMeasure, type UpdateUnitOfMeasurePayload } from "@/services/api/unitsOfMeasure";
 import type { ApiResponse } from "@/types/api";
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface UnitsOfMeasureEditModalProps {
   open: boolean;
@@ -73,7 +74,9 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
     }
 
     try {
-      await editUnitOfMeasure(unitOfMeasureId as string, form)
+      // Trim all string values before submitting
+      const trimmedForm = trimStringValues(form);
+      await editUnitOfMeasure(unitOfMeasureId as string, trimmedForm)
       resetForm();
       onClose();
       // Trigger refresh after successful update

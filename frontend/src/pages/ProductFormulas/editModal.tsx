@@ -11,6 +11,7 @@ import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import { Box, Button, Modal } from "@mui/material";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface ProductFormulasEditModalProps {
   open: boolean;
@@ -183,7 +184,9 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
           quantity: item.quantity,
         }))
       };
-      await updateProductFormula(productFormulaId!, payload);
+      // Trim all string values before submitting
+      const trimmedPayload = trimStringValues(payload);
+      await updateProductFormula(productFormulaId!, trimmedPayload);
       resetForm();
       onClose();
       // Trigger refresh after successful update

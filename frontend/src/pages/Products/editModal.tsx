@@ -11,6 +11,7 @@ import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import { useCategoriesStore } from "@/store/categoriesStore";
 import { ProductsErrorMessages } from "@/constants/productsErrors";
 import Alert from "@/components/Alert";
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface ProductsEditModalProps {
     open: boolean;
@@ -110,7 +111,9 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
             return;
         }
         try {
-            await updateProduct(productId as string, form);
+            // Trim all string values before submitting
+            const trimmedForm = trimStringValues(form);
+            await updateProduct(productId as string, trimmedForm);
             resetForm();
             onClose();
             // Trigger refresh after successful update

@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Box, Button, Modal, Checkbox, FormControlLabel } from "@mui/material";
 import Alert from "@/components/Alert";
 import type { CreateCustomerPayload } from "@/services/api/customers";
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface CustomersCreateModalProps {
   open: boolean;
@@ -65,7 +66,9 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
     }
 
     try {
-      await addCustomer(formData);
+      // Trim all string values before submitting
+      const trimmedFormData = trimStringValues(formData);
+      await addCustomer(trimmedFormData);
       resetForm();
       onClose();
     } catch (error: any) {
@@ -93,6 +96,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
             className="border rounded p-2 w-full mb-3"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'name')}
           />
 
           <label className="block mb-2 text-sm font-medium">Documento (RUC/DNI)</label>
@@ -102,6 +106,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
             className="border rounded p-2 w-full mb-3"
             value={formData.document}
             onChange={(e) => setFormData({ ...formData, document: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'document')}
           />
 
           <label className="block mb-2 text-sm font-medium">Teléfono</label>
@@ -111,6 +116,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
             className="border rounded p-2 w-full mb-3"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'phone')}
           />
 
           <label className="block mb-2 text-sm font-medium">Email</label>
@@ -120,6 +126,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
             className="border rounded p-2 w-full mb-3"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'email')}
           />
 
           <label className="block mb-2 text-sm font-medium">Dirección</label>
@@ -129,6 +136,7 @@ export default function CustomersCreateModal({ open, onClose }: CustomersCreateM
             className="border rounded p-2 w-full mb-3"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setFormData, 'address')}
           />
 
           <FormControlLabel

@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Box, Button, Modal } from "@mui/material"
 import { CategoriesErrorMessages } from "@/constants/categoriesErrors";
 import Alert from "@/components/Alert";
+import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
 interface CategoriesCreateModalProps {
   open: boolean;
@@ -45,7 +46,9 @@ export default function CategoriesCreateModal({ open, onClose, onSuccess }: Cate
     }
 
     try {
-      await addCategory(form)
+      // Trim all string values before submitting
+      const trimmedForm = trimStringValues(form);
+      await addCategory(trimmedForm)
       resetForm();
       onClose();
       // Trigger refresh after successful creation
@@ -84,9 +87,22 @@ export default function CategoriesCreateModal({ open, onClose, onSuccess }: Cate
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Categoría</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
           <label className="block mb-2 text-sm font-medium">Nombre</label>
-          <input type="text" placeholder="Nombre" className="border rounded p-2 w-full mb-3" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+          <input 
+            type="text" 
+            placeholder="Nombre" 
+            className="border rounded p-2 w-full mb-3" 
+            value={form.name} 
+            onChange={e => setForm({ ...form, name: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setForm, 'name')}
+          />
           <label className="block mb-2 text-sm font-medium">Descripción</label>
-          <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          <textarea 
+            placeholder="Descripción" 
+            className="border rounded p-2 w-full mb-3" 
+            value={form.description} 
+            onChange={e => setForm({ ...form, description: e.target.value })}
+            onBlur={createTrimmedBlurHandler(setForm, 'description')}
+          />
 
           {error && <Alert type="error" message={error} styles="mb-4" />}
 
