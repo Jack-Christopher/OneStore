@@ -47,6 +47,11 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     const res = await createProduct(payload)
     if (res.success && res.data) {
       set({ items: [...get().items, res.data] })
+    } else {
+      // Throw error so it can be caught in the component
+      const error: any = new Error(res.message || "Error creating product");
+      error.response = { data: res };
+      throw error;
     }
   },
 

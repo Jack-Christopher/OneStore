@@ -33,6 +33,11 @@ export const useCategoriesStore = create<CategoriesState>((set, get) => ({
     const res = await createCategory(payload)
     if (res.success && res.data) {
       set({ items: [...get().items, res.data] })
+    } else {
+      // Throw error so it can be caught in the component
+      const error: any = new Error(res.message || "Error creating category");
+      error.response = { data: res };
+      throw error;
     }
   },
 

@@ -30,6 +30,11 @@ async function create(req: Req, res: Res) {
     return ok(res, unitOfMeasure);
   } catch (error) {
     console.error("Error in create unitOfMeasure:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "unitOfMeasure");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Unit of measure couldn't be created", "CREATE_ERROR", 409);
   }
 }
@@ -41,6 +46,11 @@ async function update(req: Req, res: Res) {
     return ok(res, updated);
   } catch (error) {
     console.error("Error in update unitOfMeasure:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "unitOfMeasure");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Failed to update unit of measure", "UPDATE_ERROR", 500);
   }
 }

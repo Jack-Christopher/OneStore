@@ -9,6 +9,8 @@ import type { Category } from "@/services/api/categories";
 import type { UnitOfMeasure } from "@/services/api/unitsOfMeasure";
 import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import { useCategoriesStore } from "@/store/categoriesStore";
+import { ProductsErrorMessages } from "@/constants/productsErrors";
+import Alert from "@/components/Alert";
 
 interface ProductsEditModalProps {
     open: boolean;
@@ -112,7 +114,16 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
             onClose();
         } catch (error: any) {
             console.error("Error updating product:", error);
-            setError(error.response.data.message || "Error updating product");
+            // Use the parsed error from axios interceptor or parse it ourselves
+            const errorMessage = error?.userMessage || error?.parsedError?.message || error?.response?.data?.message;
+            const errorCode = error?.errorCode || error?.parsedError?.code || error?.response?.data?.code;
+            
+            // Try to get message from error constants first, then use parsed message
+            const msg = errorCode && ProductsErrorMessages[errorCode] 
+              ? ProductsErrorMessages[errorCode] 
+              : errorMessage || "Ocurrió un error inesperado";
+            setError(msg);
+        } finally {
             setLoading(false);
         }
     };
@@ -152,9 +163,13 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
                     <Input type="number" placeholder="Stock mínimo" value={form.minStock} onChange={e => setForm({ ...form, minStock: Number(e.target.value) })} />
                     <label className="block mb-2 text-sm font-medium">Stock máximo</label>
                     <Input type="number" placeholder="Stock máximo" value={form.maxStock} onChange={e => setForm({ ...form, maxStock: Number(e.target.value) })} />
+                    
+                    {error && <Alert type="error" message={error} styles="mb-4 mt-4" />}
                 </form>
-                <Button variant="contained" color="primary" type="submit" onClick={(e: React.MouseEvent<HTMLButtonElement>) => onSubmit(e)}>Guardar</Button>
-                <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
+                <div className="flex justify-between mt-4">
+                    <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>
+                    <Button variant="contained" color="primary" type="submit" onClick={(e: React.MouseEvent<HTMLButtonElement>) => onSubmit(e)} disabled={loading}>Guardar</Button>
+                </div>
             </Box>
         </Modal>
     )

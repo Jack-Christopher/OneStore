@@ -33,6 +33,11 @@ async function create(req: Req, res: Res) {
     return ok(res, warehouse);
   } catch (error) {
     console.error("Error in create warehouse:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "warehouse");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Warehouse couldn't be created", "CREATE_ERROR", 409);
   }
 }
@@ -47,6 +52,11 @@ async function update(req: Req, res: Res) {
     return ok(res, updated);
   } catch (error) {
     console.error("Error in update warehouse:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "warehouse");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Failed to update warehouse", "UPDATE_ERROR", 500);
   }
 }

@@ -49,8 +49,14 @@ export default function CategoriesCreateModal({ open, onClose }: CategoriesCreat
       onClose();
     } catch (error: any) {
       console.error("Create category error:", error);
-      const code = error?.response?.data?.code;
-      const msg = CategoriesErrorMessages[code] || "Unexpected error";
+      // Use the parsed error from axios interceptor or parse it ourselves
+      const errorMessage = error?.userMessage || error?.parsedError?.message || error?.response?.data?.message;
+      const errorCode = error?.errorCode || error?.parsedError?.code || error?.response?.data?.code;
+      
+      // Try to get message from error constants first, then use parsed message
+      const msg = errorCode && CategoriesErrorMessages[errorCode] 
+        ? CategoriesErrorMessages[errorCode] 
+        : errorMessage || "Ocurrió un error inesperado";
       setError(msg);
     } finally {
       setLoading(false);
@@ -77,7 +83,7 @@ export default function CategoriesCreateModal({ open, onClose }: CategoriesCreat
           <label className="block mb-2 text-sm font-medium">Descripción</label>
           <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
 
-          {error && <Alert type="error" boldMessage="Error: " message={error} styles="mb-4" />}
+          {error && <Alert type="error" message={error} styles="mb-4" />}
 
           <div className="flex justify-between mt-4">
             <Button variant="contained" color="error" onClick={handleClose}>Cancelar</Button>

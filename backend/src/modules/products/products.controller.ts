@@ -44,6 +44,11 @@ async function create(req: Req, res: Res) {
 
   } catch (error) {
     console.error("Error in create product:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "product");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Product couldn't be created", "CREATE_ERROR", 409);
   }
 }
@@ -57,6 +62,11 @@ async function update(req: Req, res: Res) {
     return ok(res, updated);
   } catch (error) {
     console.error("Error in update product:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "product");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Failed to update product", "UPDATE_ERROR", 500);
   }
 }

@@ -33,6 +33,11 @@ async function create(req: Req, res: Res) {
     return ok(res, category);
   } catch (error) {
     console.error("Error in create category:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "category");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Category couldn't be created", "CREATE_ERROR", 409);
   }
 }
@@ -47,6 +52,11 @@ async function update(req: Req, res: Res) {
     return ok(res, updated);
   } catch (error) {
     console.error("Error in update category:", error);
+    const { handleMongoError } = require("../../shared/utils/mongoErrorHandler");
+    const mongoError = handleMongoError(error, "category");
+    if (mongoError) {
+      return fail(res, mongoError.message, mongoError.code, mongoError.status);
+    }
     return fail(res, "Failed to update category", "UPDATE_ERROR", 500);
   }
 }
