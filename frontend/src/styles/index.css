@@ -373,3 +373,139 @@ html {
 .filter-section .MuiMenuItem-root.Mui-selected:hover {
   background-color: #EFE9E3 !important;
 }
+
+/* ===========================================================
+   MODALS AND FORMS - FIXED LIGHT STYLE WITH DARK TEXT
+   =========================================================== */
+
+/* MUI Modal container - always light background */
+.MuiModal-root .MuiBox-root,
+.MuiModal-root .MuiPaper-root {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+/* All text elements in modals - dark text */
+.MuiModal-root h1,
+.MuiModal-root h2,
+.MuiModal-root h3,
+.MuiModal-root h4,
+.MuiModal-root h5,
+.MuiModal-root h6,
+.MuiModal-root p,
+.MuiModal-root span,
+.MuiModal-root div,
+.MuiModal-root label {
+  color: #1A1A1A !important;
+}
+
+/* Form labels */
+.MuiModal-root label,
+.MuiModal-root .block {
+  color: #1A1A1A !important;
+}
+
+/* Input fields in modals */
+.MuiModal-root input,
+.MuiModal-root textarea,
+.MuiModal-root select {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+  border-color: #D7D5D2 !important;
+}
+
+.MuiModal-root input::placeholder,
+.MuiModal-root textarea::placeholder {
+  color: #6A6A6A !important;
+  opacity: 1;
+}
+
+/* MUI TextField in modals */
+.MuiModal-root .MuiTextField-root,
+.MuiModal-root .MuiFormControl-root {
+  background-color: #FFFFFF !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiOutlinedInput-root,
+.MuiModal-root .MuiFormControl-root .MuiOutlinedInput-root {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
+.MuiModal-root .MuiFormControl-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #D7D5D2 !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.MuiModal-root .MuiFormControl-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #C9B59C !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.MuiModal-root .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #C9B59C !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiInputLabel-root,
+.MuiModal-root .MuiFormControl-root .MuiInputLabel-root {
+  color: #6A6A6A !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiInputLabel-root.Mui-focused,
+.MuiModal-root .MuiFormControl-root .MuiInputLabel-root.Mui-focused {
+  color: #C9B59C !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiOutlinedInput-input,
+.MuiModal-root .MuiFormControl-root .MuiOutlinedInput-input {
+  color: #1A1A1A !important;
+}
+
+.MuiModal-root .MuiTextField-root .MuiOutlinedInput-input::placeholder,
+.MuiModal-root .MuiFormControl-root .MuiOutlinedInput-input::placeholder {
+  color: #6A6A6A !important;
+  opacity: 1;
+}
+
+/* MUI Select Menu in modals */
+.MuiModal-root .MuiPaper-root.MuiPopover-paper {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.MuiModal-root .MuiMenuItem-root {
+  color: #1A1A1A !important;
+}
+
+.MuiModal-root .MuiMenuItem-root:hover {
+  background-color: #EAE7E3 !important;
+}
+
+.MuiModal-root .MuiMenuItem-root.Mui-selected {
+  background-color: #EFE9E3 !important;
+  color: #1A1A1A !important;
+}
+
+.MuiModal-root .MuiMenuItem-root.Mui-selected:hover {
+  background-color: #EFE9E3 !important;
+}
+
+/* Buttons in modals - ensure text is visible */
+.MuiModal-root .MuiButton-root {
+  color: inherit !important;
+}
+
+.MuiModal-root .MuiButton-contained {
+  color: #FFFFFF !important;
+}
+
+.MuiModal-root .MuiButton-text {
+  color: #1A1A1A !important;
+}
+
+/* Alert components in modals */
+.MuiModal-root [role="alert"] {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
