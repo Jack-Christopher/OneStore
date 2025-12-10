@@ -1,9 +1,11 @@
+import DateInput from "./DateInput";
+
 interface InputProps {
   type: "text" | "number" | "email" | "password" | "date" | "time" | "datetime-local" | "tel" | "url" | "search" | "file" | "checkbox" | "radio" | "select" | "textarea";
   placeholder: string;
   value: string | number | boolean | undefined;
-  min?: number;
-  max?: number;
+  min?: number | string;
+  max?: number | string;
   step?: number | "any";
   readOnly?: boolean;
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -35,9 +37,16 @@ export default function Input({ type = "text", placeholder, value, min = 0, max,
     case "password":
       return <input type="password" readOnly={readOnly} placeholder={placeholder} className="border rounded p-2 w-full mb-3" value={value as string} onChange={onChange} />
     case "date":
-
-    // TODO: add special handling for date input
-      return <input type="date" readOnly={readOnly} placeholder={placeholder} className="border rounded p-2 w-full mb-3" value={value as string} onChange={onChange} />
+      return (
+        <DateInput
+          value={value as string || ""}
+          onChange={onChange}
+          placeholder={placeholder}
+          readOnly={readOnly}
+          min={min as string}
+          max={max as string}
+        />
+      )
     case "time":
       return <input type="time" readOnly={readOnly} placeholder={placeholder} className="border rounded p-2 w-full mb-3" value={value as string} onChange={onChange} />
     case "datetime-local":

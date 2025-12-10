@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal, Box, Typography, Button, Tabs, Tab } from '@mui/material';
 import { useAuditLogsStore, type AuditLog } from '@/store/auditLogsStore';
 import dayjs from 'dayjs';
+import { formatDate } from '@/utils/date';
 
 interface AuditLogDetailsModalProps {
   open: boolean;
@@ -123,7 +124,7 @@ export default function AuditLogDetailsModal({ open, onClose, logId }: AuditLogD
               </tr>
               <tr>
                 <td className="py-2 px-4 font-medium text-gray-600 bg-gray-50 border">Fecha</td>
-                <td className="py-2 px-4 border">{dayjs(log.performed_at).format('YYYY-MM-DD HH:mm:ss')}</td>
+                <td className="py-2 px-4 border">{formatDate(log.performed_at) || dayjs(log.performed_at).format('YYYY-MM-DD HH:mm:ss')}</td>
               </tr>
               <tr>
                 <td className="py-2 px-4 font-medium text-gray-600 bg-gray-50 border">Usuario</td>

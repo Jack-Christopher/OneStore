@@ -6,6 +6,8 @@ import { useAuthStore } from '@/store/authStore';
 import AuditLogDetailsModal from './detailsModal';
 import { Eye } from 'lucide-react';
 import dayjs from 'dayjs';
+import { formatDate } from '@/utils/date';
+import DateInput from '@/components/DateInput';
 
 const ENTITIES = ['Product', 'Sale', 'StockMovement', 'PurchaseOrder', 'Supplier', 'Category', 'Warehouse', 'Tenant', 'User'];
 const ACTIONS = ['create', 'update', 'delete', 'login', 'logout'];
@@ -13,11 +15,11 @@ const ACTIONS = ['create', 'update', 'delete', 'login', 'logout'];
 export default function AuditPage() {
   const user = useAuthStore((s) => s.authUser?.user);
   const role = user?.role || 'clerk';
-  const { logs, total, page, limit, totalPages, loading, fetch } = useAuditLogsStore();
-  
+  const { logs, total, limit, totalPages, loading, fetch } = useAuditLogsStore();
+
   const [openDetailsModal, setOpenDetailsModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
-  
+
   // Filters
   const [filters, setFilters] = useState({
     tenant_id: '',
@@ -27,7 +29,7 @@ export default function AuditPage() {
     date_from: '',
     date_to: '',
   });
-  
+
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function AuditPage() {
       headerName: 'Fecha',
       width: 180,
       renderCell: (params: GridRenderCellParams) => {
-        return dayjs(params.value).format('YYYY-MM-DD HH:mm:ss');
+        return formatDate(params.value) || dayjs(params.value).format('YYYY-MM-DD HH:mm:ss');
       }
     },
     {
@@ -188,24 +190,22 @@ export default function AuditPage() {
                 ))}
               </Select>
             </FormControl>
-            <TextField
-              label="Desde"
-              type="date"
-              size="small"
-              value={filters.date_from}
-              onChange={(e) => handleFilterChange('date_from', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ minWidth: 150 }}
-            />
-            <TextField
-              label="Hasta"
-              type="date"
-              size="small"
-              value={filters.date_to}
-              onChange={(e) => handleFilterChange('date_to', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ minWidth: 150 }}
-            />
+            <Box sx={{ minWidth: 150 }}>
+              <DateInput
+                value={filters.date_from || ""}
+                onChange={(e) => handleFilterChange('date_from', e.target.value)}
+                placeholder="Desde"
+                className=""
+              />
+            </Box>
+            <Box sx={{ minWidth: 150 }}>
+              <DateInput
+                value={filters.date_to || ""}
+                onChange={(e) => handleFilterChange('date_to', e.target.value)}
+                placeholder="Hasta"
+                className=""
+              />
+            </Box>
           </>
         )}
       </Box>
