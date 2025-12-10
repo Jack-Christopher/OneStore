@@ -134,7 +134,15 @@ export default function AuditPage() {
       <h1 className="text-xl font-semibold mb-4">Auditoría</h1>
 
       {/* Filters */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+      <Box 
+        className="filter-section"
+        sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          mb: 3, 
+          flexWrap: 'wrap',
+        }}
+      >
         {role === 'admin' && (
           <>
             <TextField

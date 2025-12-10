@@ -269,3 +269,86 @@ html {
   background-color: var(--secondary) !important;
   color: var(--secondary-foreground) !important;
 }
+
+/* ===========================================================
+   MUI COMPONENTS IN FILTER SECTIONS - FIXED LIGHT STYLE
+   =========================================================== */
+
+/* Filter sections should always have light background */
+.filter-section {
+  background-color: #FFFFFF !important;
+  border: 1px solid #D7D5D2 !important;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* MUI TextField and Select in filter sections - always light */
+.filter-section .MuiTextField-root,
+.filter-section .MuiFormControl-root {
+  background-color: #FFFFFF !important;
+}
+
+.filter-section .MuiTextField-root .MuiOutlinedInput-root,
+.filter-section .MuiFormControl-root .MuiOutlinedInput-root {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.filter-section .MuiTextField-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
+.filter-section .MuiFormControl-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #D7D5D2 !important;
+}
+
+.filter-section .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.filter-section .MuiFormControl-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #C9B59C !important;
+}
+
+.filter-section .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.filter-section .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #C9B59C !important;
+}
+
+.filter-section .MuiTextField-root .MuiInputLabel-root,
+.filter-section .MuiFormControl-root .MuiInputLabel-root {
+  color: #6A6A6A !important;
+}
+
+.filter-section .MuiTextField-root .MuiInputLabel-root.Mui-focused,
+.filter-section .MuiFormControl-root .MuiInputLabel-root.Mui-focused {
+  color: #C9B59C !important;
+}
+
+.filter-section .MuiTextField-root .MuiOutlinedInput-input,
+.filter-section .MuiFormControl-root .MuiOutlinedInput-input {
+  color: #1A1A1A !important;
+}
+
+.filter-section .MuiTextField-root .MuiOutlinedInput-input::placeholder,
+.filter-section .MuiFormControl-root .MuiOutlinedInput-input::placeholder {
+  color: #6A6A6A !important;
+  opacity: 1;
+}
+
+/* MUI Select Menu - light style */
+.filter-section .MuiPaper-root.MuiPopover-paper {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+}
+
+.filter-section .MuiMenuItem-root {
+  color: #1A1A1A !important;
+}
+
+.filter-section .MuiMenuItem-root:hover {
+  background-color: #EAE7E3 !important;
+}
+
+.filter-section .MuiMenuItem-root.Mui-selected {
+  background-color: #EFE9E3 !important;
+  color: #1A1A1A !important;
+}
+
+.filter-section .MuiMenuItem-root.Mui-selected:hover {
+  background-color: #EFE9E3 !important;
+}
