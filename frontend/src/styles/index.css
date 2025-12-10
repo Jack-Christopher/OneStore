@@ -82,9 +82,26 @@ body {
 }
 
 .datagrid-theme .MuiDataGrid-columnHeaders {
-  background-color: var(--card);
-  color: var(--card-foreground);
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
   border-bottom-color: var(--border);
+}
+
+.datagrid-theme .MuiDataGrid-columnHeaderTitle {
+  color: #1A1A1A !important;
+  font-weight: 600;
+}
+
+.datagrid-theme .MuiDataGrid-columnHeaderTitleContainer {
+  color: #1A1A1A !important;
+}
+
+.datagrid-theme .MuiDataGrid-columnHeader .MuiDataGrid-iconButtonContainer {
+  color: #1A1A1A !important;
+}
+
+.datagrid-theme .MuiDataGrid-columnHeader .MuiDataGrid-sortIcon {
+  color: #1A1A1A !important;
 }
 
 .datagrid-theme .MuiDataGrid-cell {
