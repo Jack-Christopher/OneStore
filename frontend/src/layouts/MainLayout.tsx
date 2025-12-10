@@ -42,9 +42,11 @@ export const MainLayout = () => {
           <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? 'h-0 opacity-0' : 'h-auto opacity-100'}`}>
             <h2 className="text-2xl font-bold p-4 text-center whitespace-nowrap">{storeName}</h2>
           </div>
-          <div className={`px-4 ${isCollapsed ? 'flex justify-center' : ''}`}>
-            <ThemeToggle />
-          </div>
+          {!isCollapsed && (
+            <div className="flex justify-center px-4 py-2">
+              <ThemeToggle />
+            </div>
+          )}
           <nav className="flex flex-col gap-2 p-4">
             {(() => {
               const user = useAuthStore.getState().authUser?.user;
