@@ -130,16 +130,16 @@ export default function ProductsPage() {
           }
         }}
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           sx={{
             '& .MuiDataGrid-columnHeader.stock-column': {
-              backgroundColor: '#568748 !important',
-              color: 'white !important',
+              backgroundColor: 'var(--secondary) !important',
+              color: 'var(--secondary-foreground) !important',
             },
             '& .MuiDataGrid-cell.stock-column': {
-              backgroundColor: '#bdd6b8 !important',
-              color: '#3b5736 !important',
+              backgroundColor: 'var(--muted) !important',
+              color: 'var(--foreground) !important',
             },
           }}
           rows={items ? items.map(p => ({

@@ -51,20 +51,21 @@ export default function TopProductsTable({ data, loading = false }: TopProductsT
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Productos Más Vendidos
         </Typography>
-        <DataGrid
-          sx={{
-            '& .MuiDataGrid-columnHeader.main-column': {
-              backgroundColor: '#568748 !important',
-              color: 'white !important',
-            },
-            '& .MuiDataGrid-cell.main-column': {
-              backgroundColor: '#bdd6b8 !important',
-              color: '#3b5736 !important',
-            },
-          }}
+        <div className="datagrid-theme">
+          <DataGrid
+            sx={{
+              '& .MuiDataGrid-columnHeader.main-column': {
+                backgroundColor: 'var(--secondary) !important',
+                color: 'var(--secondary-foreground) !important',
+              },
+              '& .MuiDataGrid-cell.main-column': {
+                backgroundColor: 'var(--muted) !important',
+                color: 'var(--foreground) !important',
+              },
+            }}
           rows={rows}
           columns={columns}
           loading={loading}
@@ -75,6 +76,7 @@ export default function TopProductsTable({ data, loading = false }: TopProductsT
             noRowsLabel: "No hay productos vendidos",
           }}
         />
+        </div>
       </CardContent>
     </Card>
   );

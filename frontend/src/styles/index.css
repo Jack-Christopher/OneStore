@@ -1,43 +1,24 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: var(--background);
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
+/* ===========================================================
+   GLOBAL THEME SYSTEM - CSS VARIABLES AS SOURCE OF TRUTH
+   =========================================================== */
 
-  --color-text-main: var(--text-main);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-inverted: var(--text-inverted);
-}
-
-/* 
- * Theme colors are set via CSS variables from theme.config.ts
- * Edit that file to change colors!
- * 
- * Light Theme:
- *   background: #F9F8F6
- *   primary: #EFE9E3
- *   secondary: #D9CFC7
- *   accent: #C9B59C
- *
- * Dark Theme:
- *   background: #132440
- *   primary: #16476A
- *   secondary: #3B9797
- *   accent: #BF092F
- */
-
-/* Default/Fallback values (light theme) */
+/* Light Theme (Default) */
 :root {
   --background: #F9F8F6;
+  --foreground: #1A1A1A;
   --primary: #EFE9E3;
+  --primary-foreground: #1A1A1A;
   --secondary: #D9CFC7;
+  --secondary-foreground: #1A1A1A;
   --accent: #C9B59C;
-
-  --text-main: #132440;
-  --text-secondary: #4a5568;
-  --text-inverted: #F9F8F6;
+  --accent-foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --muted: #EAE7E3;
+  --muted-foreground: #6A6A6A;
+  --border: #D7D5D2;
 
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
@@ -48,13 +29,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark Theme */
+.dark {
+  --background: #132440;
+  --foreground: #F0F4FF;
+  --primary: #16476A;
+  --primary-foreground: #F0F4FF;
+  --secondary: #3B9797;
+  --secondary-foreground: #F0F4FF;
+  --accent: #BF092F;
+  --accent-foreground: #FFFFFF;
+  --card: #1A2E53;
+  --card-foreground: #F0F4FF;
+  --muted: #1A2E53;
+  --muted-foreground: #A7B9D9;
+  --border: #20395C;
+}
+
 /* Base body styles */
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--background);
-  color: var(--text-main);
+  color: var(--foreground);
 }
 
 /* Smooth transitions when theme changes */
@@ -62,4 +60,75 @@ body {
 *::before,
 *::after {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* ===========================================================
+   DATA GRID THEMING (MUI DataGrid)
+   =========================================================== */
+.datagrid-theme {
+  --ag-background-color: var(--background);
+  --ag-foreground-color: var(--foreground);
+  --ag-header-background-color: var(--card);
+  --ag-border-color: var(--border);
+  --ag-selected-row-background-color: var(--primary);
+  --ag-row-hover-color: var(--muted);
+}
+
+/* MUI DataGrid theme overrides */
+.datagrid-theme .MuiDataGrid-root {
+  background-color: var(--background);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.datagrid-theme .MuiDataGrid-columnHeaders {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-bottom-color: var(--border);
+}
+
+.datagrid-theme .MuiDataGrid-cell {
+  color: var(--foreground);
+  border-bottom-color: var(--border);
+}
+
+.datagrid-theme .MuiDataGrid-row:hover {
+  background-color: var(--muted);
+}
+
+.datagrid-theme .MuiDataGrid-row.Mui-selected {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.datagrid-theme .MuiDataGrid-row.Mui-selected:hover {
+  background-color: var(--primary);
+}
+
+.datagrid-theme .MuiDataGrid-footerContainer {
+  border-top-color: var(--border);
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
+.datagrid-theme .MuiDataGrid-toolbarContainer {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-bottom-color: var(--border);
+}
+
+.datagrid-theme .MuiIconButton-root {
+  color: var(--foreground);
+}
+
+.datagrid-theme .MuiInputBase-root {
+  color: var(--foreground);
+}
+
+.datagrid-theme .MuiInputBase-input {
+  color: var(--foreground);
+}
+
+.datagrid-theme .MuiTablePagination-root {
+  color: var(--foreground);
 }

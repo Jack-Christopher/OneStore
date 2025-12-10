@@ -163,7 +163,7 @@ export default function ProductFormulasPage() {
         confirmButtonText="Eliminar"
         cancelButtonText="Cancelar"
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           rows={productFormulas ? productFormulas : []}
           columns={columns}

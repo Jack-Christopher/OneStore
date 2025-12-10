@@ -27,8 +27,9 @@ export default function BaseCurrencyModal({ open, onClose, onSuccess }: BaseCurr
     left: '50%',
     transform: 'translate(-50%, -50%)',
     width: 500,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
+    bgcolor: 'var(--card)',
+    color: 'var(--card-foreground)',
+    border: '2px solid var(--border)',
     boxShadow: 24,
     p: 4,
   };
@@ -59,8 +60,8 @@ export default function BaseCurrencyModal({ open, onClose, onSuccess }: BaseCurr
   return (
     <Modal open={open} onClose={() => {}} className="flex items-center justify-center">
       <Box sx={boxStyle}>
-        <h2 className="text-2xl font-bold mb-4 text-center">Select Base Currency</h2>
-        <p className="text-center mb-4 text-gray-600">
+        <h2 className="text-2xl font-bold mb-4 text-center text-card-foreground">Select Base Currency</h2>
+        <p className="text-center mb-4 text-muted-foreground">
           Select your base currency. This cannot be changed later.
         </p>
 

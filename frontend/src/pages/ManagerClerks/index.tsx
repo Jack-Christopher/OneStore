@@ -149,7 +149,7 @@ export default function ManagerClerksPage() {
           setSelectedClerkId(null)
         }}
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           disableRowSelectionOnClick
           rows={clerks || []}

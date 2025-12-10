@@ -18,8 +18,11 @@ export default function Select({ options, setFormInput, styles, value, disabled 
     setFormInput(event.target.value);
   };
 
+  const defaultStyles = "border border-border rounded p-2 w-full mb-3 bg-card text-card-foreground";
+  const combinedStyles = styles ? `${defaultStyles} ${styles}` : defaultStyles;
+
   return (
-    <select className={styles} onChange={handleChange} value={value} disabled={disabled}>
+    <select className={combinedStyles} onChange={handleChange} value={value} disabled={disabled}>
       <option value="">Seleccione una opción</option>
       {options && options.map((o) => {
         return <option key={o.value} value={o.value} >{o.label}</option>

@@ -61,8 +61,8 @@ export default function SuppliersPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Proveedores</h1>
-      <ExportImportButtons 
-        module="suppliers" 
+      <ExportImportButtons
+        module="suppliers"
         moduleLabel="Proveedores"
         onImportSuccess={() => fetch()}
       />
@@ -97,7 +97,7 @@ export default function SuppliersPage() {
             })
         }}
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           rows={items ? items : []}
           columns={columns}

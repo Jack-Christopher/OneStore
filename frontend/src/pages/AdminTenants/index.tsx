@@ -141,7 +141,7 @@ export default function AdminTenantsPage() {
           setSelectedTenant(null)
         }}
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           disableRowSelectionOnClick
           rows={tenants || []}

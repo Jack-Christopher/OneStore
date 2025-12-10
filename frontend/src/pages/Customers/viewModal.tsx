@@ -43,45 +43,46 @@ export default function CustomersViewModal({ open, onClose, customerId }: Custom
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 400,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
+        bgcolor: 'var(--card)',
+        color: 'var(--card-foreground)',
+        border: '2px solid var(--border)',
         boxShadow: 24,
         p: 4,
       }}>
-        <h2 className="text-2xl font-bold mb-4 text-center">Ver Cliente</h2>
-        <div className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-4">
+        <h2 className="text-2xl font-bold mb-4 text-center text-card-foreground">Ver Cliente</h2>
+        <div className="border border-border shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-4 bg-card">
           <table className="w-full text-sm leading-5">
-            <thead className="bg-gray-100">
+            <thead className="bg-muted">
               <tr>
-                <th className="py-3 px-4 text-left font-medium text-gray-600">Concepto</th>
-                <th className="py-3 px-4 text-left font-medium text-gray-600">Valor</th>
+                <th className="py-3 px-4 text-left font-medium text-muted-foreground">Concepto</th>
+                <th className="py-3 px-4 text-left font-medium text-muted-foreground">Valor</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Nombre</td>
-                <td className="py-3 px-4 text-left">{customer?.name || '-'}</td>
+              <tr className="border-t border-border">
+                <td className="py-3 px-4 text-left font-medium text-muted-foreground">Nombre</td>
+                <td className="py-3 px-4 text-left text-card-foreground">{customer?.name || '-'}</td>
               </tr>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Documento (RUC/DNI)</td>
-                <td className="py-3 px-4 text-left">{customer?.document || '-'}</td>
+              <tr className="border-t border-border">
+                <td className="py-3 px-4 text-left font-medium text-muted-foreground">Documento (RUC/DNI)</td>
+                <td className="py-3 px-4 text-left text-card-foreground">{customer?.document || '-'}</td>
               </tr>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Teléfono</td>
-                <td className="py-3 px-4 text-left">{customer?.phone || '-'}</td>
+              <tr className="border-t border-border">
+                <td className="py-3 px-4 text-left font-medium text-muted-foreground">Teléfono</td>
+                <td className="py-3 px-4 text-left text-card-foreground">{customer?.phone || '-'}</td>
               </tr>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Email</td>
-                <td className="py-3 px-4 text-left">{customer?.email || '-'}</td>
+              <tr className="border-t border-border">
+                <td className="py-3 px-4 text-left font-medium text-muted-foreground">Email</td>
+                <td className="py-3 px-4 text-left text-card-foreground">{customer?.email || '-'}</td>
               </tr>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Dirección</td>
-                <td className="py-3 px-4 text-left">{customer?.address || '-'}</td>
+              <tr className="border-t border-border">
+                <td className="py-3 px-4 text-left font-medium text-muted-foreground">Dirección</td>
+                <td className="py-3 px-4 text-left text-card-foreground">{customer?.address || '-'}</td>
               </tr>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Activo</td>
+              <tr className="border-t border-border">
+                <td className="py-3 px-4 text-left font-medium text-muted-foreground">Activo</td>
                 <td className="py-3 px-4 text-left">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${(customer as any)?.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${(customer as any)?.is_active ? 'bg-secondary text-secondary-foreground' : 'bg-accent text-accent-foreground'}`}>
                     {(customer as any)?.is_active ? 'Sí' : 'No'}
                   </span>
                 </td>

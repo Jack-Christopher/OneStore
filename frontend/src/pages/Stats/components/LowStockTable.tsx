@@ -49,20 +49,21 @@ export default function LowStockTable({ data, loading = false }: LowStockTablePr
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold text-orange-600">
+        <Typography variant="h6" className="mb-4 font-bold text-accent">
           ⚠️ Productos con Stock Bajo
         </Typography>
-        <DataGrid
-          sx={{
-            '& .MuiDataGrid-columnHeader.warning-column': {
-              backgroundColor: '#FFA726 !important',
-              color: 'white !important',
-            },
-            '& .MuiDataGrid-cell.warning-column': {
-              backgroundColor: '#f9e2a8 !important',
-              color: '#85775f !important',
-            },
-          }}
+        <div className="datagrid-theme">
+          <DataGrid
+            sx={{
+              '& .MuiDataGrid-columnHeader.warning-column': {
+                backgroundColor: 'var(--accent) !important',
+                color: 'var(--accent-foreground) !important',
+              },
+              '& .MuiDataGrid-cell.warning-column': {
+                backgroundColor: 'var(--muted) !important',
+                color: 'var(--foreground) !important',
+              },
+            }}
           rows={rows}
           columns={columns}
           loading={loading}
@@ -73,6 +74,7 @@ export default function LowStockTable({ data, loading = false }: LowStockTablePr
             noRowsLabel: "No hay productos con stock bajo",
           }}
         />
+        </div>
       </CardContent>
     </Card>
   );

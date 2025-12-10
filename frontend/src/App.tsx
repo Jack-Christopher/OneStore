@@ -2,12 +2,9 @@ import { useEffect, useState } from "react"
 import { AppRoutes } from '@/routes/AppRoutes'
 import { useAuthStore } from "@/store/authStore"
 import { useSettingsStore } from "@/store/settingsStore"
-import { applyTheme, initializeTheme, type ThemeName } from "@/theme.config"
+import { applyTheme, type ThemeName } from "@/theme.config"
 import { getBaseCurrency } from "@/services/api/settings"
 import BaseCurrencyModal from "@/components/BaseCurrencyModal"
-
-// Initialize theme early to prevent flash
-initializeTheme()
 
 export default function App() {
   const fetchProfile = useAuthStore((s) => s.fetchProfile)

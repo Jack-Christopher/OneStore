@@ -1,52 +1,20 @@
 /**
  * Theme Configuration File
  * ========================
- * Edit colors here to quickly change the app's appearance.
- * Changes require a rebuild to take effect.
+ * Theme is now managed via CSS variables in styles/index.css
+ * This file provides utility functions for theme management
  */
 
-export const themes = {
-  light: {
-    background: '#F9F8F6',
-    primary: '#EFE9E3',
-    secondary: '#D9CFC7',
-    accent: '#C9B59C',
-    textMain: '#132440',
-    textSecondary: '#4a5568',
-    textInverted: '#F9F8F6',
-  },
-  dark: {
-    background: '#132440',
-    primary: '#16476A',
-    secondary: '#3B9797',
-    accent: '#BF092F',
-    textMain: '#F9F8F6',
-    textSecondary: '#cbd5e0',
-    textInverted: '#132440',
-  },
-} as const
-
-export type ThemeName = keyof typeof themes
-export type ThemeColors = typeof themes.light
+export type ThemeName = 'light' | 'dark'
 
 /**
- * Apply theme to document
- * This function updates CSS variables and the dark class
+ * Apply theme to document by toggling the 'dark' class
+ * CSS variables are defined in styles/index.css and automatically switch
  */
 export function applyTheme(themeName: ThemeName): void {
-  const theme = themes[themeName]
   const root = document.documentElement
 
-  // Set CSS variables
-  root.style.setProperty('--background', theme.background)
-  root.style.setProperty('--primary', theme.primary)
-  root.style.setProperty('--secondary', theme.secondary)
-  root.style.setProperty('--accent', theme.accent)
-  root.style.setProperty('--text-main', theme.textMain)
-  root.style.setProperty('--text-secondary', theme.textSecondary)
-  root.style.setProperty('--text-inverted', theme.textInverted)
-
-  // Toggle dark class for Tailwind
+  // Toggle dark class for Tailwind and CSS variables
   if (themeName === 'dark') {
     root.classList.add('dark')
   } else {
@@ -75,6 +43,17 @@ export function getSavedTheme(): ThemeName {
 export function initializeTheme(): void {
   const savedTheme = getSavedTheme()
   applyTheme(savedTheme)
+}
+
+/**
+ * Toggle between light and dark themes
+ */
+export function toggleTheme(): ThemeName {
+  const html = document.documentElement
+  const isDark = html.classList.contains('dark')
+  const newTheme: ThemeName = isDark ? 'light' : 'dark'
+  applyTheme(newTheme)
+  return newTheme
 }
 
 

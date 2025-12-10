@@ -77,7 +77,7 @@ export default function SalesPage() {
       </Button>
       <SalesCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
       <SalesViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} saleId={selectedSaleId} />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           rows={sales ? sales : []}
           columns={columns}

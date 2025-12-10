@@ -118,7 +118,7 @@ export default function PurchaseOrdersPage() {
           })
         }}
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           rows={items ? items : []}
           columns={columns}

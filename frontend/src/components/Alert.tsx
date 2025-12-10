@@ -12,7 +12,7 @@ export default function Alert({ type, boldMessage, message, styles, icon }: Aler
 
   switch (type) {
     case "error":
-      alertStyle = "bg-red-50 border-l-4 border-red-500 text-red-800 dark:bg-red-900/20 dark:border-red-600 dark:text-red-200 px-4 py-3 rounded shadow-sm";
+      alertStyle = "bg-card border-l-4 border-accent text-card-foreground px-4 py-3 rounded shadow-sm";
       if (!iconElement) {
         iconElement = (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -22,7 +22,7 @@ export default function Alert({ type, boldMessage, message, styles, icon }: Aler
       }
       break;
     case "success":
-      alertStyle = "bg-green-50 border-l-4 border-green-500 text-green-800 dark:bg-green-900/20 dark:border-green-600 dark:text-green-200 px-4 py-3 rounded shadow-sm";
+      alertStyle = "bg-card border-l-4 border-secondary text-card-foreground px-4 py-3 rounded shadow-sm";
       if (!iconElement) {
         iconElement = (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -32,7 +32,7 @@ export default function Alert({ type, boldMessage, message, styles, icon }: Aler
       }
       break;
     case "info":
-      alertStyle = "bg-blue-50 border-l-4 border-blue-500 text-blue-800 dark:bg-blue-900/20 dark:border-blue-600 dark:text-blue-200 px-4 py-3 rounded shadow-sm";
+      alertStyle = "bg-card border-l-4 border-primary text-card-foreground px-4 py-3 rounded shadow-sm";
       if (!iconElement) {
         iconElement = (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -42,7 +42,7 @@ export default function Alert({ type, boldMessage, message, styles, icon }: Aler
       }
       break;
     case "warning":
-      alertStyle = "bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-600 dark:text-yellow-200 px-4 py-3 rounded shadow-sm";
+      alertStyle = "bg-card border-l-4 border-accent text-card-foreground px-4 py-3 rounded shadow-sm";
       if (!iconElement) {
         iconElement = (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -52,7 +52,7 @@ export default function Alert({ type, boldMessage, message, styles, icon }: Aler
       }
       break;
     default:
-      alertStyle = "bg-primary border-l-4 border-secondary text-text-main px-4 py-3 rounded shadow-sm";
+      alertStyle = "bg-card border-l-4 border-border text-card-foreground px-4 py-3 rounded shadow-sm";
   }
 
   return (

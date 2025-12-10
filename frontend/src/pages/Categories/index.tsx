@@ -115,7 +115,7 @@ export default function CategoriesPage() {
           setOpenDeleteModal(false)
         }}
       />
-      <div className="mt-4" style={{ height: 750 }}>
+      <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
           disableRowSelectionOnClick
           rows={items ? items : []}

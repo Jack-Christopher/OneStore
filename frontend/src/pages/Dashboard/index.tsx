@@ -64,61 +64,61 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <h2 className="text-xl font-bold mb-4">Bienvenido, {user?.fullname}</h2>
+      <h1 className="text-2xl font-bold mb-4 text-foreground">Dashboard</h1>
+      <h2 className="text-xl font-bold mb-4 text-foreground">Bienvenido, {user?.fullname}</h2>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Sales Summary Card */}
-        <Card className="bg-blue-50">
+        <Card className="bg-card">
           <CardContent>
-            <Typography variant="subtitle2" color="textSecondary">Ventas</Typography>
-            <Typography variant="h4" className="font-bold">
+            <Typography variant="subtitle2" className="text-muted-foreground">Ventas</Typography>
+            <Typography variant="h4" className="font-bold text-card-foreground">
               {dashboardStats?.salesSummary?.totalSales || 0}
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" className="text-muted-foreground">
               Total: {formatCurrency(dashboardStats?.salesSummary?.totalAmount)}
             </Typography>
-            <Typography variant="caption" color="textSecondary">
+            <Typography variant="caption" className="text-muted-foreground">
               Promedio: {formatCurrency(dashboardStats?.salesSummary?.averageAmount)}
             </Typography>
           </CardContent>
         </Card>
 
         {/* Purchases Summary Card */}
-        <Card className="bg-green-50">
+        <Card className="bg-card">
           <CardContent>
-            <Typography variant="subtitle2" color="textSecondary">Órdenes de Compra</Typography>
-            <Typography variant="h4" className="font-bold">
+            <Typography variant="subtitle2" className="text-muted-foreground">Órdenes de Compra</Typography>
+            <Typography variant="h4" className="font-bold text-card-foreground">
               {dashboardStats?.purchasesSummary?.totalOrders || 0}
             </Typography>
             <div className="flex gap-1 mt-1 flex-wrap">
-              <Chip size="small" label={`Pendientes: ${dashboardStats?.purchasesSummary?.pendingOrders || 0}`} color="warning" />
-              <Chip size="small" label={`Recibidas: ${dashboardStats?.purchasesSummary?.receivedOrders || 0}`} color="success" />
+              <Chip size="small" label={`Pendientes: ${dashboardStats?.purchasesSummary?.pendingOrders || 0}`} className="bg-accent text-accent-foreground" />
+              <Chip size="small" label={`Recibidas: ${dashboardStats?.purchasesSummary?.receivedOrders || 0}`} className="bg-secondary text-secondary-foreground" />
             </div>
-            <Typography variant="body2" color="textSecondary" className="mt-1">
+            <Typography variant="body2" className="text-muted-foreground mt-1">
               Total: {formatCurrency(dashboardStats?.purchasesSummary?.totalAmount)}
             </Typography>
           </CardContent>
         </Card>
 
         {/* Financial Summary Card */}
-        <Card className="bg-purple-50">
+        <Card className="bg-card">
           <CardContent>
-            <Typography variant="subtitle2" color="textSecondary">Resumen Financiero</Typography>
-            <Typography variant="h6" className="font-bold text-green-600">
+            <Typography variant="subtitle2" className="text-muted-foreground">Resumen Financiero</Typography>
+            <Typography variant="h6" className="font-bold text-secondary">
               Ingresos: {formatCurrency(dashboardStats?.financialSummary?.totalIncome)}
             </Typography>
-            <Typography variant="h6" className="text-red-600">
+            <Typography variant="h6" className="text-accent">
               Gastos: {formatCurrency(dashboardStats?.financialSummary?.totalExpenses)}
             </Typography>
             <Typography variant="body1" className="font-semibold mt-1">
               {dashboardStats?.financialSummary?.netProfit && dashboardStats?.financialSummary?.netProfit < 0 ? (
-                <Typography variant="body2" className="text-red-600">
+                <Typography variant="body2" className="text-accent">
                   (Pérdida: {formatCurrency(dashboardStats?.financialSummary?.netProfit)})
                 </Typography>
               ) : (
-                <Typography variant="body2" className="text-green-600">
+                <Typography variant="body2" className="text-secondary">
                   (Ganancia: {formatCurrency(dashboardStats?.financialSummary?.netProfit)})
                 </Typography>
               )}
@@ -127,17 +127,17 @@ export default function DashboardPage() {
         </Card>
 
         {/* Activity Summary Card */}
-        <Card className="bg-orange-50">
+        <Card className="bg-card">
           <CardContent>
-            <Typography variant="subtitle2" color="textSecondary">Actividad</Typography>
+            <Typography variant="subtitle2" className="text-muted-foreground">Actividad</Typography>
             <div className="flex flex-col gap-1">
-              <Typography variant="body2">
+              <Typography variant="body2" className="text-card-foreground">
                 <strong>{dashboardStats?.financialSummary?.salesCount || 0}</strong> ventas realizadas
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" className="text-card-foreground">
                 <strong>{dashboardStats?.financialSummary?.purchasesCount || 0}</strong> compras registradas
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" className="text-card-foreground">
                 <strong>{dashboardStats?.lowStockProducts?.length || 0}</strong> productos con stock bajo
               </Typography>
             </div>
@@ -149,90 +149,96 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top selling products */}
         <Box className="col-span-1">
-          <Card className="p-4">
+          <Card className="p-4 bg-card">
             <CardContent>
-              <Typography variant="h6">Productos más vendidos</Typography>
-              <DataGrid
-                sx={{
-                  '& .MuiDataGrid-columnHeader.main-column': {
-                    backgroundColor: '#568748 !important',
-                    color: 'white !important',
-                  },
-                  '& .MuiDataGrid-cell.main-column': {
-                    backgroundColor: '#bdd6b8 !important',
-                    color: '#3b5736 !important',
-                  },
-                }}
-                rows={dashboardStats?.topProducts?.map((p, idx) => ({ ...p, id: p.productId || idx })) || []}
-                columns={productGridColumns}
-                loading={loading}
-                localeText={{
-                  noRowsLabel: "Aún no hay productos vendidos.",
-                }}
-                paginationModel={productsPaginationModel}
-                onPaginationModelChange={setProductsPaginationModel}
-                pageSizeOptions={[5, 10, 25]}
-              />
+              <Typography variant="h6" className="text-card-foreground">Productos más vendidos</Typography>
+              <div className="datagrid-theme">
+                <DataGrid
+                  sx={{
+                    '& .MuiDataGrid-columnHeader.main-column': {
+                      backgroundColor: 'var(--secondary) !important',
+                      color: 'var(--secondary-foreground) !important',
+                    },
+                    '& .MuiDataGrid-cell.main-column': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  }}
+                  rows={dashboardStats?.topProducts?.map((p, idx) => ({ ...p, id: p.productId || idx })) || []}
+                  columns={productGridColumns}
+                  loading={loading}
+                  localeText={{
+                    noRowsLabel: "Aún no hay productos vendidos.",
+                  }}
+                  paginationModel={productsPaginationModel}
+                  onPaginationModelChange={setProductsPaginationModel}
+                  pageSizeOptions={[5, 10, 25]}
+                />
+              </div>
             </CardContent>
           </Card>
         </Box>
 
         {/* Top categories */}
         <Box className="col-span-1">
-          <Card className="p-4">
+          <Card className="p-4 bg-card">
             <CardContent>
-              <Typography variant="h6">Categorías más vendidas</Typography>
-              <DataGrid
-                sx={{
-                  '& .MuiDataGrid-columnHeader.main-column': {
-                    backgroundColor: '#568748 !important',
-                    color: 'white !important',
-                  },
-                  '& .MuiDataGrid-cell.main-column': {
-                    backgroundColor: '#bdd6b8 !important',
-                    color: '#3b5736 !important',
-                  },
-                }}
-                rows={dashboardStats?.topCategories?.map((c, idx) => ({ ...c, id: c.categoryId || idx })) || []}
-                columns={categoryGridColumns}
-                loading={loading}
-                localeText={{
-                  noRowsLabel: "Aún no hay categorías con ventas.",
-                }}
-                paginationModel={categoriesPaginationModel}
-                onPaginationModelChange={setCategoriesPaginationModel}
-                pageSizeOptions={[5, 10, 25]}
-              />
+              <Typography variant="h6" className="text-card-foreground">Categorías más vendidas</Typography>
+              <div className="datagrid-theme">
+                <DataGrid
+                  sx={{
+                    '& .MuiDataGrid-columnHeader.main-column': {
+                      backgroundColor: 'var(--secondary) !important',
+                      color: 'var(--secondary-foreground) !important',
+                    },
+                    '& .MuiDataGrid-cell.main-column': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  }}
+                  rows={dashboardStats?.topCategories?.map((c, idx) => ({ ...c, id: c.categoryId || idx })) || []}
+                  columns={categoryGridColumns}
+                  loading={loading}
+                  localeText={{
+                    noRowsLabel: "Aún no hay categorías con ventas.",
+                  }}
+                  paginationModel={categoriesPaginationModel}
+                  onPaginationModelChange={setCategoriesPaginationModel}
+                  pageSizeOptions={[5, 10, 25]}
+                />
+              </div>
             </CardContent>
           </Card>
         </Box>
 
         {/* Low stock products */}
         <Box className="col-span-1 md:col-span-2">
-          <Card className="p-4">
+          <Card className="p-4 bg-card">
             <CardContent>
-              <Typography variant="h6" className="text-orange-600">⚠️ Productos con stock bajo</Typography>
-              <DataGrid
-                sx={{
-                  '& .MuiDataGrid-columnHeader.warning-column': {
-                    backgroundColor: '#FFA726 !important',
-                    color: 'white !important',
-                  },
-                  '& .MuiDataGrid-cell.warning-column': {
-                    backgroundColor: '#f9e2a8 !important',
-                    color: '#85775f !important',
-                  },
-                }}
-                rows={dashboardStats?.lowStockProducts?.map((p, idx) => ({ ...p, id: p.productId || idx })) || []}
-                columns={lowStockGridColumns}
-                loading={loading}
-                localeText={{
-                  noRowsLabel: "No hay productos con stock bajo.",
-                }}
-                paginationModel={lowStockPaginationModel}
-                onPaginationModelChange={setLowStockPaginationModel}
-                pageSizeOptions={[5, 10, 25]}
-              />
+              <Typography variant="h6" className="text-accent">⚠️ Productos con stock bajo</Typography>
+              <div className="datagrid-theme">
+                <DataGrid
+                  sx={{
+                    '& .MuiDataGrid-columnHeader.warning-column': {
+                      backgroundColor: 'var(--accent) !important',
+                      color: 'var(--accent-foreground) !important',
+                    },
+                    '& .MuiDataGrid-cell.warning-column': {
+                      backgroundColor: 'var(--muted) !important',
+                      color: 'var(--foreground) !important',
+                    },
+                  }}
+                  rows={dashboardStats?.lowStockProducts?.map((p, idx) => ({ ...p, id: p.productId || idx })) || []}
+                  columns={lowStockGridColumns}
+                  loading={loading}
+                  localeText={{
+                    noRowsLabel: "No hay productos con stock bajo.",
+                  }}
+                  paginationModel={lowStockPaginationModel}
+                  onPaginationModelChange={setLowStockPaginationModel}
+                  pageSizeOptions={[5, 10, 25]}
+                />
+              </div>
             </CardContent>
           </Card>
         </Box>

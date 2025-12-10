@@ -91,7 +91,7 @@ export default function PurchaseOrdersViewModal({ open, onClose, orderId }: Purc
         )}
 
         <h3 className="text-lg font-semibold mb-2">Items</h3>
-        <div style={{ height: 300 }}>
+        <div className="datagrid-theme" style={{ height: 300 }}>
           <DataGrid
             rows={items}
             columns={itemColumns}
