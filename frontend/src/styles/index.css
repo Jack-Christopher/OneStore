@@ -110,7 +110,11 @@ body {
 }
 
 .datagrid-theme .MuiDataGrid-row:hover {
-  background-color: var(--muted);
+  background-color: #F5F5F5 !important;
+}
+
+.datagrid-theme .MuiDataGrid-row:hover .MuiDataGrid-cell {
+  color: #1A1A1A !important;
 }
 
 .datagrid-theme .MuiDataGrid-row.Mui-selected {
