@@ -14,9 +14,10 @@ import Input from "@/components/Input";
 interface ProductsCreateModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function ProductsCreateModal({ open, onClose }: ProductsCreateModalProps) {
+export default function ProductsCreateModal({ open, onClose, onSuccess }: ProductsCreateModalProps) {
   const addProduct = useProductsStore(s => s.add);
   const { items: categoryItems, fetch: fetchCategories } = useCategoriesStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
@@ -136,6 +137,10 @@ export default function ProductsCreateModal({ open, onClose }: ProductsCreateMod
       await addProduct(form)
       resetForm();
       onClose();
+      // Trigger refresh after successful creation
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.log(JSON.stringify(error, null, 2));
       console.error("Create product error:", error);

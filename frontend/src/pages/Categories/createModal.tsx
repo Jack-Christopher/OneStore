@@ -8,9 +8,10 @@ import Alert from "@/components/Alert";
 interface CategoriesCreateModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function CategoriesCreateModal({ open, onClose }: CategoriesCreateModalProps) {
+export default function CategoriesCreateModal({ open, onClose, onSuccess }: CategoriesCreateModalProps) {
   const addCategory = useCategoriesStore(s => s.add);
   const [error, setError] = useState("");
   const initialForm = {
@@ -47,6 +48,10 @@ export default function CategoriesCreateModal({ open, onClose }: CategoriesCreat
       await addCategory(form)
       resetForm();
       onClose();
+      // Trigger refresh after successful creation
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Create category error:", error);
       // Use the parsed error from axios interceptor or parse it ourselves

@@ -9,9 +9,10 @@ import type { CreateUnitOfMeasurePayload } from "@/services/api/unitsOfMeasure";
 interface UnitsOfMeasureCreateModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeasureCreateModalProps) {
+export default function UnitsOfMeasureCreateModal({ open, onClose, onSuccess }: UnitsOfMeasureCreateModalProps) {
   const addUnitOfMeasure = useUnitsOfMeasureStore(s => s.add);
   const [error, setError] = useState("");
   const initialForm: CreateUnitOfMeasurePayload = {
@@ -49,6 +50,10 @@ export default function UnitsOfMeasureCreateModal({ open, onClose }: UnitsOfMeas
       await addUnitOfMeasure(form)
       resetForm();
       onClose();
+      // Trigger refresh after successful creation
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Create unit of measure error:", error);
       const code = error?.response?.data?.code;

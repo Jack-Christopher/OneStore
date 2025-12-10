@@ -16,6 +16,7 @@ interface ProductFormulasEditModalProps {
   open: boolean;
   onClose: () => void;
   productFormulaId: string | null;
+  onSuccess?: () => void;
 }
 
 interface EditItem {
@@ -25,7 +26,7 @@ interface EditItem {
   quantity: number;
 }
 
-export default function ProductFormulasEditModal({ open, onClose, productFormulaId }: ProductFormulasEditModalProps) {
+export default function ProductFormulasEditModal({ open, onClose, productFormulaId, onSuccess }: ProductFormulasEditModalProps) {
   const [form, setForm] = useState({
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     name: "",
@@ -185,6 +186,10 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
       await updateProductFormula(productFormulaId!, payload);
       resetForm();
       onClose();
+      // Trigger refresh after successful update
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Error updating product formula:", error);
       const code = error?.response?.data?.code || "unexpected_error";

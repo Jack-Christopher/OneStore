@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
 import { Button } from '@mui/material'
 import { useUnitsOfMeasureStore } from '@/store/unitsOfMeasureStore'
@@ -19,16 +19,26 @@ export default function UnitsOfMeasurePage() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [selectedUnitOfMeasureId, setSelectedUnitOfMeasureId] = useState<string | null>(null)
+  const hasFetchedRef = useRef(false)
 
+  // Fetch data only on mount
   useEffect(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true
+      fetch()
+        .catch((err) => {
+          console.error("Error fetching units of measure:", err)
+        })
+    }
+  }, [fetch])
+
+  // Refresh function to be called after CRUD operations
+  const refreshData = () => {
     fetch()
-      .then(() => {
-        console.log("Units Of Measure fetched", items)
-      })
       .catch((err) => {
-        console.error("Error fetching units of measure:", err)
+        console.error("Error refreshing units of measure:", err)
       })
-  }, [items.length, fetch])
+  }
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
@@ -85,9 +95,18 @@ export default function UnitsOfMeasurePage() {
       >
         Agregar Unidad de Medida
       </Button>
-      <UnitsOfMeasureCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <UnitsOfMeasureCreateModal 
+        open={openCreateModal} 
+        onClose={() => setOpenCreateModal(false)}
+        onSuccess={refreshData}
+      />
       <UnitsOfMeasureViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} unitOfMeasureId={selectedUnitOfMeasureId} />
-      <UnitsOfMeasureEditModal open={openEditModal} onClose={() => setOpenEditModal(false)} unitOfMeasureId={selectedUnitOfMeasureId} />
+      <UnitsOfMeasureEditModal 
+        open={openEditModal} 
+        onClose={() => setOpenEditModal(false)} 
+        unitOfMeasureId={selectedUnitOfMeasureId}
+        onSuccess={refreshData}
+      />
       <DeleteModal 
         title="Eliminar Unidad de Medida"
         description="¿Estás seguro de querer eliminar esta unidad de medida?"
@@ -96,17 +115,17 @@ export default function UnitsOfMeasurePage() {
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
         onCancel={() => setOpenDeleteModal(false)}
-        onConfirm={() => {
-        deleteUnitOfMeasure(selectedUnitOfMeasureId as string)
-        .then(() => {
-          fetch()
-          .catch((err) => {
+        onConfirm={async () => {
+          try {
+            await deleteUnitOfMeasure(selectedUnitOfMeasureId as string)
+            refreshData()
+            setOpenDeleteModal(false)
+            setSelectedUnitOfMeasureId(null)
+          } catch (err) {
             console.error("Error deleting unit of measure:", err)
-          })
-        })
-        setOpenDeleteModal(false)
-        setSelectedUnitOfMeasureId(null)
-      }} />
+            setOpenDeleteModal(false)
+          }
+        }} />
       <div className="mt-4" style={{ height: 750 }}>
         <DataGrid
           rows={items ? items : []}

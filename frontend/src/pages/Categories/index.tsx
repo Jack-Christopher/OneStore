@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
 import { Button } from '@mui/material'
 import { useCategoriesStore } from '@/store/categoriesStore'
@@ -17,16 +17,26 @@ export default function CategoriesPage() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const hasFetchedRef = useRef(false)
 
+  // Fetch data only on mount
   useEffect(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true
+      fetch()
+        .catch((err) => {
+          console.error("Error fetching categories:", err)
+        })
+    }
+  }, [fetch])
+
+  // Refresh function to be called after CRUD operations
+  const refreshData = () => {
     fetch()
-      .then(() => {
-        console.log("Categories fetched", items)
-      })
       .catch((err) => {
-        console.error("Error fetching categories:", err)
+        console.error("Error refreshing categories:", err)
       })
-  }, [items.length, fetch])
+  }
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
@@ -59,8 +69,8 @@ export default function CategoriesPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Categorías </h1>
-      <ExportImportButtons 
-        module="categories" 
+      <ExportImportButtons
+        module="categories"
         moduleLabel="Categorías"
         onImportSuccess={() => fetch()}
       />
@@ -72,9 +82,18 @@ export default function CategoriesPage() {
         Agregar Categoría
       </Button>
 
-      <CategoriesCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <CategoriesCreateModal
+        open={openCreateModal}
+        onClose={() => setOpenCreateModal(false)}
+        onSuccess={refreshData}
+      />
       <CategoriesViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} categoryId={selectedCategoryId} />
-      <CategoriesEditModal open={openEditModal} onClose={() => setOpenEditModal(false)} categoryId={selectedCategoryId} />
+      <CategoriesEditModal
+        open={openEditModal}
+        onClose={() => setOpenEditModal(false)}
+        categoryId={selectedCategoryId}
+        onSuccess={refreshData}
+      />
       <DeleteModal
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
@@ -82,15 +101,15 @@ export default function CategoriesPage() {
         description="¿Estás seguro de querer eliminar esta categoría?"
         cancelButtonText="Cancelar"
         confirmButtonText="Confirmar"
-        onConfirm={() => {
-          remove(selectedCategoryId as string)
-          .then(() => {
-            fetch()
-            .catch((err) => {
-              console.error("Error deleting category:", err)
-            })
-          })
-          setOpenDeleteModal(false)
+        onConfirm={async () => {
+          try {
+            await remove(selectedCategoryId as string)
+            refreshData()
+            setOpenDeleteModal(false)
+          } catch (err) {
+            console.error("Error deleting category:", err)
+            setOpenDeleteModal(false)
+          }
         }}
         onCancel={() => {
           setOpenDeleteModal(false)

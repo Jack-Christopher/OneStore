@@ -11,9 +11,10 @@ interface UnitsOfMeasureEditModalProps {
   open: boolean;
   onClose: () => void;
   unitOfMeasureId: string | null;
+  onSuccess?: () => void;
 }
 
-export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId }: UnitsOfMeasureEditModalProps) {
+export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId, onSuccess }: UnitsOfMeasureEditModalProps) {
   const editUnitOfMeasure = useUnitsOfMeasureStore(s => s.edit);
   const [error, setError] = useState("");
   const [unitOfMeasure, setUnitOfMeasure] = useState<UnitOfMeasure | null>(null);
@@ -75,6 +76,10 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
       await editUnitOfMeasure(unitOfMeasureId as string, form)
       resetForm();
       onClose();
+      // Trigger refresh after successful update
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Edit unit of measure error:", error);
       const code = error?.response?.data?.code;

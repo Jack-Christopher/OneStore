@@ -17,9 +17,10 @@ import type { CreateProductFormulaItem } from "@/services/api/productFormulas";
 interface ProductFormulasCreateModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function ProductFormulasCreateModal({ open, onClose }: ProductFormulasCreateModalProps) {
+export default function ProductFormulasCreateModal({ open, onClose, onSuccess }: ProductFormulasCreateModalProps) {
   const addProductFormula = useProductFormulasStore(s => s.add);
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
@@ -123,6 +124,10 @@ export default function ProductFormulasCreateModal({ open, onClose }: ProductFor
       await addProductFormula({ ...form, items })
       resetForm();
       onClose();
+      // Trigger refresh after successful creation
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Create product formula error:", error);
       const code = error?.response?.data?.code;

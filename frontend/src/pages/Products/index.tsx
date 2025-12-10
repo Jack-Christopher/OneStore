@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
 import { Button } from '@mui/material'
 import { useProductsStore } from '@/store/productsStore'
@@ -18,16 +18,26 @@ export default function ProductsPage() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const hasFetchedRef = useRef(false)
 
+  // Fetch data only on mount
   useEffect(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true
+      fetch()
+        .catch((err) => {
+          console.error("Error fetching products:", err)
+        })
+    }
+  }, [fetch])
+
+  // Refresh function to be called after CRUD operations
+  const refreshData = () => {
     fetch()
-      .then(() => {
-        console.log("Products fetched", items)
-      })
       .catch((err) => {
-        console.error("Error fetching products:", err)
+        console.error("Error refreshing products:", err)
       })
-  }, []);
+  }
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
@@ -89,9 +99,18 @@ export default function ProductsPage() {
       >
         Agregar Producto
       </Button>
-      <ProductsCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <ProductsCreateModal 
+        open={openCreateModal} 
+        onClose={() => setOpenCreateModal(false)}
+        onSuccess={refreshData}
+      />
       <ProductsViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} productId={selectedProductId} />
-      <ProductsEditModal open={openEditModal} onClose={() => setOpenEditModal(false)} productId={selectedProductId} />
+      <ProductsEditModal 
+        open={openEditModal} 
+        onClose={() => setOpenEditModal(false)} 
+        productId={selectedProductId}
+        onSuccess={refreshData}
+      />
       <DeleteModal
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
@@ -100,17 +119,15 @@ export default function ProductsPage() {
         cancelButtonText="Cancelar"
         confirmButtonText="Confirmar"
         onCancel={() => setOpenDeleteModal(false)}
-        onConfirm={() => {
-          deleteProduct(selectedProductId as string)
-            .then(() => {
-              fetch()
-                .catch((err) => {
-                  console.error("Error deleting product:", err)
-                })
-                .finally(() => {
-                  setOpenDeleteModal(false)
-                })
-            })
+        onConfirm={async () => {
+          try {
+            await deleteProduct(selectedProductId as string)
+            refreshData()
+            setOpenDeleteModal(false)
+          } catch (err) {
+            console.error("Error deleting product:", err)
+            setOpenDeleteModal(false)
+          }
         }}
       />
       <div className="mt-4" style={{ height: 750 }}>

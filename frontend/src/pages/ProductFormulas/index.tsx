@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { DataGrid, type GridRenderCellParams, type GridRowHeightParams } from '@mui/x-data-grid'
 import { Button, Typography } from '@mui/material'
 import { useProductFormulasStore } from '@/store/productFormulasStore'
@@ -22,36 +22,49 @@ export default function ProductFormulasPage() {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [productFormulaId, setProductFormulaId] = useState<string | null>(null)
+  
+  const hasFetchedFormulasRef = useRef(false)
+  const hasFetchedProductsRef = useRef(false)
+  const hasFetchedUnitsRef = useRef(false)
+
+  // Fetch data only on mount
+  useEffect(() => {
+    if (!hasFetchedFormulasRef.current) {
+      hasFetchedFormulasRef.current = true
+      fetchProductFormulas()
+        .catch((err) => {
+          console.error("Error fetching product formulas:", err)
+        })
+    }
+  }, [fetchProductFormulas]);
 
   useEffect(() => {
+    if (!hasFetchedProductsRef.current) {
+      hasFetchedProductsRef.current = true
+      fetchProducts()
+        .catch((err) => {
+          console.error("Error fetching products:", err);
+        });
+    }
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    if (!hasFetchedUnitsRef.current) {
+      hasFetchedUnitsRef.current = true
+      fetchUnitsOfMeasure()
+        .catch((err) => {
+          console.error("Error fetching units of measure:", err);
+        });
+    }
+  }, [fetchUnitsOfMeasure]);
+
+  // Refresh function to be called after CRUD operations
+  const refreshData = () => {
     fetchProductFormulas()
-      .then(() => {
-        console.log("Product formulas fetched", productFormulas)
-      })
       .catch((err) => {
-        console.error("Error fetching product formulas:", err)
+        console.error("Error refreshing product formulas:", err)
       })
-  }, [productFormulas.length, fetchProductFormulas]);
-
-  useEffect(() => {
-    fetchProducts()
-      .then(() => {
-        console.log("Products fetched", productItems);
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-      });
-  }, [productItems.length, fetchProducts]);
-
-  useEffect(() => {
-    fetchUnitsOfMeasure()
-      .then(() => {
-        console.log("Units of measure fetched", unitOfMeasureItems);
-      })
-      .catch((err) => {
-        console.error("Error fetching units of measure:", err);
-      });
-  }, [unitOfMeasureItems.length, fetchUnitsOfMeasure]);
+  }
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
@@ -119,16 +132,31 @@ export default function ProductFormulasPage() {
       >
         Agregar Fórmula de Producto
       </Button>
-      <ProductFormulasCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <ProductFormulasCreateModal 
+        open={openCreateModal} 
+        onClose={() => setOpenCreateModal(false)}
+        onSuccess={refreshData}
+      />
       <ProductFormulasViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} productFormulaId={productFormulaId} />
-      <ProductFormulasEditModal open={openEditModal} onClose={() => setOpenEditModal(false)} productFormulaId={productFormulaId as string} />
+      <ProductFormulasEditModal 
+        open={openEditModal} 
+        onClose={() => setOpenEditModal(false)} 
+        productFormulaId={productFormulaId as string}
+        onSuccess={refreshData}
+      />
       <DeleteModal
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
-        onConfirm={() => deleteProductFormula(productFormulaId as string).then(() => {
-          fetchProductFormulas()
-          setOpenDeleteModal(false)
-        })}
+        onConfirm={async () => {
+          try {
+            await deleteProductFormula(productFormulaId as string)
+            refreshData()
+            setOpenDeleteModal(false)
+          } catch (err) {
+            console.error("Error deleting product formula:", err)
+            setOpenDeleteModal(false)
+          }
+        }}
         onCancel={() => setOpenDeleteModal(false)}
         title="Eliminar Fórmula de Producto"
         description="¿Estás seguro de querer eliminar esta fórmula de producto?"

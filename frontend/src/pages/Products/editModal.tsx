@@ -16,9 +16,10 @@ interface ProductsEditModalProps {
     open: boolean;
     onClose: () => void;
     productId: string | null;
+    onSuccess?: () => void;
 }
 
-export default function ProductsEditModal({ open, onClose, productId }: ProductsEditModalProps) {
+export default function ProductsEditModal({ open, onClose, productId, onSuccess }: ProductsEditModalProps) {
     const [product, setProduct] = useState<Product | null>(null);
     const [error, setError] = useState("");
     const [form, setForm] = useState<UpdateProductPayload>({
@@ -112,6 +113,10 @@ export default function ProductsEditModal({ open, onClose, productId }: Products
             await updateProduct(productId as string, form);
             resetForm();
             onClose();
+            // Trigger refresh after successful update
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (error: any) {
             console.error("Error updating product:", error);
             // Use the parsed error from axios interceptor or parse it ourselves

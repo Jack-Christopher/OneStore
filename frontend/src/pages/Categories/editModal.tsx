@@ -11,9 +11,10 @@ interface CategoriesEditModalProps {
   open: boolean;
   onClose: () => void;
   categoryId: string | null;
+  onSuccess?: () => void;
 }
 
-export default function CategoriesEditModal({ open, onClose, categoryId }: CategoriesEditModalProps) {
+export default function CategoriesEditModal({ open, onClose, categoryId, onSuccess }: CategoriesEditModalProps) {
   const editCategory = useCategoriesStore(s => s.edit);
   const [error, setError] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
@@ -72,6 +73,10 @@ export default function CategoriesEditModal({ open, onClose, categoryId }: Categ
       await editCategory(categoryId as string, form)
       resetForm();
       onClose();
+      // Trigger refresh after successful update
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Edit category error:", error);
       // Use the parsed error from axios interceptor or parse it ourselves
