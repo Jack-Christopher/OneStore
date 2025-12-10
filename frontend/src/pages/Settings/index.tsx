@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Button } from '@mui/material'
 import { useSettingsStore } from '@/store/settingsStore'
 import Alert from '@/components/Alert'
-import { applyTheme, type ThemeName } from '@/theme.config'
 import { getBaseCurrency, setBaseCurrency } from '@/services/api/settings'
 
 // TODO: fix bug when changing theme, the theme is applied immediately 
@@ -30,7 +29,6 @@ export default function SettingsPage() {
     store_name: '',
     store_ruc: '',
     date_format: '',
-    theme: 'light',
     currency: 'PEN',
   })
   const [baseCurrency, setBaseCurrencyState] = useState<string | null>(null)
@@ -82,7 +80,6 @@ export default function SettingsPage() {
         store_name: settings.store_name || '',
         store_ruc: settings.store_ruc || '',
         date_format: settings.date_format || 'DD/MM/YYYY',
-        theme: settings.theme || 'light',
         currency: settings.currency || 'PEN',
       })
 
@@ -138,7 +135,6 @@ export default function SettingsPage() {
         store_ruc: form.store_ruc,
         store_logo_path: logoPath,
         date_format: form.date_format,
-        theme: form.theme,
         currency: form.currency,
       })
 
@@ -219,21 +215,6 @@ export default function SettingsPage() {
           </select>
         </div>
 
-        <div>
-        <label className="block mb-2 text-sm font-medium text-text-main">Tema</label>
-          <select
-            className="border rounded p-2 w-full bg-background text-text-main border-secondary"
-            value={form.theme}
-            onChange={(e) => {
-              const newTheme = e.target.value as ThemeName
-              setForm({ ...form, theme: newTheme })
-            }}
-          >
-            <option value="light">Claro</option>
-            <option value="dark">Oscuro</option>
-          </select>
-          <p className="text-xs text-text-secondary mt-1">El tema se aplica inmediatamente. Guarda para persistir el cambio.</p>
-        </div>
 
         <div>
           <label className="block mb-2 text-sm font-medium text-text-main">Moneda Base *</label>

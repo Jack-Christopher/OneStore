@@ -2,14 +2,12 @@ import { useEffect, useState } from "react"
 import { AppRoutes } from '@/routes/AppRoutes'
 import { useAuthStore } from "@/store/authStore"
 import { useSettingsStore } from "@/store/settingsStore"
-import { applyTheme, type ThemeName } from "@/theme.config"
 import { getBaseCurrency } from "@/services/api/settings"
 import BaseCurrencyModal from "@/components/BaseCurrencyModal"
 
 export default function App() {
   const fetchProfile = useAuthStore((s) => s.fetchProfile)
   const fetchSettings = useSettingsStore((s) => s.fetch)
-  const settings = useSettingsStore((s) => s.settings)
   const [showBaseCurrencyModal, setShowBaseCurrencyModal] = useState(false)
   const [checkingBaseCurrency, setCheckingBaseCurrency] = useState(true)
 
@@ -33,13 +31,6 @@ export default function App() {
     
     initialize()
   }, [])
-
-  // Apply theme from settings when it changes
-  useEffect(() => {
-    if (settings.theme) {
-      applyTheme(settings.theme as ThemeName)
-    }
-  }, [settings.theme])
 
   const handleBaseCurrencySuccess = () => {
     setShowBaseCurrencyModal(false)

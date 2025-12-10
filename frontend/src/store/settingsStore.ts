@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { getSettings, updateSettings, uploadLogo } from "@/services/api/settings";
 import type { Settings, UpdateSettingsPayload } from "@/services/api/settings";
-import { applyTheme, type ThemeName } from "@/theme.config";
 
 interface SettingsState {
   settings: Settings;
@@ -26,10 +25,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const newSettings = res.data || {};
         set({ settings: newSettings });
         
-        // Apply theme immediately when fetched
-        if (newSettings.theme) {
-          applyTheme(newSettings.theme as ThemeName);
-        }
+        // Don't apply theme from settings - theme is controlled by ThemeToggle and localStorage
+        // Theme is applied on app initialization from localStorage in main.tsx
       } else {
         set({ error: res.message || "Error fetching settings" });
       }
@@ -48,10 +45,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const updatedSettings = { ...get().settings, ...res.data };
         set({ settings: updatedSettings });
         
-        // Apply theme immediately when updated
-        if (payload.theme) {
-          applyTheme(payload.theme as ThemeName);
-        }
+        // Don't apply theme from settings update - theme is controlled by ThemeToggle
       } else {
         set({ error: res.message || "Error updating settings" });
       }
