@@ -5,7 +5,6 @@ export interface CustomerDTO {
   phone: string;
   email: string;
   address: string;
-  ruc?: string;
   isActive: boolean;
   metadata?: any;
 }
@@ -18,7 +17,6 @@ export interface CustomerEntity {
   phone: string;
   email: string;
   address: string;
-  ruc?: string;
   isActive: boolean;
   metadata?: any;
 }
@@ -30,7 +28,6 @@ export interface CustomerUpdateDTO {
   phone?: string;
   email?: string;
   address?: string;
-  ruc?: string;
   isActive?: boolean;
   metadata?: any;
 }

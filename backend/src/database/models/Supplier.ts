@@ -5,10 +5,10 @@ const SupplierSchema = new Schema({
   tenant_id: { type: String, required: true, index: true },
   name: { type: String, required: true },
   contact_name: { type: String },
+  document: { type: String },
   phone: { type: String },
   email: { type: String },
   address: { type: String },
-  ruc: { type: String },
   metadata: Schema.Types.Mixed,
   created_by: { type: String },
   updated_by: { type: String }

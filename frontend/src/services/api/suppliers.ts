@@ -6,10 +6,10 @@ export interface Supplier {
   tenantId: string;
   name: string;
   contactName: string;
+  document: string;
   phone: string;
   email: string;
   address: string;
-  ruc?: string;
   metadata?: any;
 }
 
@@ -17,20 +17,20 @@ export interface CreateSupplierPayload {
   tenantId: string;
   name: string;
   contactName: string;
+  document: string;
   phone: string;
   email: string;
   address: string;
-  ruc?: string;
 }
 
 export interface UpdateSupplierPayload {
   tenantId?: string;
   name?: string;
   contactName?: string;
+  document?: string;
   phone?: string;
   email?: string;
   address?: string;
-  ruc?: string;
 }
 
 const SUPPLIER_API_BASE = "/api/suppliers";

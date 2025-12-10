@@ -14,6 +14,7 @@ module.exports = {
             tenant_id: { bsonType: "string" },
             name: { bsonType: "string" },
             contact_name: { bsonType: ["string", "null"] },
+            document: { bsonType: ["string", "null"] },
             phone: { bsonType: ["string", "null"] },
             email: { bsonType: ["string", "null"] },
             address: { bsonType: ["string", "null"] },

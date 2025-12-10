@@ -35,10 +35,10 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
     tenantId: tenantId,
     name: "",
     contactName: "",
+    document: "",
     phone: "",
     email: "",
     address: "",
-    ruc: "",
   };
 
   const [formData, setFormData] = useState<CreateSupplierPayload>(defaultFormData);
@@ -131,13 +131,13 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           />
 
-          <label className="block mb-2 text-sm font-medium">RUC</label>
+          <label className="block mb-2 text-sm font-medium">Documento (RUC/DNI)</label>
           <input
             type="text"
-            placeholder="RUC"
+            placeholder="RUC o DNI"
             className="border rounded p-2 w-full mb-3"
-            value={formData.ruc || ""}
-            onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+            value={formData.document}
+            onChange={(e) => setFormData({ ...formData, document: e.target.value })}
           />
 
           {error && (

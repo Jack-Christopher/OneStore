@@ -29,8 +29,7 @@ export default function CustomersPage() {
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
-    { field: 'document', headerName: 'Documento', flex: 1 },
-    { field: 'ruc', headerName: 'RUC', flex: 1 },
+    { field: 'document', headerName: 'Documento (RUC/DNI)', flex: 1 },
     { field: 'phone', headerName: 'Teléfono', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'address', headerName: 'Dirección', flex: 1 },
@@ -66,8 +65,8 @@ export default function CustomersPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Clientes</h1>
-      <ExportImportButtons 
-        module="customers" 
+      <ExportImportButtons
+        module="customers"
         moduleLabel="Clientes"
         onImportSuccess={() => fetch()}
       />

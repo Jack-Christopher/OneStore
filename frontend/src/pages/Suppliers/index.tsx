@@ -30,10 +30,10 @@ export default function SuppliersPage() {
     { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'contact_name', headerName: 'Contacto', flex: 1 },
+    { field: 'document', headerName: 'Documento (RUC/DNI)', flex: 1 },
     { field: 'phone', headerName: 'Teléfono', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'address', headerName: 'Dirección', flex: 1 },
-    { field: 'ruc', headerName: 'RUC', flex: 1 },
     {
       field: 'actions', headerName: 'Acciones', width: 250, renderCell: (params: GridRenderCellParams) => {
         return (

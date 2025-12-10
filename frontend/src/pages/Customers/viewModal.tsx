@@ -63,7 +63,7 @@ export default function CustomersViewModal({ open, onClose, customerId }: Custom
                 <td className="py-3 px-4 text-left">{customer?.name || '-'}</td>
               </tr>
               <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">Documento</td>
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Documento (RUC/DNI)</td>
                 <td className="py-3 px-4 text-left">{customer?.document || '-'}</td>
               </tr>
               <tr className="border-t border-gray-200">
@@ -77,10 +77,6 @@ export default function CustomersViewModal({ open, onClose, customerId }: Custom
               <tr className="border-t border-gray-200">
                 <td className="py-3 px-4 text-left font-medium text-gray-600">Dirección</td>
                 <td className="py-3 px-4 text-left">{customer?.address || '-'}</td>
-              </tr>
-              <tr className="border-t border-gray-200">
-                <td className="py-3 px-4 text-left font-medium text-gray-600">RUC</td>
-                <td className="py-3 px-4 text-left">{customer?.ruc || '-'}</td>
               </tr>
               <tr className="border-t border-gray-200">
                 <td className="py-3 px-4 text-left font-medium text-gray-600">Activo</td>

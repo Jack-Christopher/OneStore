@@ -51,10 +51,10 @@ export default function SuppliersViewModal({ open, onClose, supplierId }: Suppli
           <div className="flex flex-col gap-2">
             <p><strong>Nombre:</strong> {supplier.name}</p>
             <p><strong>Contacto:</strong> {(supplier as any).contact_name || '-'}</p>
+            <p><strong>Documento (RUC/DNI):</strong> {supplier.document || '-'}</p>
             <p><strong>Teléfono:</strong> {supplier.phone || '-'}</p>
             <p><strong>Email:</strong> {supplier.email || '-'}</p>
             <p><strong>Dirección:</strong> {supplier.address || '-'}</p>
-            <p><strong>RUC:</strong> {supplier.ruc || '-'}</p>
           </div>
         )}
 
