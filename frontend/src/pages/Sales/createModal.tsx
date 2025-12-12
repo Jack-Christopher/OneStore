@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { Box, Button, Modal, Checkbox, FormControlLabel } from "@mui/material";
 import { SalesErrorMessages } from "@/constants/salesErrors";
@@ -226,12 +226,17 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     setItems(prev => [...prev, createDefaultSaleItem()]);
   };
 
-  const FormulaModal = () => {
-    const selectedFormulaData = selectedFormula
+  // Memoize selected formula data to avoid recalculation on every render
+  const selectedFormulaData = useMemo(() => {
+    return selectedFormula
       ? productFormulasItems.find(f => f._id === selectedFormula.value)
       : null;
+  }, [selectedFormula, productFormulasItems]);
 
-    // Handle referenceUnitId as string or populated object, and both snake_case and camelCase
+  // Memoize reference unit calculation
+  const referenceUnit = useMemo(() => {
+    if (!selectedFormulaData) return null;
+    
     const referenceUnitIdRaw = (selectedFormulaData as any)?.referenceUnitId || (selectedFormulaData as any)?.reference_unit_id;
     const referenceUnitIdValue = referenceUnitIdRaw
       ? (typeof referenceUnitIdRaw === 'object' && referenceUnitIdRaw !== null
@@ -239,62 +244,71 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
         : referenceUnitIdRaw)
       : null;
 
-    const referenceUnit = referenceUnitIdValue
+    return referenceUnitIdValue
       ? unitsOfMeasureItems.find(u => u._id === referenceUnitIdValue)
       : null;
+  }, [selectedFormulaData, unitsOfMeasureItems]);
 
-    return (
-      <Modal open={openFormulaModal} onClose={() => { setOpenFormulaModal(false) }} className="flex items-center justify-center">
-        <Box sx={boxStyle}>
-          <h2 className="text-2xl font-bold mb-4 text-center">Aplicar Fórmula</h2>
-          <label className="block mb-2 text-sm font-medium">Fórmula</label>
-          <Select
-            options={productFormulas}
-            setFormInput={(value) => {
-              setSelectedFormula(productFormulas.find((f) => f.value === value) || null);
-              // Reset desired quantity when formula changes
-              setDesiredQuantity(0);
-            }}
-            styles="border rounded p-2 w-full mb-3"
-            value={selectedFormula?.value || ""}
-          />
-          {selectedFormulaData && (
-            <>
-              <label className="block mb-2 text-sm font-medium">
-                Cantidad Deseada {referenceUnit && `(${referenceUnit.name})`}
-              </label>
-              <Input
-                type="number"
-                step="any"
-                placeholder="Cantidad Deseada"
-                value={desiredQuantity || 0}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDesiredQuantity(Number(e.target.value))}
-              />
-              {(() => {
-                const refQty = (selectedFormulaData as any)?.referenceQuantity || (selectedFormulaData as any)?.reference_quantity || 0;
-                return refQty > 0 && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Receta base: {refQty} {referenceUnit?.name || ''}
-                  </p>
-                );
-              })()}
-            </>
-          )}
-          <div className="flex justify-center mb-2 gap-2 mt-4">
-            <Button variant="outlined" color="error" onClick={() => {
-              setOpenFormulaModal(false);
-              setSelectedFormula(null);
-              setDesiredQuantity(0);
-            }}>Cancelar</Button>
-            <Button variant="outlined" color="primary" onClick={() => applyFormula()}>Aplicar</Button>
-          </div>
-        </Box>
-      </Modal>
-    );
-  };
+  // Memoize reference quantity
+  const refQty = useMemo(() => {
+    return selectedFormulaData 
+      ? ((selectedFormulaData as any)?.referenceQuantity || (selectedFormulaData as any)?.reference_quantity || 0)
+      : 0;
+  }, [selectedFormulaData]);
 
+  // Stable handlers to prevent re-renders
+  const handleCloseModal = useCallback(() => {
+    setOpenFormulaModal(false);
+  }, []);
 
-  const applyFormula = () => {
+  const handleFormulaSelect = useCallback((value: string) => {
+    setSelectedFormula(productFormulas.find((f) => f.value === value) || null);
+    setDesiredQuantity(0);
+  }, [productFormulas]);
+
+  const handleDesiredQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDesiredQuantity(Number(e.target.value));
+  }, []);
+
+  const handleCancelFormula = useCallback(() => {
+    setOpenFormulaModal(false);
+    setSelectedFormula(null);
+    setDesiredQuantity(0);
+  }, []);
+
+  
+  const handleAddItemWithFormula = useCallback((formulaItem: CreateProductFormulaItem) => {
+    const newItem = { ...createDefaultSaleItem(), productId: formulaItem.productId, unitId: formulaItem.unitId, quantity: formulaItem.quantity };
+
+    // Autocomplete unitPrice from product's salePrice (handle both snake_case and camelCase)
+    const selectedProduct = productItems.find(p => p._id === formulaItem.productId);
+    if (selectedProduct) {
+      newItem.unitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+
+      // Ensure unitId matches product's unitId (handle both snake_case and camelCase, and object/string cases)
+      const unitIdField = (selectedProduct as any).unitId || (selectedProduct as any).unit_id;
+      if (typeof unitIdField === 'object' && unitIdField !== null) {
+        newItem.unitId = unitIdField._id || formulaItem.unitId;
+      } else {
+        newItem.unitId = unitIdField || formulaItem.unitId;
+      }
+
+      // Recalculate subtotal
+      newItem.subtotal = multiply(newItem.quantity || 0, newItem.unitPrice || 0);
+    }
+
+    setItems(prev => {
+      const updated = [...prev, newItem];
+      // Recalculate total
+      const total = cleanFloat(updated.reduce((sum, it) => sum + (it.subtotal || 0), 0));
+      setSaleForm(s => ({ ...s, totalAmount: total }));
+      return updated;
+    });
+  }, [productItems]);
+  
+
+  // Memoize applyFormula to prevent recreation
+  const handleApplyFormula = useCallback(() => {
     // Validate desired quantity
     if (!desiredQuantity || desiredQuantity <= 0) {
       setError("La cantidad deseada debe ser mayor a 0");
@@ -339,7 +353,9 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     setSelectedFormula(null);
     setDesiredQuantity(0);
     setError(""); // Clear any previous errors
-  };
+  }, [desiredQuantity, selectedFormula, productFormulasItems, handleAddItemWithFormula]);
+
+
 
   const resetForm = () => {
     setSaleForm(defaultSaleFormData);
@@ -469,34 +485,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   }, [currencyRates]);
 
 
-  const handleAddItemWithFormula = (formulaItem: CreateProductFormulaItem) => {
-    const newItem = { ...createDefaultSaleItem(), productId: formulaItem.productId, unitId: formulaItem.unitId, quantity: formulaItem.quantity };
 
-    // Autocomplete unitPrice from product's salePrice (handle both snake_case and camelCase)
-    const selectedProduct = productItems.find(p => p._id === formulaItem.productId);
-    if (selectedProduct) {
-      newItem.unitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
-
-      // Ensure unitId matches product's unitId (handle both snake_case and camelCase, and object/string cases)
-      const unitIdField = (selectedProduct as any).unitId || (selectedProduct as any).unit_id;
-      if (typeof unitIdField === 'object' && unitIdField !== null) {
-        newItem.unitId = unitIdField._id || formulaItem.unitId;
-      } else {
-        newItem.unitId = unitIdField || formulaItem.unitId;
-      }
-
-      // Recalculate subtotal
-      newItem.subtotal = multiply(newItem.quantity || 0, newItem.unitPrice || 0);
-    }
-
-    setItems(prev => {
-      const updated = [...prev, newItem];
-      // Recalculate total
-      const total = cleanFloat(updated.reduce((sum, it) => sum + (it.subtotal || 0), 0));
-      setSaleForm(s => ({ ...s, totalAmount: total }));
-      return updated;
-    });
-  };
 
   function toCreateSaleItemPayload(item: CreateSaleItemState): CreateSaleItemPayload {
     const { id, ...rest } = item;
@@ -771,7 +760,41 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
             </Button>
           </div>
 
-          <FormulaModal />
+          <Modal open={openFormulaModal} onClose={handleCloseModal} className="flex items-center justify-center">
+            <Box sx={boxStyle}>
+              <h2 className="text-2xl font-bold mb-4 text-center">Aplicar Fórmula</h2>
+              <label className="block mb-2 text-sm font-medium">Fórmula</label>
+              <Select
+                options={productFormulas}
+                setFormInput={handleFormulaSelect}
+                styles="border rounded p-2 w-full mb-3"
+                value={selectedFormula?.value || ""}
+              />
+              {selectedFormulaData && (
+                <>
+                  <label className="block mb-2 text-sm font-medium">
+                    Cantidad Deseada {referenceUnit && `(${referenceUnit.name})`}
+                  </label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="Cantidad Deseada"
+                    value={desiredQuantity || 0}
+                    onChange={handleDesiredQuantityChange}
+                  />
+                  {refQty > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Receta base: {refQty} {referenceUnit?.name || ''}
+                    </p>
+                  )}
+                </>
+              )}
+              <div className="flex justify-center mb-2 gap-2 mt-4">
+                <Button variant="outlined" color="error" onClick={handleCancelFormula}>Cancelar</Button>
+                <Button variant="outlined" color="primary" onClick={handleApplyFormula}>Aplicar</Button>
+              </div>
+            </Box>
+          </Modal>
 
           <hr className="my-3" />
 
