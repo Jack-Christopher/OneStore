@@ -75,7 +75,11 @@ export default function SalesPage() {
       >
         Agregar Venta
       </Button>
-      <SalesCreateModal open={openCreateModal} onClose={() => setOpenCreateModal(false)} />
+      <SalesCreateModal 
+        open={openCreateModal} 
+        onClose={() => setOpenCreateModal(false)}
+        onSuccess={() => fetchSales()}
+      />
       <SalesViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} saleId={selectedSaleId} />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid

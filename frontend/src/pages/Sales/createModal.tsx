@@ -25,9 +25,10 @@ import { multiply, divide, cleanFloat } from "@/utils/math";
 interface SalesCreateModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function SalesCreateModal({ open, onClose }: SalesCreateModalProps) {
+export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCreateModalProps) {
   const { items: productItems, fetch: fetchProducts } = useProductsStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
   const { items: productFormulasItems, fetch: fetchProductFormulas } = useProductFormulasStore();
@@ -236,7 +237,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   // Memoize reference unit calculation
   const referenceUnit = useMemo(() => {
     if (!selectedFormulaData) return null;
-    
+
     const referenceUnitIdRaw = (selectedFormulaData as any)?.referenceUnitId || (selectedFormulaData as any)?.reference_unit_id;
     const referenceUnitIdValue = referenceUnitIdRaw
       ? (typeof referenceUnitIdRaw === 'object' && referenceUnitIdRaw !== null
@@ -251,7 +252,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
   // Memoize reference quantity
   const refQty = useMemo(() => {
-    return selectedFormulaData 
+    return selectedFormulaData
       ? ((selectedFormulaData as any)?.referenceQuantity || (selectedFormulaData as any)?.reference_quantity || 0)
       : 0;
   }, [selectedFormulaData]);
@@ -276,7 +277,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     setDesiredQuantity(0);
   }, []);
 
-  
+
   const handleAddItemWithFormula = useCallback((formulaItem: CreateProductFormulaItem) => {
     const newItem = { ...createDefaultSaleItem(), productId: formulaItem.productId, unitId: formulaItem.unitId, quantity: formulaItem.quantity };
 
@@ -305,7 +306,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       return updated;
     });
   }, [productItems]);
-  
+
 
   // Memoize applyFormula to prevent recreation
   const handleApplyFormula = useCallback(() => {
@@ -587,6 +588,10 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
       resetForm();
       onClose();
+      // Trigger refresh after successful creation
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.log(JSON.stringify(error, null, 2));
       console.error("Create sale error:", error);
