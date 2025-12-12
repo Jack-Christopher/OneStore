@@ -9,7 +9,7 @@ module.exports = {
       validator: {
         $jsonSchema: {
           bsonType: "object",
-          required: ["tenant_id", "name", "items"],
+          required: ["tenant_id", "name", "items", "reference_quantity", "reference_unit_id"],
           properties: {
             tenant_id: { bsonType: "string" },
             name: { bsonType: "string" },
@@ -27,6 +27,8 @@ module.exports = {
                 }
               }
             },
+            reference_quantity: { bsonType: "number" },
+            reference_unit_id: { bsonType: "objectId" },
             is_active: { bsonType: "bool" },
             created_at: { bsonType: "date" },
             updated_at: { bsonType: "date" },

@@ -11,7 +11,8 @@ module.exports = {
 
         if (tenantId == "orphan") return [];
 
-        return ProductFormula.find({ tenant_id: tenantId });
+        return ProductFormula.find({ tenant_id: tenantId })
+          .populate("reference_unit_id", "name");
       });
 
     return productFormulas;
@@ -20,7 +21,8 @@ module.exports = {
   findById(id: string) {
     return ProductFormula.findById(id)
     .populate("items.product_id", "name")
-    .populate("items.unit_id", "name");
+    .populate("items.unit_id", "name")
+    .populate("reference_unit_id", "name");
   },
 
   create(data: ProductFormulaDTO) {

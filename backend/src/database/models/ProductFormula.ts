@@ -12,6 +12,8 @@ const ProductFormulaSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String },
   items: { type: [FormulaItemSchema], required: true },
+  reference_quantity: { type: Number, required: true },
+  reference_unit_id: { type: Schema.Types.ObjectId, ref: "UnitOfMeasure", required: true },
   is_active: { type: Boolean, default: true },
   created_by: { String },
   updated_by: { String }

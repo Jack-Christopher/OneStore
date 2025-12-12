@@ -19,6 +19,7 @@ import type { Customer } from "@/services/api/customers";
 import Input from "@/components/Input";
 import { getBaseCurrency, getCurrencyRates } from "@/services/api/settings";
 import { createSaleWithItems } from "@/services/api/sales";
+import { multiply, divide, cleanFloat } from "@/utils/math";
 
 
 interface SalesCreateModalProps {
@@ -203,6 +204,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
   const [openFormulaModal, setOpenFormulaModal] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<SelectOption | null>(null);
+  const [desiredQuantity, setDesiredQuantity] = useState<number>(0);
 
 
   const handleRemoveItem = (idx: number) => {
@@ -225,19 +227,65 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   };
 
   const FormulaModal = () => {
+    const selectedFormulaData = selectedFormula
+      ? productFormulasItems.find(f => f._id === selectedFormula.value)
+      : null;
+
+    // Handle referenceUnitId as string or populated object, and both snake_case and camelCase
+    const referenceUnitIdRaw = (selectedFormulaData as any)?.referenceUnitId || (selectedFormulaData as any)?.reference_unit_id;
+    const referenceUnitIdValue = referenceUnitIdRaw
+      ? (typeof referenceUnitIdRaw === 'object' && referenceUnitIdRaw !== null
+        ? referenceUnitIdRaw._id || referenceUnitIdRaw.id
+        : referenceUnitIdRaw)
+      : null;
+
+    const referenceUnit = referenceUnitIdValue
+      ? unitsOfMeasureItems.find(u => u._id === referenceUnitIdValue)
+      : null;
 
     return (
       <Modal open={openFormulaModal} onClose={() => { setOpenFormulaModal(false) }} className="flex items-center justify-center">
         <Box sx={boxStyle}>
           <h2 className="text-2xl font-bold mb-4 text-center">Aplicar Fórmula</h2>
+          <label className="block mb-2 text-sm font-medium">Fórmula</label>
           <Select
             options={productFormulas}
-            setFormInput={(value) => setSelectedFormula(productFormulas.find((f) => f.value === value) || null)}
+            setFormInput={(value) => {
+              setSelectedFormula(productFormulas.find((f) => f.value === value) || null);
+              // Reset desired quantity when formula changes
+              setDesiredQuantity(0);
+            }}
             styles="border rounded p-2 w-full mb-3"
             value={selectedFormula?.value || ""}
           />
-          <div className="flex justify-center mb-2 gap-2">
-            <Button variant="outlined" color="error" onClick={() => setOpenFormulaModal(false)}>Cancelar</Button>
+          {selectedFormulaData && (
+            <>
+              <label className="block mb-2 text-sm font-medium">
+                Cantidad Deseada {referenceUnit && `(${referenceUnit.name})`}
+              </label>
+              <Input
+                type="number"
+                step="any"
+                placeholder="Cantidad Deseada"
+                value={desiredQuantity || 0}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDesiredQuantity(Number(e.target.value))}
+              />
+              {(() => {
+                const refQty = (selectedFormulaData as any)?.referenceQuantity || (selectedFormulaData as any)?.reference_quantity || 0;
+                return refQty > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Receta base: {refQty} {referenceUnit?.name || ''}
+                  </p>
+                );
+              })()}
+            </>
+          )}
+          <div className="flex justify-center mb-2 gap-2 mt-4">
+            <Button variant="outlined" color="error" onClick={() => {
+              setOpenFormulaModal(false);
+              setSelectedFormula(null);
+              setDesiredQuantity(0);
+            }}>Cancelar</Button>
             <Button variant="outlined" color="primary" onClick={() => applyFormula()}>Aplicar</Button>
           </div>
         </Box>
@@ -247,24 +295,50 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
 
   const applyFormula = () => {
-    // the items should be updated with the formula items (product_id, unit_id, quantity) and the total amount should be updated
+    // Validate desired quantity
+    if (!desiredQuantity || desiredQuantity <= 0) {
+      setError("La cantidad deseada debe ser mayor a 0");
+      return;
+    }
+
     const formulaId = selectedFormula?.value;
     const formula = productFormulasItems.find(f => f._id === formulaId);
     if (!formula) {
+      setError("Fórmula no encontrada");
       return;
     }
+
+    // Handle both snake_case and camelCase formats
+    const referenceQuantity = (formula as any).referenceQuantity || (formula as any).reference_quantity || 0;
+
+    // Validate formula has reference quantity
+    if (!referenceQuantity || referenceQuantity <= 0) {
+      setError("La fórmula no tiene una cantidad de referencia válida");
+      return;
+    }
+
+    // Calculate multiplier: desiredQuantity / referenceQuantity
+    const multiplier = divide(desiredQuantity, referenceQuantity);
+
+    // Apply multiplier to each ingredient
     formula.items.forEach((item) => {
+      const originalQuantity = typeof item.quantity === 'number' ? item.quantity : 0;
+      const adjustedQuantity = multiply(originalQuantity, multiplier);
+
       handleAddItemWithFormula({
         id: uuidv4(),
         // @ts-ignore TODO: fix this
-        productId: item.product_id,
+        productId: item.product_id || item.productId,
         // @ts-ignore TODO: fix this
-        unitId: item.unit_id,
-        quantity: item.quantity,
+        unitId: item.unit_id || item.unitId,
+        quantity: adjustedQuantity,
       });
     });
+
     setOpenFormulaModal(false);
     setSelectedFormula(null);
+    setDesiredQuantity(0);
+    setError(""); // Clear any previous errors
   };
 
   const resetForm = () => {
@@ -276,6 +350,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     setError("");
     setOpenFormulaModal(false);
     setSelectedFormula(null);
+    setDesiredQuantity(0);
   };
 
   const handleClose = () => {
@@ -300,7 +375,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
 
           // Si se usa moneda alternativa, convertir
           if (useForeignCurrency && exchangeRate > 0) {
-            target.unitPriceOriginal = basePrice * exchangeRate;
+            target.unitPriceOriginal = multiply(basePrice, exchangeRate);
           } else {
             target.unitPriceOriginal = basePrice;
           }
@@ -319,11 +394,11 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       if (key === "quantity" || key === "unitPrice" || key === "productId") {
         const qty = Number(target.quantity) || 0;
         const price = Number(target.unitPrice) || 0;
-        target.subtotal = qty * price;
+        target.subtotal = multiply(qty, price);
 
         // Si se usa moneda alternativa, convertir subtotal
         if (useForeignCurrency && exchangeRate > 0) {
-          target.subtotalOriginal = target.subtotal * exchangeRate;
+          target.subtotalOriginal = multiply(target.subtotal, exchangeRate);
         } else {
           target.subtotalOriginal = target.subtotal;
         }
@@ -332,7 +407,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       updated[index] = target;
 
       // recalc sale total
-      const total = updated.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+      const total = cleanFloat(updated.reduce((sum, it) => sum + (it.subtotal || 0), 0));
       setSaleForm(s => ({ ...s, totalAmount: total }));
 
       return updated;
@@ -344,8 +419,8 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
     if (useForeignCurrency && exchangeRate > 0) {
       setItems(prev => prev.map(item => ({
         ...item,
-        unitPriceOriginal: (item.unitPrice || 0) * exchangeRate,
-        subtotalOriginal: (item.subtotal || 0) * exchangeRate,
+        unitPriceOriginal: multiply(item.unitPrice || 0, exchangeRate),
+        subtotalOriginal: multiply(item.subtotal || 0, exchangeRate),
       })));
     } else {
       setItems(prev => prev.map(item => ({
@@ -359,18 +434,18 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   const getTotalOriginal = () => {
     // Total en moneda alternativa (si se usa)
     if (useForeignCurrency) {
-      return items.reduce((sum, item) => sum + (item.subtotalOriginal || 0), 0);
+      return cleanFloat(items.reduce((sum, item) => sum + (item.subtotalOriginal || 0), 0));
     }
-    return items.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+    return cleanFloat(items.reduce((sum, it) => sum + (it.subtotal || 0), 0));
   };
 
   const getTotalBase = () => {
     // Total en moneda base
     if (useForeignCurrency && exchangeRate > 0) {
       // Convertir de alternativa a base: dividir por tipo de cambio
-      return getTotalOriginal() / exchangeRate;
+      return divide(getTotalOriginal(), exchangeRate);
     }
-    return items.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+    return cleanFloat(items.reduce((sum, it) => sum + (it.subtotal || 0), 0));
   };
 
   useEffect(() => {
@@ -411,13 +486,13 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
       }
 
       // Recalculate subtotal
-      newItem.subtotal = (newItem.quantity || 0) * (newItem.unitPrice || 0);
+      newItem.subtotal = multiply(newItem.quantity || 0, newItem.unitPrice || 0);
     }
 
     setItems(prev => {
       const updated = [...prev, newItem];
       // Recalculate total
-      const total = updated.reduce((sum, it) => sum + (it.subtotal || 0), 0);
+      const total = cleanFloat(updated.reduce((sum, it) => sum + (it.subtotal || 0), 0));
       setSaleForm(s => ({ ...s, totalAmount: total }));
       return updated;
     });
@@ -535,9 +610,9 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
   };
 
   return (
-    <Modal 
-      open={open} 
-      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
+    <Modal
+      open={open}
+      onClose={(_e, reason) => { if (reason !== 'backdropClick') handleClose(); }}
       className="flex items-center justify-center"
     >
       <Box sx={boxStyle}>
@@ -619,6 +694,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                       <Input
                         type="number"
                         placeholder="Cantidad"
+                        step="any"
                         value={item.quantity || 0}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(idx, "quantity", Number(e.target.value))}
                       />
@@ -648,7 +724,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
                   const value = Number(e.target.value);
                   if (useForeignCurrency && exchangeRate > 0) {
                     // Si está en moneda alternativa, convertir a base
-                    handleUpdateItem(idx, "unitPrice", value / exchangeRate);
+                    handleUpdateItem(idx, "unitPrice", divide(value, exchangeRate));
                   } else {
                     handleUpdateItem(idx, "unitPrice", value);
                   }
@@ -665,6 +741,7 @@ export default function SalesCreateModal({ open, onClose }: SalesCreateModalProp
               </label>
               <Input
                 type="number"
+                step="any"
                 placeholder="Subtotal"
                 value={useForeignCurrency ? (item.subtotalOriginal || 0) : (item.subtotal || 0)}
                 readOnly

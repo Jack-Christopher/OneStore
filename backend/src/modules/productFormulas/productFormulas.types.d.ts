@@ -7,6 +7,8 @@ export interface ProductFormulaDTO {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity: number;
+  referenceUnitId: string;
 }
 
 export interface ProductFormulaEntity {
@@ -19,6 +21,8 @@ export interface ProductFormulaEntity {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity: number;
+  referenceUnitId: string;
 }
 
 export interface ProductFormulaUpdateDTO {
@@ -30,4 +34,6 @@ export interface ProductFormulaUpdateDTO {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity?: number;
+  referenceUnitId?: string;
 }

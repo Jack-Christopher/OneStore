@@ -11,6 +11,8 @@ export interface ProductFormula {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity: number;
+  referenceUnitId: string;
 }
 
 export interface CreateProductFormulaState {
@@ -23,6 +25,8 @@ export interface CreateProductFormulaState {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity: number;
+  referenceUnitId: string;
 }
 
 
@@ -42,6 +46,8 @@ export interface CreateProductFormulaPayload {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity: number;
+  referenceUnitId: string;
 }
 
 export interface UpdateProductFormulaPayload {
@@ -53,6 +59,8 @@ export interface UpdateProductFormulaPayload {
     unitId: string;
     quantity: number;
   }[];
+  referenceQuantity?: number;
+  referenceUnitId?: string;
 }
 
 // CRUD Operations

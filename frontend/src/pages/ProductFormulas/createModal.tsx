@@ -57,6 +57,8 @@ export default function ProductFormulasCreateModal({ open, onClose, onSuccess }:
     name: "",
     description: "",
     items: [],
+    referenceQuantity: 0,
+    referenceUnitId: "",
   };
   const [form, setForm] = useState(initialForm);
   const [items, setItems] = useState<CreateProductFormulaItem[]>([]);
@@ -90,6 +92,18 @@ export default function ProductFormulasCreateModal({ open, onClose, onSuccess }:
 
     if (!form.name || !form.description) {
       setError("Debe completar todos los campos");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.referenceQuantity || form.referenceQuantity <= 0) {
+      setError("La cantidad de referencia debe ser mayor a 0");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.referenceUnitId || form.referenceUnitId === "") {
+      setError("Debe seleccionar una unidad de referencia");
       setLoading(false);
       return;
     }
@@ -158,30 +172,47 @@ export default function ProductFormulasCreateModal({ open, onClose, onSuccess }:
   }, [items]);
 
   return (
-    <Modal 
-      open={open} 
-      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
-      className="flex items-center justify-center" 
+    <Modal
+      open={open}
+      onClose={(_e, reason) => { if (reason !== 'backdropClick') handleClose(); }}
+      className="flex items-center justify-center"
     >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Fórmula de Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
           <label className="block mb-2 text-sm font-medium">Nombre</label>
-          <input 
-            type="text" 
-            placeholder="Nombre" 
-            className="border rounded p-2 w-full mb-3" 
-            value={form.name} 
+          <input
+            type="text"
+            placeholder="Nombre"
+            className="border rounded p-2 w-full mb-3"
+            value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
             onBlur={createTrimmedBlurHandler(setForm, 'name')}
           />
           <label className="block mb-2 text-sm font-medium">Descripción</label>
-          <textarea 
-            placeholder="Descripción" 
-            className="border rounded p-2 w-full mb-3" 
-            value={form.description} 
+          <textarea
+            placeholder="Descripción"
+            className="border rounded p-2 w-full mb-3"
+            value={form.description}
             onChange={e => setForm({ ...form, description: e.target.value })}
             onBlur={createTrimmedBlurHandler(setForm, 'description')}
+          />
+
+          <label className="block mb-2 text-sm font-medium">Cantidad de Referencia</label>
+          <Input
+            type="number"
+            step="any"
+            placeholder="Cantidad de Referencia"
+            value={form.referenceQuantity}
+            onChange={e => setForm({ ...form, referenceQuantity: Number(e.target.value) })}
+          />
+
+          <label className="block mb-2 text-sm font-medium">Unidad de Referencia</label>
+          <Select
+            options={unitsOfMeasure}
+            setFormInput={(value: any) => setForm({ ...form, referenceUnitId: value })}
+            styles="border rounded p-2 w-full mb-3"
+            value={form.referenceUnitId}
           />
 
           {items.map((item: CreateProductFormulaItem, index: number) => (
@@ -202,7 +233,7 @@ export default function ProductFormulasCreateModal({ open, onClose, onSuccess }:
                 styles="border rounded p-2 w-full mb-3"
               />
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
-              <Input type="number" placeholder="Cantidad" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
+              <Input type="number" step="any" placeholder="Cantidad" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
               <Button variant="outlined" color="error" onClick={() => removeItem(index)}>Eliminar</Button>
             </Box>
           ))}

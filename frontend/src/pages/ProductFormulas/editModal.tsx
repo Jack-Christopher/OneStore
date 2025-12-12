@@ -32,6 +32,8 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     name: "",
     description: "",
+    referenceQuantity: 0,
+    referenceUnitId: "",
   });
   const [items, setItems] = useState<EditItem[]>([]);
   const [error, setError] = useState("");
@@ -67,10 +69,19 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
       getProductFormula(productFormulaId).then((res) => {
         console.log("productFormula", res);
         if (res.success) {
+          // Handle both snake_case and camelCase formats
+          const referenceQuantity = (res.data as any)?.referenceQuantity || (res.data as any)?.reference_quantity || 0;
+          const referenceUnitIdRaw = (res.data as any)?.referenceUnitId || (res.data as any)?.reference_unit_id;
+          const referenceUnitId = typeof referenceUnitIdRaw === 'object' && referenceUnitIdRaw !== null 
+            ? referenceUnitIdRaw._id 
+            : (referenceUnitIdRaw || "");
+          
           setForm({
             tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
             name: res.data?.name || "",
             description: res.data?.description || "",
+            referenceQuantity,
+            referenceUnitId,
           });
           // Transform API response items (which may have populated objects) to EditItem format
           if (res.data?.items) {
@@ -93,6 +104,8 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
         tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
         name: "",
         description: "",
+        referenceQuantity: 0,
+        referenceUnitId: "",
       });
       setItems([]);
       setError("");
@@ -128,6 +141,8 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
       tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
       name: "",
       description: "",
+      referenceQuantity: 0,
+      referenceUnitId: "",
     });
     setItems([]);
     setError("");
@@ -145,6 +160,18 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
 
     if (!form.name || !form.description) {
       setError("Debe completar todos los campos");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.referenceQuantity || form.referenceQuantity <= 0) {
+      setError("La cantidad de referencia debe ser mayor a 0");
+      setLoading(false);
+      return;
+    }
+
+    if (!form.referenceUnitId || form.referenceUnitId === "") {
+      setError("Debe seleccionar una unidad de referencia");
       setLoading(false);
       return;
     }
@@ -220,6 +247,24 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
           <Input type="text" placeholder="Nombre" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <label className="block mb-2 text-sm font-medium">Descripción</label>
           <textarea placeholder="Descripción" className="border rounded p-2 w-full mb-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          
+          <label className="block mb-2 text-sm font-medium">Cantidad de Referencia</label>
+          <Input 
+            type="number" 
+            step="any"
+            placeholder="Cantidad de Referencia" 
+            value={form.referenceQuantity} 
+            onChange={e => setForm({ ...form, referenceQuantity: Number(e.target.value) })} 
+          />
+
+          <label className="block mb-2 text-sm font-medium">Unidad de Referencia</label>
+          <Select
+            options={unitsOfMeasure}
+            setFormInput={(value: any) => setForm({ ...form, referenceUnitId: value })}
+            styles="border rounded p-2 w-full mb-3"
+            value={form.referenceUnitId}
+          />
+
           {items.map((item: EditItem, index: number) => (
             <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">
               <label className="block mb-2 text-sm font-medium bg-blue-100 p-2 rounded text-center">Item {index + 1}</label>
@@ -238,7 +283,7 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
                 value={item.unitId || ""}
               />
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
-              <Input type="number" placeholder="Cantidad" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
+              <Input type="number" step="any" placeholder="Cantidad" value={item.quantity} onChange={e => setItems(items.map((i, idx) => idx === index ? { ...i, quantity: Number(e.target.value) } : i))} />
               <Button variant="outlined" color="error" onClick={() => removeItem(index)} className="mt-2">Eliminar</Button>
             </Box>
           ))}
