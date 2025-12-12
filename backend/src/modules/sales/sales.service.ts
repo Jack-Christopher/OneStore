@@ -100,25 +100,37 @@ async function createWithItems(dto: CreateSaleWithItemsDTO, userId: string) {
 
     // Create stock movements and update warehouse products for each item
     for (const item of dto.items) {
-      // Create stock movement (exit)
-      await stockMovementsService.create({
-        tenantId: dto.sale.tenantId,
-        warehouseId: dto.sale.warehouseId,
-        productId: item.productId,
-        movementType: 'sale',
-        quantity: item.quantity,
-        relatedId: sale._id.toString(),
-        comment: `Venta #${sale._id}`,
-        createdBy: userId
-      });
+      try {
+        // Create stock movement (exit)
+        await stockMovementsService.create({
+          tenantId: dto.sale.tenantId,
+          warehouseId: dto.sale.warehouseId,
+          productId: item.productId,
+          movementType: 'sale',
+          quantity: item.quantity,
+          relatedId: sale._id.toString(),
+          comment: `Venta #${sale._id}`,
+          createdBy: userId
+        });
 
-      // Decrement warehouse product quantity
-      await warehouseProductsService.decrementQuantity(
-        dto.sale.tenantId,
-        dto.sale.warehouseId,
-        item.productId,
-        item.quantity
-      );
+        // Decrement warehouse product quantity
+        const updatedWarehouseProduct = await warehouseProductsService.decrementQuantity(
+          dto.sale.tenantId,
+          dto.sale.warehouseId,
+          item.productId,
+          item.quantity
+        );
+
+        if (!updatedWarehouseProduct) {
+          console.warn(`Failed to decrement stock for product ${item.productId} in warehouse ${dto.sale.warehouseId}`);
+        } else {
+          console.log(`Stock decremented for product ${item.productId}: new quantity = ${updatedWarehouseProduct.quantity}`);
+        }
+      } catch (error) {
+        console.error(`Error updating stock for product ${item.productId}:`, error);
+        // Continue with other items even if one fails
+        // In production, you might want to rollback the sale or throw an error
+      }
     }
   }
 

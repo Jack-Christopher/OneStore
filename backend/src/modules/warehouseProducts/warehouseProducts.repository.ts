@@ -79,7 +79,29 @@ module.exports = {
     );
   },
 
-  decrementQuantity(tenantId: string, warehouseId: string, productId: string, quantity: number) {
+  async decrementQuantity(tenantId: string, warehouseId: string, productId: string, quantity: number) {
+    // First check if the warehouse product exists
+    const existing = await WarehouseProduct.findOne({
+      tenant_id: tenantId,
+      warehouse_id: warehouseId,
+      product_id: productId
+    });
+
+    if (!existing) {
+      // If it doesn't exist, create it with negative quantity (this indicates an issue but allows the operation)
+      // In a real scenario, you might want to throw an error instead
+      console.warn(`WarehouseProduct not found for tenant: ${tenantId}, warehouse: ${warehouseId}, product: ${productId}. Creating with negative quantity.`);
+      return WarehouseProduct.create({
+        tenant_id: tenantId,
+        warehouse_id: warehouseId,
+        product_id: productId,
+        quantity: -quantity,
+        available: -quantity,
+        reserved: 0
+      });
+    }
+
+    // If it exists, decrement the quantity
     return WarehouseProduct.findOneAndUpdate(
       { tenant_id: tenantId, warehouse_id: warehouseId, product_id: productId },
       { $inc: { quantity: -quantity, available: -quantity } },
