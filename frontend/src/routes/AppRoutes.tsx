@@ -22,6 +22,7 @@ import ManagerClerksPage from '@/pages/ManagerClerks'
 import AuditPage from '@/pages/Audit'
 import SupportPage from '@/pages/Support'
 import StatsPage from '@/pages/Stats'
+import BillingPage from '@/pages/Billing'
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -57,6 +58,7 @@ export const AppRoutes = () => (
         <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="stats" element={<StatsPage />} />
+        <Route path="billing" element={<BillingPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

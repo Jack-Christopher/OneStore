@@ -24,6 +24,7 @@ const auditLogsRoutes = require("./modules/auditLogs/auditLogs.routes");
 const exportsRoutes = require("./modules/exports/exports.routes");
 const importsRoutes = require("./modules/imports/imports.routes");
 const statsRoutes = require("./modules/stats/stats.routes");
+const billingRoutes = require("./modules/billing/billing.routes");
 const errorHandler = require("./shared/middlewares/errorHandler");
 
 const expressApp = express();
@@ -57,6 +58,7 @@ apiRouter.use("/audit-logs", auditLogsRoutes);
 apiRouter.use("/exports", exportsRoutes);
 apiRouter.use("/imports", importsRoutes);
 apiRouter.use("/stats", statsRoutes);
+apiRouter.use("/billing", billingRoutes);
 
 expressApp.use("/api", apiRouter);
 expressApp.use(errorHandler);

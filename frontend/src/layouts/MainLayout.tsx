@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck, FileText, HelpCircle, BarChart3 } from 'lucide-react'
+import { Home, Package, Settings, LogOut, DollarSign, User, Tag, RulerDimensionLine, Calculator, Truck, Users, Warehouse, ShoppingCart, ChevronLeft, ChevronRight, Building2, UserCog, UserCheck, FileText, HelpCircle, BarChart3, Receipt } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useEffect, useState } from 'react'
@@ -76,6 +76,7 @@ export const MainLayout = () => {
                 { to: "/warehouses", icon: <Warehouse size={20} />, label: "Bodegas" },
                 { to: "/purchaseOrders", icon: <ShoppingCart size={20} />, label: "Compras" },
                 { to: "/sales", icon: <DollarSign size={20} />, label: "Ventas" },
+                { to: "/billing", icon: <Receipt size={20} />, label: "Facturación" },
               ];
 
               const adminLinks = [
