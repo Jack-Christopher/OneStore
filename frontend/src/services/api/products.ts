@@ -81,3 +81,22 @@ export const deleteProduct = async (id: string) => {
   const res = await api.delete<ApiResponse<null>>(`${PRODUCT_API_BASE}/${id}`)
   return res.data
 }
+
+/**
+ * Importa productos desde Keyfacil
+ */
+export const importFromKeyfacil = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await api.post<ApiResponse<{
+    success: number;
+    failed: number;
+    errors: string[];
+  }>>(`${PRODUCT_API_BASE}/import/keyfacil`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+}
