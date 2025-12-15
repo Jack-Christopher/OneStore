@@ -65,12 +65,33 @@ module.exports = {
       created_by: createdBy
     };
 
-    const user = await User.create(toSnakeCase(userData));
+    try {
+      const user = await User.create(toSnakeCase(userData));
 
-    return {
-      ok: true,
-      data: user
-    };
+      return {
+        ok: true,
+        data: user
+      };
+    } catch (error: any) {
+      // Log MongoDB validation errors with full details
+      if (error.name === 'MongoServerError' && error.code === 121) {
+        console.error('=== Manager Creation Validation Error ===');
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Failing Document ID:', error.errInfo?.failingDocumentId);
+        console.error('Error Details (JSON):');
+        console.error(JSON.stringify(error.errInfo?.details, null, 2));
+        console.error('Full errInfo (JSON):');
+        console.error(JSON.stringify(error.errInfo, null, 2));
+        console.error('Full errorResponse (JSON):');
+        console.error(JSON.stringify(error.errorResponse, null, 2));
+        console.error('User Data that failed validation (JSON):');
+        console.error(JSON.stringify(toSnakeCase(userData), null, 2));
+        console.error('========================================');
+      }
+      // Re-throw to be handled by the error handler middleware
+      throw error;
+    }
   },
 
   async getManagers() {
