@@ -10,47 +10,55 @@ import { BillingDocumentType } from './billing.types';
 function detectDocumentType(headers: string[]): BillingDocumentType | null {
   const headerStr = headers.join('|').toUpperCase();
 
-  // Notas de crédito y débito tienen "DOCUMENTO AFECTADO" y "MOTIVO"
+  // 1. Notas de crédito y débito tienen "DOCUMENTO AFECTADO" y "MOTIVO"
   if (headerStr.includes('DOCUMENTO AFECTADO') && headerStr.includes('MOTIVO')) {
-    if (headerStr.includes('CREDITO')) {
-      return 'credit_note';
-    } else if (headerStr.includes('DEBITO')) {
+    if (headerStr.includes('DEBITO') || headerStr.includes('DÉBITO')) {
       return 'debit_note';
     }
     // Por defecto, si tiene documento afectado y motivo, es crédito
     return 'credit_note';
   }
 
-  // Facturas y Boletas tienen DETRACCIÓN, RETENCIÓN, PERCEPCIÓN, ESTADO SUNAT
+  // 2. Facturas y Boletas tienen DETRACCIÓN, RETENCIÓN, PERCEPCIÓN, ESTADO SUNAT
   if (headerStr.includes('DETRACCIÓN') || headerStr.includes('RETENCIÓN') || headerStr.includes('PERCEPCIÓN')) {
-    if (headerStr.includes('FACTURA') || headerStr.includes('SERIE') && headerStr.includes('ESTADO SUNAT')) {
+    if (headerStr.includes('FACTURA')) {
       return 'invoice';
     }
+    // Si tiene detracciones/retenciones pero no dice "FACTURA", es boleta
     return 'sale_ticket';
   }
 
-  // Proformas no tienen DETRACCIÓN, RETENCIÓN, PERCEPCIÓN, ni ESTADO SUNAT
-  if (headerStr.includes('PROFORMA') || (!headerStr.includes('DETRACCIÓN') && !headerStr.includes('ESTADO SUNAT'))) {
-    if (headerStr.includes('PROFORMA')) {
-      return 'proforma';
-    }
+  // 3. Verificar explícitamente por PROFORMA primero (antes de notas de venta)
+  if (headerStr.includes('PROFORMA')) {
+    return 'proforma';
   }
 
-  // Notas de venta no tienen DETRACCIÓN, RETENCIÓN, PERCEPCIÓN
-  if (!headerStr.includes('DETRACCIÓN') && !headerStr.includes('RETENCIÓN') && !headerStr.includes('PERCEPCIÓN') && !headerStr.includes('ESTADO SUNAT')) {
-    if (headerStr.includes('NOTA') && headerStr.includes('VENTA')) {
+  // 4. Notas de venta: deben tener "NOTA" y "VENTA" en los headers o en el nombre
+  // No tienen DETRACCIÓN, RETENCIÓN, PERCEPCIÓN, ni ESTADO SUNAT
+  if ((headerStr.includes('NOTA') && headerStr.includes('VENTA')) ||
+    headerStr.includes('NOTA DE VENTA') || headerStr.includes('NOTAS DE VENTA')) {
+    // Asegurar que no sea proforma
+    if (!headerStr.includes('PROFORMA')) {
       return 'sale_note';
     }
   }
 
-  // Por defecto, si tiene ORDEN DE COMPRA y no tiene DETRACCIÓN, puede ser proforma o nota de venta
+  // 5. Si tiene ORDEN DE COMPRA pero no tiene DETRACCIÓN/RETENCIÓN/PERCEPCIÓN
+  // Puede ser proforma o nota de venta, pero necesitamos más contexto
   if (headerStr.includes('ORDEN DE COMPRA')) {
+    // Si tiene ESTADO SUNAT, es factura
     if (headerStr.includes('ESTADO SUNAT')) {
       return 'invoice';
     }
-    return 'sale_note';
+    // Si no tiene ESTADO SUNAT ni DETRACCIÓN, probablemente es proforma
+    // (las proformas pueden tener orden de compra pero no tienen estado SUNAT)
+    if (!headerStr.includes('ESTADO SUNAT') && !headerStr.includes('DETRACCIÓN')) {
+      return 'proforma';
+    }
   }
 
+  // Si llegamos aquí y no tiene ninguna característica distintiva,
+  // no podemos determinar el tipo con certeza
   return null;
 }
 
@@ -270,12 +278,15 @@ function detectDocumentTypeFromSheetName(sheetName: string): BillingDocumentType
     return 'debit_note';
   }
 
-  if (normalizedName.includes('NOTA') && normalizedName.includes('VENTA')) {
-    return 'sale_note';
-  }
-
+  // IMPORTANTE: Verificar PROFORMA antes de NOTA VENTA para evitar confusión
+  // porque "NOTA" podría aparecer en ambos nombres
   if (normalizedName.includes('PROFORMA') || normalizedName.includes('PROFORMAS')) {
     return 'proforma';
+  }
+
+  // Nota de venta debe incluir explícitamente "VENTA"
+  if (normalizedName.includes('NOTA') && normalizedName.includes('VENTA')) {
+    return 'sale_note';
   }
 
   return null;
