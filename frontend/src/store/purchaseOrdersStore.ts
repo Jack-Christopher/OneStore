@@ -5,7 +5,8 @@ import {
   createPurchaseOrderWithItems,
   deletePurchaseOrder,
   updatePurchaseOrder,
-  receivePurchaseOrder
+  receivePurchaseOrder,
+  importFromKeyfacil
 } from "@/services/api/purchaseOrders"
 import type {
   PurchaseOrder,
@@ -25,6 +26,7 @@ interface PurchaseOrdersState {
   edit: (id: string, data: UpdatePurchaseOrderPayload) => Promise<void>
   remove: (id: string) => Promise<void>
   receive: (id: string) => Promise<void>
+  importFromKeyfacil: (file: File) => Promise<{ success: number; failed: number; errors: string[] }>
 }
 
 export const usePurchaseOrdersStore = create<PurchaseOrdersState>((set, get) => ({
@@ -84,6 +86,23 @@ export const usePurchaseOrdersStore = create<PurchaseOrdersState>((set, get) => 
     if (res.success && res.data) {
       const updated = get().items.map((p) => (p._id === id ? res.data as PurchaseOrder : p))
       set({ items: updated })
+    }
+  },
+
+  importFromKeyfacil: async (file: File) => {
+    try {
+      set({ loading: true, error: null })
+      const res = await importFromKeyfacil(file)
+      if (res.success && res.data) {
+        return res.data
+      } else {
+        throw new Error(res.message || "Error al importar compras")
+      }
+    } catch (error: any) {
+      set({ error: error.message || "Error al importar compras" })
+      throw error
+    } finally {
+      set({ loading: false })
     }
   }
 }))

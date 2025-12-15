@@ -139,6 +139,31 @@ async function removeItem(req: Req, res: Res) {
   }
 }
 
+/**
+ * Importa compras desde Keyfacil
+ */
+async function importFromKeyfacil(req: Req, res: Res) {
+  try {
+    if (!req.file) {
+      return fail(res, "No se proporcionó ningún archivo", "NO_FILE", 400);
+    }
+    
+    const fileBuffer = req.file.buffer;
+    const fileName = req.file.originalname || 'file';
+    
+    const result = await service.importFromKeyfacil(
+      fileBuffer,
+      fileName,
+      req?.user?.id
+    );
+    
+    return ok(res, result);
+  } catch (error: any) {
+    console.error("Error in importFromKeyfacil:", error);
+    return fail(res, error.message || "Error al importar compras", "IMPORT_ERROR", 500);
+  }
+}
+
 module.exports = {
   getAll,
   getOne,
@@ -151,6 +176,7 @@ module.exports = {
   createItem,
   createManyItems,
   updateItem,
-  removeItem
+  removeItem,
+  importFromKeyfacil
 };
 

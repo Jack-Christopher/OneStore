@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
-import { Button, Chip } from '@mui/material'
+import { Button, Chip, Box, FormControl, InputLabel, Select, MenuItem, Alert, Snackbar } from '@mui/material'
 import { usePurchaseOrdersStore } from '@/store/purchaseOrdersStore'
 import PurchaseOrdersCreateModal from './createModal'
-import { Eye, Check, Trash } from 'lucide-react'
+import PurchaseOrdersImportModal from './importModal'
+import { Eye, Check, Trash, Upload, Download } from 'lucide-react'
 import DeleteModal from '@/components/DeleteModal'
 import PurchaseOrdersViewModal from './viewModal'
 import { deletePurchaseOrder } from '@/services/api/purchaseOrders'
-import ExportImportButtons from '@/components/ExportImportButtons'
+import { exportModule, type ExportFormat } from '@/services/api/exports'
 
 
 export default function PurchaseOrdersPage() {
@@ -15,7 +16,15 @@ export default function PurchaseOrdersPage() {
   const [openCreateModal, setOpenCreateModal] = useState(false)
   const [openViewModal, setOpenViewModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
+  const [openImportModal, setOpenImportModal] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv')
+  const [exportLoading, setExportLoading] = useState(false)
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  })
 
   useEffect(() => {
     fetch()
@@ -40,6 +49,30 @@ export default function PurchaseOrdersPage() {
       case 'canceled': return 'Cancelada';
       default: return status;
     }
+  };
+
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+      await exportModule('purchaseOrders', exportFormat);
+      setSnackbar({
+        open: true,
+        message: `Datos exportados exitosamente en formato ${exportFormat.toUpperCase()}`,
+        severity: 'success',
+      });
+    } catch (error: any) {
+      setSnackbar({
+        open: true,
+        message: `Error al exportar: ${error.message || 'Error desconocido'}`,
+        severity: 'error',
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const columns = [
@@ -83,19 +116,74 @@ export default function PurchaseOrdersPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Órdenes de Compra</h1>
-      <ExportImportButtons 
-        module="purchaseOrders" 
-        moduleLabel="Órdenes de Compra"
-        onImportSuccess={() => fetch()}
-      />
+      
+      {/* Export/Import Section */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2,
+          alignItems: 'center',
+          padding: 2,
+          marginBottom: 2,
+          backgroundColor: '#f5f5f5',
+          borderRadius: 1,
+          border: '1px solid #e0e0e0',
+        }}
+      >
+        {/* Export Section */}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <FormControl size="small" sx={{ minWidth: 100 }}>
+            <InputLabel>Formato</InputLabel>
+            <Select
+              value={exportFormat}
+              label="Formato"
+              onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
+            >
+              <MenuItem value="csv">CSV</MenuItem>
+              <MenuItem value="json">JSON</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Download />}
+            onClick={handleExport}
+            disabled={exportLoading}
+          >
+            Exportar Órdenes de Compra
+          </Button>
+        </Box>
+
+        {/* Import Section */}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<Upload />}
+            onClick={() => setOpenImportModal(true)}
+          >
+            Importar Órdenes de Compra
+          </Button>
+        </Box>
+      </Box>
+
       <Button
         variant="contained"
         color="primary"
         onClick={() => setOpenCreateModal(true)}
+        sx={{ marginBottom: 2 }}
       >
         Nueva Orden de Compra
       </Button>
       <PurchaseOrdersCreateModal open={openCreateModal} onClose={() => { setOpenCreateModal(false); fetch(); }} />
+      <PurchaseOrdersImportModal 
+        open={openImportModal} 
+        onClose={() => setOpenImportModal(false)}
+        onSuccess={() => {
+          setOpenImportModal(false)
+          fetch()
+        }}
+      />
       <PurchaseOrdersViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} orderId={selectedOrderId} />
       <DeleteModal 
         open={openDeleteModal} 
@@ -128,6 +216,17 @@ export default function PurchaseOrdersPage() {
           getRowId={(row) => row._id}
         />
       </div>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   )
 }

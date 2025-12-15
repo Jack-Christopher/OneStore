@@ -1,10 +1,20 @@
 import { PurchaseOrderUpdateDTO, PurchaseOrderItemDTO, CreatePurchaseOrderWithItemsDTO } from "./purchaseOrders.types";
 import { toSnakeCase } from "../../shared/utils/object";
+import { parseKeyfacilPurchasesFile, ParsedPurchase } from "./keyfacil-purchases-parser";
 
 const repo = require("./purchaseOrders.repository");
 const stockMovementsService = require("../stockMovements/stockMovements.service");
 const warehouseProductsService = require("../warehouseProducts/warehouseProducts.service");
 const settingsService = require("../settings/settings.service");
+const Supplier = require("../../database/models/Supplier");
+const Product = require("../../database/models/Product");
+const Warehouse = require("../../database/models/Warehouse");
+const Category = require("../../database/models/Category");
+const UnitOfMeasure = require("../../database/models/UnitOfMeasure");
+const suppliersRepo = require("../suppliers/suppliers.repository");
+const productsRepo = require("../products/products.repository");
+const warehousesRepo = require("../warehouses/warehouses.repository");
+const User = require("../../database/models/User");
 
 async function getAll(user_id: string) {
   return repo.findAll(user_id);
@@ -164,6 +174,336 @@ async function removeItem(id: string) {
   return repo.deleteItem(id);
 }
 
+/**
+ * Busca o crea un proveedor por documento
+ */
+async function findOrCreateSupplier(tenantId: string, document: string, name: string, userId: string): Promise<string> {
+  if (!document || !name) {
+    throw new Error('Documento y nombre del proveedor son requeridos');
+  }
+
+  // Buscar proveedor existente por documento
+  const existingSupplier = await Supplier.findOne({ 
+    tenant_id: tenantId, 
+    document: document.trim() 
+  }).lean();
+
+  if (existingSupplier) {
+    return existingSupplier._id.toString();
+  }
+
+  // Crear nuevo proveedor
+  const newSupplier = await Supplier.create({
+    tenant_id: tenantId,
+    document: document.trim(),
+    name: name.trim(),
+    created_by: userId,
+    updated_by: userId
+  });
+
+  return newSupplier._id.toString();
+}
+
+/**
+ * Busca o crea un producto por SKU
+ */
+async function findOrCreateProduct(tenantId: string, sku: string, name: string, userId: string): Promise<string> {
+  if (!sku || !name) {
+    throw new Error('SKU y nombre del producto son requeridos');
+  }
+
+  // Buscar producto existente por SKU
+  const existingProduct = await Product.findOne({ 
+    tenant_id: tenantId, 
+    sku: sku.trim() 
+  }).lean();
+
+  if (existingProduct) {
+    return existingProduct._id.toString();
+  }
+
+  // Obtener o crear categoría por defecto
+  let defaultCategory = await Category.findOne({ tenant_id: tenantId }).lean();
+  if (!defaultCategory) {
+    // Crear categoría por defecto si no existe
+    defaultCategory = await Category.create({
+      tenant_id: tenantId,
+      name: 'Categoría General',
+      description: 'Categoría creada automáticamente para importación',
+      created_by: userId,
+      updated_by: userId
+    });
+  }
+
+  // Obtener o crear unidad de medida por defecto
+  let defaultUnit = await UnitOfMeasure.findOne({
+    $or: [
+      { tenant_id: tenantId },
+      { tenant_id: 'default' }
+    ]
+  }).lean();
+  
+  if (!defaultUnit) {
+    // Crear unidad de medida por defecto si no existe
+    defaultUnit = await UnitOfMeasure.create({
+      tenant_id: tenantId,
+      code: 'UN',
+      name: 'Unidad',
+      description: 'Unidad de medida creada automáticamente para importación',
+      created_by: userId,
+      updated_by: userId
+    });
+  }
+
+  // Crear nuevo producto
+  const newProduct = await Product.create({
+    tenant_id: tenantId,
+    category_id: defaultCategory._id,
+    unit_id: defaultUnit._id,
+    sku: sku.trim(),
+    name: name.trim(),
+    sale_price: 0, // Precio de venta por defecto, se puede actualizar después
+    is_active: true,
+    created_by: userId,
+    updated_by: userId
+  });
+
+  return newProduct._id.toString();
+}
+
+/**
+ * Obtiene el primer almacén disponible del tenant, o crea uno por defecto si no existe
+ */
+async function getDefaultWarehouse(tenantId: string, userId: string): Promise<string> {
+  const warehouse = await Warehouse.findOne({ tenant_id: tenantId }).lean();
+  
+  if (warehouse) {
+    return warehouse._id.toString();
+  }
+
+  // Crear almacén por defecto si no existe
+  const newWarehouse = await Warehouse.create({
+    tenant_id: tenantId,
+    name: 'Almacén Principal',
+    is_active: true,
+    created_by: userId,
+    updated_by: userId
+  });
+
+  return newWarehouse._id.toString();
+}
+
+/**
+ * Obtiene el tenant_id del usuario
+ */
+async function getTenantId(userId: string): Promise<string> {
+  const user = await User.findById(userId).lean();
+  if (!user || !user.tenant_id || user.tenant_id === 'orphan') {
+    throw new Error('Usuario no tiene un tenant válido');
+  }
+  return user.tenant_id;
+}
+
+/**
+ * Importa compras desde un archivo CSV o Excel de Keyfacil
+ */
+async function importFromKeyfacil(
+  fileBuffer: Buffer,
+  fileName: string,
+  userId: string
+): Promise<{ success: number; failed: number; errors: string[] }> {
+  const tenantId = await getTenantId(userId);
+  
+  // Obtener moneda base
+  const baseCurrency = await settingsService.getBaseCurrency(userId);
+  if (!baseCurrency) {
+    throw new Error("Base currency must be set before importing purchases");
+  }
+
+  // Obtener almacén por defecto (crear si no existe)
+  const defaultWarehouseId = await getDefaultWarehouse(tenantId, userId);
+
+  // Parsear el archivo
+  const { purchases, errors: parseErrors } = parseKeyfacilPurchasesFile(fileBuffer, fileName);
+  
+  let totalSuccess = 0;
+  let totalFailed = 0;
+  const errors: string[] = [...parseErrors];
+
+  // Procesar cada compra
+  for (let i = 0; i < purchases.length; i++) {
+    const purchase = purchases[i];
+    
+    try {
+      // Buscar o crear proveedor
+      const supplierId = await findOrCreateSupplier(
+        tenantId,
+        purchase.proveedor_doc,
+        purchase.proveedor_nombre,
+        userId
+      );
+
+      // Determinar moneda y tipo de cambio
+      const currencyCode = purchase.moneda || baseCurrency;
+      const useForeignCurrency = currencyCode !== baseCurrency;
+      let exchangeRate = 1;
+      let totalOriginal = purchase.total_compra;
+      let totalBase = purchase.total_compra;
+
+      if (useForeignCurrency) {
+        // Si es moneda extranjera, necesitamos el tipo de cambio
+        // Por ahora, asumimos que el total_compra está en la moneda original
+        // En una implementación real, podría venir en el archivo o necesitarse como parámetro
+        // Por simplicidad, usamos 1:1 si no se especifica
+        exchangeRate = 1; // TODO: Permitir especificar tipo de cambio
+        totalOriginal = purchase.total_compra;
+        totalBase = purchase.total_compra / exchangeRate;
+      }
+
+      // Calcular total de items para validación
+      const itemsTotal = purchase.items.reduce((sum, item) => sum + item.total_linea, 0);
+      
+      // Crear orden de compra
+      const orderData: any = {
+        tenant_id: tenantId,
+        supplier_id: supplierId,
+        warehouse_id: defaultWarehouseId,
+        user_id: userId,
+        status: 'pending',
+        reference_number: purchase.identificador || `${purchase.serie}-${purchase.numero}`,
+        currency_code: currencyCode,
+        exchange_rate: exchangeRate,
+        total_original: totalOriginal,
+        total_base: totalBase,
+        total_amount: totalBase, // Backward compatibility
+        notes: purchase.observaciones || null,
+        metadata: {
+          comprobante: purchase.comprobante,
+          serie: purchase.serie,
+          numero: purchase.numero,
+          fecha: purchase.fecha,
+          otros: purchase.otros,
+          keyfacil_import: true
+        },
+        created_by: userId,
+        updated_by: userId
+      };
+
+      const order = await repo.create(orderData);
+
+      // Crear items de la compra
+      const itemsData: any[] = [];
+      for (const item of purchase.items) {
+        try {
+          // Validar que el código del producto no esté vacío
+          if (!item.codigo_producto || item.codigo_producto.trim() === '') {
+            errors.push(`Compra ${i + 1}: Item sin código de producto`);
+            continue;
+          }
+
+          // Usar código como nombre si el nombre está vacío
+          const productName = item.producto && item.producto.trim() !== '' 
+            ? item.producto 
+            : item.codigo_producto;
+
+          // Validar que los valores no sean cero
+          if (!item.cantidad || item.cantidad === 0) {
+            errors.push(`Compra ${i + 1}, Item ${item.codigo_producto}: Cantidad es cero o inválida (valor: ${item.cantidad})`);
+            console.error(`Item cantidad inválida:`, { codigo: item.codigo_producto, cantidad: item.cantidad, item });
+            continue;
+          }
+
+          if (!item.precio_unitario || item.precio_unitario === 0) {
+            errors.push(`Compra ${i + 1}, Item ${item.codigo_producto}: Precio unitario es cero o inválido (valor: ${item.precio_unitario})`);
+            console.error(`Item precio unitario inválido:`, { codigo: item.codigo_producto, precio_unitario: item.precio_unitario, item });
+            continue;
+          }
+
+          if (!item.total_linea || item.total_linea === 0) {
+            errors.push(`Compra ${i + 1}, Item ${item.codigo_producto}: Total línea es cero o inválido (valor: ${item.total_linea})`);
+            console.error(`Item total línea inválido:`, { codigo: item.codigo_producto, total_linea: item.total_linea, item });
+            continue;
+          }
+
+          // Buscar o crear producto
+          const productId = await findOrCreateProduct(
+            tenantId,
+            item.codigo_producto,
+            productName,
+            userId
+          );
+
+          // Calcular precios según moneda
+          let unitCostOriginal = item.precio_unitario;
+          let unitCostBase = item.precio_unitario;
+
+          if (useForeignCurrency) {
+            unitCostOriginal = item.precio_unitario;
+            unitCostBase = item.precio_unitario / exchangeRate;
+          }
+
+          // Usar total_linea del archivo como subtotal (convertir si es moneda extranjera)
+          const subtotal = useForeignCurrency ? item.total_linea / exchangeRate : item.total_linea;
+
+          itemsData.push({
+            tenant_id: tenantId,
+            purchase_order_id: order._id.toString(),
+            product_id: productId,
+            quantity: item.cantidad,
+            unit_cost_original: unitCostOriginal,
+            unit_cost_base: unitCostBase,
+            unit_price: unitCostBase, // Backward compatibility
+            subtotal: subtotal,
+            received_quantity: 0,
+            created_by: userId,
+            updated_by: userId
+          });
+        } catch (itemError: any) {
+          const errorMsg = itemError.message || 'Error desconocido';
+          errors.push(`Compra ${i + 1}, Item ${item.codigo_producto || 'sin código'}: ${errorMsg}`);
+          console.error(`Error creando item para producto ${item.codigo_producto}:`, itemError);
+        }
+      }
+
+      if (itemsData.length > 0) {
+        try {
+          await repo.createManyItems(itemsData);
+          
+          // Marcar la orden como recibida automáticamente (simular click en recibido)
+          // Esto crea movimientos de stock y actualiza el inventario
+          try {
+            await receiveOrder(order._id.toString(), userId);
+          } catch (receiveError: any) {
+            // Si falla la recepción, registrar error pero no fallar toda la importación
+            errors.push(`Compra ${i + 1}: Se creó pero falló al marcar como recibida - ${receiveError.message || 'Error desconocido'}`);
+            console.error(`Error recibiendo compra ${i + 1}:`, receiveError);
+          }
+          
+          totalSuccess++;
+        } catch (itemsError: any) {
+          // Si falla la creación de items, eliminar la orden
+          await repo.delete(order._id.toString());
+          totalFailed++;
+          errors.push(`Compra ${i + 1}: Error al crear items - ${itemsError.message || 'Error desconocido'}`);
+          console.error(`Error creando items para compra ${i + 1}:`, itemsError);
+        }
+      } else {
+        // Si no se pudieron crear items, eliminar la orden
+        await repo.delete(order._id.toString());
+        totalFailed++;
+        errors.push(`Compra ${i + 1}: No se pudieron crear items (todos los items fallaron)`);
+      }
+    } catch (error: any) {
+      totalFailed++;
+      const errorMsg = error.message || 'Error desconocido';
+      errors.push(`Compra ${i + 1}: ${errorMsg}`);
+      console.error(`Error procesando compra ${i + 1}:`, error);
+    }
+  }
+
+  return { success: totalSuccess, failed: totalFailed, errors };
+}
+
 module.exports = {
   getAll,
   getOne,
@@ -176,6 +516,10 @@ module.exports = {
   createItem,
   createManyItems,
   updateItem,
-  removeItem
+  removeItem,
+  findOrCreateSupplier,
+  findOrCreateProduct,
+  getDefaultWarehouse,
+  importFromKeyfacil
 };
 

@@ -107,3 +107,22 @@ export const getPurchaseOrderItems = async (orderId: string) => {
   return res.data
 }
 
+/**
+ * Importa compras desde Keyfacil
+ */
+export const importFromKeyfacil = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await api.post<ApiResponse<{
+    success: number;
+    failed: number;
+    errors: string[];
+  }>>(`${PURCHASE_ORDER_API_BASE}/import/keyfacil`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+}
+
