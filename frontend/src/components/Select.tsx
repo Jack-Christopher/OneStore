@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 
 export interface SelectOption {
   value: string,
@@ -23,18 +23,29 @@ export default function Select({ options = [], setFormInput, styles, value, disa
 
   const shouldUseSearch = (options?.length || 0) >= searchThreshold;
 
+  // Sort options alphabetically by label (A to Z)
+  const sortedOptions = useMemo(() => {
+    return [...(options || [])].sort((a, b) =>
+      a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })
+    );
+  }, [options]);
+
   // Filter options based on search term
   useEffect(() => {
     if (shouldUseSearch && searchTerm) {
-      const filtered = options.filter(option =>
+      const filtered = sortedOptions.filter(option =>
         option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         option.value.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      // Sort filtered results alphabetically
+      filtered.sort((a, b) =>
+        a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })
       );
       setFilteredOptions(filtered);
     } else if (shouldUseSearch) {
       setFilteredOptions([]);
     }
-  }, [searchTerm, options, shouldUseSearch]);
+  }, [searchTerm, sortedOptions, shouldUseSearch]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -80,7 +91,7 @@ export default function Select({ options = [], setFormInput, styles, value, disa
     }
   };
 
-  const selectedOption = options?.find(opt => opt.value === value);
+  const selectedOption = sortedOptions?.find(opt => opt.value === value);
   const displayValue = selectedOption ? selectedOption.label : 'Seleccione una opción';
 
   const defaultStyles = "border border-border rounded p-2 w-full mb-3 bg-card text-foreground dark:text-foreground";
@@ -96,7 +107,7 @@ export default function Select({ options = [], setFormInput, styles, value, disa
         disabled={disabled}
       >
         <option value="" className="bg-white text-black dark:bg-black dark:text-white">Seleccione una opción</option>
-        {options?.map((o) => {
+        {sortedOptions?.map((o) => {
           return <option key={o.value} value={o.value} className="bg-white text-black dark:bg-black dark:text-white">{o.label}</option>
         })}
       </select>
@@ -124,33 +135,70 @@ export default function Select({ options = [], setFormInput, styles, value, disa
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded shadow-lg max-h-60 overflow-hidden">
-          <div className="p-2 border-b border-border">
+        <div
+          className="absolute z-50 w-full mt-1 border border-border rounded shadow-lg max-h-60 overflow-hidden"
+          style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}
+        >
+          <div
+            className="p-2 border-b border-border"
+            style={{ backgroundColor: 'var(--card)' }}
+          >
             <input
               ref={inputRef}
               type="text"
               placeholder="Escriba para buscar..."
-              className="w-full p-2 border border-border rounded bg-card text-foreground placeholder:text-muted-foreground"
+              className="w-full p-2 border border-border rounded placeholder:text-muted-foreground"
+              style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onClick={(e) => e.stopPropagation()}
             />
           </div>
-          <div className="max-h-48 overflow-y-auto">
+          <div
+            className="max-h-48 overflow-y-auto"
+            style={{ backgroundColor: 'var(--card)' }}
+          >
             {searchTerm === '' ? (
-              <div className="p-4 text-center text-muted-foreground text-sm">
+              <div
+                className="p-4 text-center text-sm"
+                style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground) !important' }}
+              >
                 Escriba para buscar opciones...
               </div>
             ) : filteredOptions.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground text-sm">
+              <div
+                className="p-4 text-center text-sm"
+                style={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}
+              >
                 No se encontraron opciones
               </div>
             ) : (
               filteredOptions.map((option) => (
                 <div
                   key={option.value}
-                  className={`p-2 cursor-pointer hover:bg-accent hover:text-accent-foreground ${value === option.value ? 'bg-accent text-accent-foreground' : ''
-                    }`}
+                  className="p-2 cursor-pointer"
+                  style={{
+                    backgroundColor: value === option.value ? 'var(--accent)' : 'var(--card)',
+                    color: value === option.value ? 'var(--accent-foreground)' : 'var(--card-foreground) !important'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (value !== option.value) {
+                      e.currentTarget.style.backgroundColor = 'var(--muted)';
+                      e.currentTarget.style.color = 'var(--card-foreground) !important';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'var(--accent)';
+                      e.currentTarget.style.color = 'var(--accent-foreground) !important';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (value !== option.value) {
+                      e.currentTarget.style.backgroundColor = 'var(--card)';
+                      e.currentTarget.style.color = 'var(--card-foreground) !important';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'var(--accent)';
+                      e.currentTarget.style.color = 'var(--accent-foreground) !important';
+                    }
+                  }}
                   onClick={() => handleSelectChange(option.value)}
                 >
                   {option.label}
