@@ -49,7 +49,7 @@ export default function TopProductsTable({ data, loading = false }: TopProductsT
   }));
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
         <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Productos Más Vendidos

@@ -47,9 +47,9 @@ export default function UserActivityHeatmap({ data }: UserActivityHeatmapProps) 
   };
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Actividad por Usuario (Heatmap)
         </Typography>
         <div className="overflow-x-auto">

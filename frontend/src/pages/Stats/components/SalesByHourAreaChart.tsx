@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/utils/currency";
+import { getChartColors } from "@/utils/theme";
 import type { SalesByHour } from "@/services/api/stats";
 
 interface SalesByHourAreaChartProps {
@@ -8,6 +9,7 @@ interface SalesByHourAreaChartProps {
 }
 
 export default function SalesByHourAreaChart({ data }: SalesByHourAreaChartProps) {
+  const colors = getChartColors();
   // Ensure all 24 hours are represented
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const chartData = hours.map(hour => {
@@ -20,24 +22,29 @@ export default function SalesByHourAreaChart({ data }: SalesByHourAreaChartProps
   });
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Ventas por Hora del Día
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="hour" />
-            <YAxis tickFormatter={(value) => formatCurrency(value)} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis dataKey="hour" stroke={colors.text} />
+            <YAxis tickFormatter={(value) => formatCurrency(value)} stroke={colors.text} />
             <Tooltip 
               formatter={(value: number) => formatCurrency(value)}
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
             />
             <Area 
               type="monotone" 
               dataKey="totalAmount" 
-              stroke="#8884d8" 
-              fill="#8884d8" 
+              stroke={colors.info} 
+              fill={colors.info} 
               fillOpacity={0.6}
               name="Monto Total"
             />

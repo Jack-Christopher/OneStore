@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/utils/currency";
+import { getChartColors } from "@/utils/theme";
 import type { PurchasesBySupplier } from "@/services/api/stats";
 
 interface PurchasesBySupplierLineChartProps {
@@ -8,6 +9,7 @@ interface PurchasesBySupplierLineChartProps {
 }
 
 export default function PurchasesBySupplierLineChart({ data }: PurchasesBySupplierLineChartProps) {
+  const colors = getChartColors();
   const chartData = data.map(item => ({
     name: item.supplierName.length > 15 ? `${item.supplierName.substring(0, 15)}...` : item.supplierName,
     monto: item.totalAmount,
@@ -15,22 +17,23 @@ export default function PurchasesBySupplierLineChart({ data }: PurchasesBySuppli
   }));
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Evolución de Compras por Proveedor
         </Typography>
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
             <XAxis 
               dataKey="name" 
               angle={-45} 
               textAnchor="end" 
               height={100}
+              stroke={colors.text}
             />
-            <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} />
-            <YAxis yAxisId="right" orientation="right" />
+            <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} stroke={colors.text} />
+            <YAxis yAxisId="right" orientation="right" stroke={colors.text} />
             <Tooltip 
               formatter={(value: number, name: string) => {
                 if (name === "monto") {
@@ -38,13 +41,18 @@ export default function PurchasesBySupplierLineChart({ data }: PurchasesBySuppli
                 }
                 return [value, "Órdenes"];
               }}
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: colors.text }} />
             <Line 
               yAxisId="left"
               type="monotone" 
               dataKey="monto" 
-              stroke="#8884d8" 
+              stroke={colors.info} 
               name="Monto Total"
               strokeWidth={2}
             />
@@ -52,7 +60,7 @@ export default function PurchasesBySupplierLineChart({ data }: PurchasesBySuppli
               yAxisId="right"
               type="monotone" 
               dataKey="ordenes" 
-              stroke="#82ca9d" 
+              stroke={colors.success} 
               name="Cantidad de Órdenes"
               strokeWidth={2}
             />

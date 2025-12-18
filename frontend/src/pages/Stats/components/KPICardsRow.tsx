@@ -8,20 +8,20 @@ interface KPICardsRowProps {
   totalSalesCount: number;
   averageTicket: number;
   comparisonVsLastMonth: number;
-  
+
   // Compras
   totalPurchasesAmount: number;
   averageCostPerDay: number;
-  
+
   // Stock
   stockValue: number;
   stockRotation: number;
-  
+
   // Productos
   newProductsMonth: number;
   productsActive: number;
   productsInactive: number;
-  
+
   // Usuarios
   activeEmployees: number;
   newEmployeesMonth: number;
@@ -48,15 +48,15 @@ export default function KPICardsRow({
     <div className="space-y-6">
       {/* Ventas Section */}
       <Box>
-        <Typography variant="h6" className="mb-4 font-bold text-gray-700">
+        <Typography variant="h6" className="mb-4 font-bold text-foreground">
           Ventas
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-blue-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Total Ventas
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -68,11 +68,11 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+          <Card className="bg-secondary text-secondary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-green-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Cantidad de Ventas
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -84,11 +84,11 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+          <Card className="bg-accent text-accent-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-purple-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Ticket Promedio
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -100,11 +100,11 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white">
+          <Card className={`${isPositive ? 'bg-secondary' : 'bg-accent'} ${isPositive ? 'text-secondary-foreground' : 'text-accent-foreground'}`}>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-cyan-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Comparación Mes
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -116,7 +116,7 @@ export default function KPICardsRow({
                     ) : (
                       <TrendingDown size={14} />
                     )}
-                    <Typography variant="caption" className="text-cyan-100">
+                    <Typography variant="caption" className="opacity-90">
                       vs mes anterior
                     </Typography>
                   </div>
@@ -134,21 +134,21 @@ export default function KPICardsRow({
 
       {/* Compras Section */}
       <Box>
-        <Typography variant="h6" className="mb-4 font-bold text-gray-700">
+        <Typography variant="h6" className="mb-4 font-bold text-foreground">
           Compras
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-orange-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Costo Total Adquirido
                   </Typography>
                   <Typography variant="h5" className="font-bold">
                     {formatCurrency(totalPurchasesAmount)}
                   </Typography>
-                  <Typography variant="caption" className="text-orange-100">
+                  <Typography variant="caption" className="opacity-90">
                     Este mes
                   </Typography>
                 </div>
@@ -157,11 +157,11 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+          <Card className="bg-secondary text-secondary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-amber-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Costo Promedio por Día
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -177,15 +177,15 @@ export default function KPICardsRow({
 
       {/* Stock Section */}
       <Box>
-        <Typography variant="h6" className="mb-4 font-bold text-gray-700">
+        <Typography variant="h6" className="mb-4 font-bold text-foreground">
           Stock
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-indigo-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Valoración del Stock Total
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -197,17 +197,17 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
+          <Card className="bg-secondary text-secondary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-teal-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Rotación Aproximada
                   </Typography>
                   <Typography variant="h5" className="font-bold">
                     {stockRotation.toFixed(2)}x
                   </Typography>
-                  <Typography variant="caption" className="text-teal-100">
+                  <Typography variant="caption" className="opacity-90">
                     Veces por año
                   </Typography>
                 </div>
@@ -220,21 +220,21 @@ export default function KPICardsRow({
 
       {/* Productos Section */}
       <Box>
-        <Typography variant="h6" className="mb-4 font-bold text-gray-700">
+        <Typography variant="h6" className="mb-4 font-bold text-foreground">
           Productos
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-r from-pink-500 to-pink-600 text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-pink-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Nuevos Productos
                   </Typography>
                   <Typography variant="h5" className="font-bold">
                     {newProductsMonth}
                   </Typography>
-                  <Typography variant="caption" className="text-pink-100">
+                  <Typography variant="caption" className="opacity-90">
                     Este mes
                   </Typography>
                 </div>
@@ -243,11 +243,11 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+          <Card className="bg-secondary text-secondary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-emerald-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Productos Activos
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -259,11 +259,11 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+          <Card className="bg-accent text-accent-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-red-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Productos Inactivos
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -279,15 +279,15 @@ export default function KPICardsRow({
 
       {/* Usuarios Section */}
       <Box>
-        <Typography variant="h6" className="mb-4 font-bold text-gray-700">
+        <Typography variant="h6" className="mb-4 font-bold text-foreground">
           Usuarios
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-r from-violet-500 to-violet-600 text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-violet-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Empleados Activos
                   </Typography>
                   <Typography variant="h5" className="font-bold">
@@ -299,17 +299,17 @@ export default function KPICardsRow({
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <Card className="bg-secondary text-secondary-foreground">
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="subtitle2" className="text-blue-100">
+                  <Typography variant="subtitle2" className="opacity-90">
                     Nuevos Empleados
                   </Typography>
                   <Typography variant="h5" className="font-bold">
                     {newEmployeesMonth}
                   </Typography>
-                  <Typography variant="caption" className="text-blue-100">
+                  <Typography variant="caption" className="opacity-90">
                     Este mes
                   </Typography>
                 </div>

@@ -47,7 +47,7 @@ export default function LowStockTable({ data, loading = false }: LowStockTablePr
   }));
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
         <Typography variant="h6" className="mb-4 font-bold text-accent">
           ⚠️ Productos con Stock Bajo

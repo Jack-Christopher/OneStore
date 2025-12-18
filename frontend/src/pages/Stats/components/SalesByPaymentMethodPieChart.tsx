@@ -1,15 +1,16 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { formatCurrency } from "@/utils/currency";
+import { getChartPalette, getChartColors } from "@/utils/theme";
 import type { SalesByPaymentMethod } from "@/services/api/stats";
 
 interface SalesByPaymentMethodPieChartProps {
   data: SalesByPaymentMethod[];
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
-
 export default function SalesByPaymentMethodPieChart({ data }: SalesByPaymentMethodPieChartProps) {
+  const colors = getChartColors();
+  const palette = getChartPalette();
   const chartData = data.map(item => ({
     name: item.paymentMethod || 'No especificado',
     value: item.totalAmount,
@@ -17,9 +18,9 @@ export default function SalesByPaymentMethodPieChart({ data }: SalesByPaymentMet
   }));
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Ventas por Método de Pago
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
@@ -31,11 +32,11 @@ export default function SalesByPaymentMethodPieChart({ data }: SalesByPaymentMet
               labelLine={false}
               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               outerRadius={100}
-              fill="#8884d8"
+              fill={colors.info}
               dataKey="value"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
               ))}
             </Pie>
             <Tooltip 
@@ -43,8 +44,13 @@ export default function SalesByPaymentMethodPieChart({ data }: SalesByPaymentMet
                 formatCurrency(value),
                 `${props.payload.name} (${props.payload.count} ventas)`
               ]}
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: colors.text }} />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

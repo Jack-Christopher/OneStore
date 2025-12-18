@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/utils/currency";
+import { getChartColors } from "@/utils/theme";
 import type { TopProduct } from "@/services/api/stats";
 
 interface TopProductsHorizontalBarProps {
@@ -9,6 +10,7 @@ interface TopProductsHorizontalBarProps {
 }
 
 export default function TopProductsHorizontalBar({ data, limit = 10 }: TopProductsHorizontalBarProps) {
+  const colors = getChartColors();
   const chartData = data.slice(0, limit).reverse().map(item => ({
     name: item.productName.length > 20 ? `${item.productName.substring(0, 20)}...` : item.productName,
     cantidad: item.totalQuantity,
@@ -16,9 +18,9 @@ export default function TopProductsHorizontalBar({ data, limit = 10 }: TopProduc
   }));
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Top {limit} Productos Más Vendidos
         </Typography>
         <ResponsiveContainer width="100%" height={400}>
@@ -27,9 +29,9 @@ export default function TopProductsHorizontalBar({ data, limit = 10 }: TopProduc
             layout="vertical"
             margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" tickFormatter={(value) => value.toString()} />
-            <YAxis dataKey="name" type="category" width={90} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis type="number" tickFormatter={(value) => value.toString()} stroke={colors.text} />
+            <YAxis dataKey="name" type="category" width={90} stroke={colors.text} />
             <Tooltip 
               formatter={(value: number, name: string) => {
                 if (name === "monto") {
@@ -37,10 +39,15 @@ export default function TopProductsHorizontalBar({ data, limit = 10 }: TopProduc
                 }
                 return [value, "Cantidad"];
               }}
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
             />
-            <Legend />
-            <Bar dataKey="cantidad" fill="#8884d8" name="Cantidad Vendida" />
-            <Bar dataKey="monto" fill="#82ca9d" name="Monto Total" />
+            <Legend wrapperStyle={{ color: colors.text }} />
+            <Bar dataKey="cantidad" fill={colors.info} name="Cantidad Vendida" />
+            <Bar dataKey="monto" fill={colors.success} name="Monto Total" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -1,5 +1,6 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { getChartPalette, getChartColors } from "@/utils/theme";
 import type { StockValue } from "@/services/api/stats";
 
 interface StockRotationDonutChartProps {
@@ -7,9 +8,9 @@ interface StockRotationDonutChartProps {
   totalStockValue: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
 export default function StockRotationDonutChart({ stockRotation, totalStockValue }: StockRotationDonutChartProps) {
+  const colors = getChartColors();
+  const palette = getChartPalette();
   // Calculate rotation percentages
   const rotationValue = totalStockValue * stockRotation;
   const remainingValue = totalStockValue - rotationValue;
@@ -20,12 +21,12 @@ export default function StockRotationDonutChart({ stockRotation, totalStockValue
   ];
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-2 font-bold">
+        <Typography variant="h6" className="mb-2 font-bold text-card-foreground">
           Rotación de Inventario
         </Typography>
-        <Typography variant="body2" className="mb-4 text-gray-600">
+        <Typography variant="body2" className="mb-4 text-muted-foreground">
           Rotación: {stockRotation.toFixed(2)}x por año
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
@@ -38,15 +39,21 @@ export default function StockRotationDonutChart({ stockRotation, totalStockValue
               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
               outerRadius={100}
               innerRadius={60}
-              fill="#8884d8"
+              fill={colors.info}
               dataKey="value"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
               ))}
             </Pie>
-            <Tooltip />
-            <Legend />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
+            />
+            <Legend wrapperStyle={{ color: colors.text }} />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

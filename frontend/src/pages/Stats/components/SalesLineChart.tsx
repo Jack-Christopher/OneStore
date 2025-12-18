@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/utils/currency";
+import { getChartColors } from "@/utils/theme";
 
 interface SalesData {
   month: string;
@@ -13,6 +14,7 @@ interface SalesLineChartProps {
 }
 
 export default function SalesLineChart({ data }: SalesLineChartProps) {
+  const colors = getChartColors();
   const chartData = data.map(item => {
     // Handle date format: YYYY-MM-DD or YYYY-MM
     let formattedMonth = item.month;
@@ -33,17 +35,18 @@ export default function SalesLineChart({ data }: SalesLineChartProps) {
   });
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Ventas por Día
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis dataKey="month" stroke={colors.text} />
             <YAxis 
               tickFormatter={(value) => formatCurrency(value)}
+              stroke={colors.text}
             />
             <Tooltip 
               formatter={(value: number, name: string) => {
@@ -52,19 +55,24 @@ export default function SalesLineChart({ data }: SalesLineChartProps) {
                 }
                 return [value, "Total Ventas"];
               }}
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: colors.text }} />
             <Line 
               type="monotone" 
               dataKey="totalSales" 
-              stroke="#8884d8" 
+              stroke={colors.info} 
               name="Total Ventas"
               strokeWidth={2}
             />
             <Line 
               type="monotone" 
               dataKey="totalAmount" 
-              stroke="#82ca9d" 
+              stroke={colors.success} 
               name="Monto Total"
               strokeWidth={2}
             />

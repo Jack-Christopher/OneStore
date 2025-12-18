@@ -54,12 +54,12 @@ export default function StatsPage() {
 
   useEffect(() => {
     const filters: any = {};
-    
+
     // Admin can filter by tenant_id
     if (user?.role === 'admin') {
       // Could add tenant filter UI here in the future
     }
-    
+
     fetchAll(filters);
     fetchMovementTypesFrequency(filters);
     fetchUserActivity(filters);
@@ -75,7 +75,7 @@ export default function StatsPage() {
 
   return (
     <div className="p-4">
-      <Typography variant="h4" className="mb-6 font-bold">
+      <Typography variant="h4" className="mb-6 font-bold text-foreground">
         Estadísticas
       </Typography>
 
@@ -181,7 +181,7 @@ export default function StatsPage() {
 
         {/* 6. Rotación de inventario (donut) */}
         {dashboardOverview && (
-          <StockRotationDonutChart 
+          <StockRotationDonutChart
             stockRotation={dashboardOverview.stock_rotation}
             totalStockValue={dashboardOverview.stock_value}
           />
@@ -199,8 +199,8 @@ export default function StatsPage() {
 
         {/* Stock Value Pie Chart */}
         {dashboardOverview && stockValue && (
-          <StockValuePieChart 
-            data={stockValue.byCategory || []} 
+          <StockValuePieChart
+            data={stockValue.byCategory || []}
             totalValue={dashboardOverview.stock_value}
           />
         )}
@@ -219,21 +219,21 @@ export default function StatsPage() {
       {/* Tables Section */}
       <Box className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Top Products Table */}
-        <TopProductsTable 
-          data={dashboardOverview?.top_selling_products || []} 
+        <TopProductsTable
+          data={dashboardOverview?.top_selling_products || []}
           loading={loading}
         />
 
         {/* Low Stock Table - 17. Nivel de stock crítico */}
-        <LowStockTable 
-          data={dashboardOverview?.low_stock_products || []} 
+        <LowStockTable
+          data={dashboardOverview?.low_stock_products || []}
           loading={loading}
         />
       </Box>
 
       {loading && (
         <Box className="mt-4">
-          <Typography variant="body2" className="text-gray-500">
+          <Typography variant="body2" className="text-muted-foreground">
             Cargando estadísticas...
           </Typography>
         </Box>

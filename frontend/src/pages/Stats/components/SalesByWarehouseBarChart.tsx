@@ -1,6 +1,7 @@
 import { Card, CardContent, Typography } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/utils/currency";
+import { getChartColors } from "@/utils/theme";
 import type { SalesByWarehouse } from "@/services/api/stats";
 
 interface SalesByWarehouseBarChartProps {
@@ -8,6 +9,7 @@ interface SalesByWarehouseBarChartProps {
 }
 
 export default function SalesByWarehouseBarChart({ data }: SalesByWarehouseBarChartProps) {
+  const colors = getChartColors();
   const chartData = data.map(item => ({
     name: item.warehouseName,
     ingresos: item.totalAmount,
@@ -15,17 +17,17 @@ export default function SalesByWarehouseBarChart({ data }: SalesByWarehouseBarCh
   }));
 
   return (
-    <Card>
+    <Card className="bg-card">
       <CardContent>
-        <Typography variant="h6" className="mb-4 font-bold">
+        <Typography variant="h6" className="mb-4 font-bold text-card-foreground">
           Ingresos por Almacén
         </Typography>
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} />
-            <YAxis yAxisId="right" orientation="right" />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis dataKey="name" stroke={colors.text} />
+            <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} stroke={colors.text} />
+            <YAxis yAxisId="right" orientation="right" stroke={colors.text} />
             <Tooltip 
               formatter={(value: number, name: string) => {
                 if (name === "ingresos") {
@@ -33,10 +35,15 @@ export default function SalesByWarehouseBarChart({ data }: SalesByWarehouseBarCh
                 }
                 return [value, "Cantidad de Ventas"];
               }}
+              contentStyle={{
+                backgroundColor: colors.primary,
+                border: `1px solid ${colors.grid}`,
+                color: colors.text,
+              }}
             />
-            <Legend />
-            <Bar yAxisId="left" dataKey="ingresos" fill="#8884d8" name="Ingresos Totales" />
-            <Bar yAxisId="right" dataKey="ventas" fill="#82ca9d" name="Cantidad de Ventas" />
+            <Legend wrapperStyle={{ color: colors.text }} />
+            <Bar yAxisId="left" dataKey="ingresos" fill={colors.info} name="Ingresos Totales" />
+            <Bar yAxisId="right" dataKey="ventas" fill={colors.success} name="Cantidad de Ventas" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
