@@ -16,20 +16,9 @@ const importSourceOptions: SelectOption[] = [
   { value: 'keyfacil', label: 'Keyfacil' },
 ];
 
-const documentTypeOptions: SelectOption[] = [
-  { value: 'auto', label: 'Detección automática' },
-  { value: 'invoice', label: 'Facturas' },
-  { value: 'sale_ticket', label: 'Boletas de venta' },
-  { value: 'credit_note', label: 'Notas de crédito' },
-  { value: 'debit_note', label: 'Notas de débito' },
-  { value: 'sale_note', label: 'Notas de venta' },
-  { value: 'proforma', label: 'Proformas' },
-];
-
 export default function BillingImportModal({ open, onClose, onSuccess, documentType }: BillingImportModalProps) {
   const { importFromKeyfacil, loading } = useBillingStore();
   const [selectedSource, setSelectedSource] = useState<string>('keyfacil');
-  const [selectedDocumentType, setSelectedDocumentType] = useState<string>(documentType || 'auto');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
@@ -62,7 +51,8 @@ export default function BillingImportModal({ open, onClose, onSuccess, documentT
     setSuccess(null);
 
     try {
-      const docType = selectedDocumentType === 'auto' ? undefined : (selectedDocumentType as BillingDocumentType);
+      // Usar el documentType del prop si está disponible, sino usar 'auto' para detección automática
+      const docType = documentType || undefined;
       const result = await importFromKeyfacil(selectedFile, docType);
 
       setSuccess(result);
@@ -84,7 +74,6 @@ export default function BillingImportModal({ open, onClose, onSuccess, documentT
     setError(null);
     setSuccess(null);
     setSelectedSource('keyfacil');
-    setSelectedDocumentType(documentType || 'auto');
     onClose();
   };
 
@@ -113,19 +102,6 @@ export default function BillingImportModal({ open, onClose, onSuccess, documentT
             value={selectedSource}
             disabled={true}
           />
-        </div>
-
-        <div className="mb-4">
-          <label className="block mb-2 font-medium">Tipo de Documento</label>
-          <Select
-            options={documentTypeOptions}
-            setFormInput={setSelectedDocumentType}
-            value={selectedDocumentType}
-            disabled={!!documentType}
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            Selecciona "Detección automática" para que el sistema detecte el tipo automáticamente
-          </p>
         </div>
 
         <div className="mb-4">

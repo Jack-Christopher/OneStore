@@ -245,6 +245,14 @@ function mapKeyfacilField(keyfacilField: string): string {
     'ESTADO SUNAT': 'estado_sunat',
     'DOCUMENTO AFECTADO': 'documento_afectado',
     'MOTIVO': 'motivo',
+    // Campos de items del nuevo formato
+    'CODIGO': 'codigo',
+    'CATEGORIA': 'categoria',
+    'CANTIDAD': 'cantidad',
+    'P. UNITARIO': 'precio_unitario',
+    'PRECIO UNITARIO': 'precio_unitario',
+    'TOTAL LINEA': 'total_linea',
+    'TOTAL LINE': 'total_linea',
   };
 
   const normalized = keyfacilField.trim().toUpperCase();
@@ -391,15 +399,35 @@ export function parseKeyfacilFile(
     if (isExcel) {
       // Procesar como Excel - puede tener múltiples hojas
       const sheetsData = parseExcelRaw(buffer);
+      console.log(`\n📊 ARCHIVO EXCEL: ${sheetsData.length} hojas encontradas`);
 
       // Procesar cada hoja por separado y detectar su tipo
       for (let sheetIndex = 0; sheetIndex < sheetsData.length; sheetIndex++) {
         const { sheetName, data: sheetRawData } = sheetsData[sheetIndex];
+
+        // Ignorar hojas que contengan "Resumen" (ej: "RESUMEN DE PRODUCTOS (BETA)")
+        const normalizedSheetName = sheetName.trim().toUpperCase();
+        if (normalizedSheetName.includes('RESUMEN')) {
+          console.log(`  ⏭️  Hoja "${sheetName}": IGNORADA (contiene "Resumen")`);
+          continue; // Saltar esta hoja
+        }
+
+        // Contar filas con contenido antes de procesar
+        const rowsWithContent = sheetRawData.filter(row =>
+          row.some(cell => cell !== '' && cell !== null && cell !== undefined && String(cell).trim() !== '')
+        ).length;
+        console.log(`\n  📄 Hoja "${sheetName}" (índice ${sheetIndex + 1}):`);
+        console.log(`     Filas con contenido: ${rowsWithContent}`);
+
         const result = excelToCSVFormat(sheetRawData);
 
         if (result.headers.length === 0 || result.records.length === 0) {
+          console.log(`     ⚠️  Hoja vacía o sin headers válidos`);
           continue; // Saltar hojas vacías
         }
+
+        console.log(`     Headers encontrados: ${result.headers.length}`);
+        console.log(`     Registros raw: ${result.records.length}`);
 
         // Primero intentar detectar el tipo de documento por el nombre de la hoja
         let sheetDocumentType = detectDocumentTypeFromSheetName(sheetName);
@@ -410,13 +438,18 @@ export function parseKeyfacilFile(
         }
 
         if (!sheetDocumentType) {
-          errors.push(`Hoja "${sheetName}": No se pudo detectar el tipo de documento. Headers: ${result.headers.join(', ')}`);
+          const errorMsg = `Hoja "${sheetName}": No se pudo detectar el tipo de documento. Headers: ${result.headers.join(', ')}`;
+          errors.push(errorMsg);
+          console.log(`     ✗ ${errorMsg}`);
           continue;
         }
 
+        console.log(`     Tipo detectado: ${sheetDocumentType}`);
+
         // Procesar registros de esta hoja y agregarlos al tipo correspondiente
-        const processedDocs = processRecords(result.records, result.headers, sheetDocumentType, errors, sheetIndex);
+        const processedDocs = processRecords(result.records, result.headers, sheetDocumentType, errors, sheetIndex, sheetName);
         documentsByType[sheetDocumentType] = documentsByType[sheetDocumentType].concat(processedDocs);
+        console.log(`     ✓ Documentos procesados: ${processedDocs.length}`);
       }
     } else {
       // Procesar como CSV
@@ -460,8 +493,11 @@ export function parseKeyfacilFile(
       }
 
       // Procesar registros del CSV
+      console.log(`\n📄 ARCHIVO CSV:`);
+      console.log(`   Registros encontrados: ${records.length}`);
       const processedDocs = processRecords(records, headers, documentType, errors, 0);
       documentsByType[documentType] = processedDocs;
+      console.log(`   Documentos procesados: ${processedDocs.length}`);
     }
 
     return { documentsByType, errors };
@@ -473,27 +509,45 @@ export function parseKeyfacilFile(
 
 /**
  * Procesa registros y los convierte al formato correcto
+ * Ahora agrupa items por documento (SERIE + NÚMERO)
  */
 function processRecords(
   records: any[],
   headers: string[],
   documentType: BillingDocumentType,
   errors: string[],
-  sheetOffset: number = 0
+  sheetOffset: number = 0,
+  sheetName?: string
 ): any[] {
-  const documents: any[] = [];
+  // Map para agrupar items por documento (clave: serie-numero)
+  const documentsMap = new Map<string, any>();
 
-  // Campos numéricos
-  const numericFields = [
+  // Campos numéricos del documento
+  const documentNumericFields = [
     'rc', 'descuento', 'gravado', 'exonerado', 'inafecto', 'exportacion',
     'gratuito', 'igv', 'isc', 'icbper', 'total', 'detraccion_pen',
     'retencion', 'percepcion_pen'
   ];
 
+  // Campos numéricos de items
+  const itemNumericFields = [
+    'cantidad', 'precio_unitario', 'descuento', 'total_linea'
+  ];
+
   // Campos de fecha
   const dateFields = ['fecha_emision', 'fecha_vencimiento', 'fecha_creacion'];
 
-  // Procesar cada registro
+  // Verificar si el formato tiene campos de items (nuevo formato detallado)
+  const hasItemFields = headers.some(h => {
+    const upper = h.toUpperCase();
+    return upper.includes('CODIGO') || upper.includes('CANTIDAD') || upper.includes('P. UNITARIO') || upper.includes('TOTAL LINEA');
+  });
+
+  let rowsProcessed = 0;
+  let rowsSkipped = 0;
+  let rowsWithErrors = 0;
+
+  // Procesar cada registro (cada registro es un item en el nuevo formato)
   for (let i = 0; i < records.length; i++) {
     try {
       const record = records[i];
@@ -507,6 +561,7 @@ function processRecords(
       });
 
       if (!hasData) {
+        rowsSkipped++;
         continue; // Saltar registro vacío
       }
 
@@ -520,7 +575,7 @@ function processRecords(
         let value = record[key];
 
         // Normalizar valores
-        if (numericFields.includes(mappedKey)) {
+        if (documentNumericFields.includes(mappedKey) || itemNumericFields.includes(mappedKey)) {
           value = normalizeValue(value, true);
         } else if (dateFields.includes(mappedKey)) {
           value = parsePeruvianDate(value);
@@ -532,33 +587,136 @@ function processRecords(
           value = normalizeValue(value, false);
         }
 
-        // Solo agregar campos con valores válidos, excepto campos requeridos que deben estar presentes (aunque sean null)
+        // Solo agregar campos con valores válidos, excepto campos requeridos
         if (value !== null && value !== undefined && value !== '') {
           mappedRecord[mappedKey] = value;
-        } else if (['serie', 'numero', 'total'].includes(mappedKey)) {
+        } else if (['serie', 'numero'].includes(mappedKey)) {
           // Mantener campos requeridos incluso si están vacíos para validación
           mappedRecord[mappedKey] = value !== undefined ? value : null;
         }
       }
 
-      // Validar que tenga campos mínimos (con valores no vacíos)
+      // Validar que tenga campos mínimos del documento
       const serie = mappedRecord.serie ? String(mappedRecord.serie).trim() : '';
       const numero = mappedRecord.numero ? String(mappedRecord.numero).trim() : '';
-      const total = mappedRecord.total !== null && mappedRecord.total !== undefined && mappedRecord.total !== '';
 
-      if (!serie || !numero || !total) {
-        const recordNum = sheetOffset > 0 ? `Hoja ${sheetOffset + 1}, registro ${i + 1}` : `Registro ${i + 1}`;
-        errors.push(`${recordNum}: Faltan campos requeridos (serie: "${serie}", numero: "${numero}", total: ${mappedRecord.total})`);
+      if (!serie || !numero) {
+        rowsWithErrors++;
+        const recordNum = sheetName
+          ? `Hoja "${sheetName}", fila ${i + 2}`
+          : sheetOffset > 0
+            ? `Hoja ${sheetOffset + 1}, fila ${i + 2}`
+            : `Fila ${i + 2}`;
+        const errorMsg = `${recordNum}: Faltan campos requeridos (serie: "${serie}", numero: "${numero}") - La fila no tiene serie o número válido`;
+        errors.push(errorMsg);
+        if (i < 10 || rowsWithErrors <= 5) { // Mostrar solo los primeros errores
+          console.log(`        ✗ ${errorMsg}`);
+        }
         continue;
       }
 
-      documents.push(mappedRecord);
+      // Crear clave única para agrupar documentos
+      const documentKey = `${serie}-${numero}`;
+
+      // Si es el nuevo formato con items, agrupar por documento
+      if (hasItemFields) {
+        // Obtener o crear documento en el map
+        if (!documentsMap.has(documentKey)) {
+          // Crear documento base con datos de la primera fila
+          documentsMap.set(documentKey, {
+            serie: serie,
+            numero: numero,
+            sucursal: mappedRecord.sucursal || null,
+            cliente_doc: mappedRecord.cliente_doc || null,
+            cliente_nombre: mappedRecord.cliente_nombre || null,
+            fecha_emision: mappedRecord.fecha_emision || null,
+            fecha_vencimiento: mappedRecord.fecha_vencimiento || null,
+            fecha_creacion: mappedRecord.fecha_creacion || null,
+            usuario: mappedRecord.usuario || null,
+            placa_vehiculo: mappedRecord.placa_vehiculo || null,
+            orden_compra: mappedRecord.orden_compra || null,
+            guias_remision: mappedRecord.guias_remision || null,
+            cond_pago: mappedRecord.cond_pago || null,
+            met_pago: mappedRecord.met_pago || null,
+            referencia: mappedRecord.referencia || null,
+            cuotas: mappedRecord.cuotas || null,
+            observaciones: mappedRecord.observaciones || null,
+            otros: mappedRecord.otros || null,
+            moneda: mappedRecord.moneda || null,
+            detraccion_pen: mappedRecord.detraccion_pen || 0,
+            retencion: mappedRecord.retencion || 0,
+            percepcion_pen: mappedRecord.percepcion_pen || 0,
+            rc: mappedRecord.rc || 0,
+            descuento: mappedRecord.descuento || 0,
+            gravado: mappedRecord.gravado || 0,
+            exonerado: mappedRecord.exonerado || 0,
+            inafecto: mappedRecord.inafecto || 0,
+            exportacion: mappedRecord.exportacion || 0,
+            gratuito: mappedRecord.gratuito || 0,
+            igv: mappedRecord.igv || 0,
+            isc: mappedRecord.isc || 0,
+            icbper: mappedRecord.icbper || 0,
+            anulado: mappedRecord.anulado || null,
+            estado_sunat: mappedRecord.estado_sunat || null,
+            documento_afectado: mappedRecord.documento_afectado || null,
+            motivo: mappedRecord.motivo || null,
+            items: [],
+            total: 0 // Se calculará sumando total_linea de items
+          });
+        }
+
+        const document = documentsMap.get(documentKey)!;
+
+        // Extraer item si tiene campos de producto
+        if (mappedRecord.codigo || mappedRecord.cantidad || mappedRecord.precio_unitario) {
+          const item = {
+            codigo: mappedRecord.codigo || null,
+            categoria: mappedRecord.categoria || null,
+            moneda: mappedRecord.moneda || document.moneda || null,
+            cantidad: mappedRecord.cantidad || 0,
+            precio_unitario: mappedRecord.precio_unitario || 0,
+            descuento: mappedRecord.descuento || 0,
+            total_linea: mappedRecord.total_linea || 0
+          };
+
+          document.items.push(item);
+          // Sumar total_linea al total del documento
+          document.total += item.total_linea || 0;
+        }
+        rowsProcessed++;
+      } else {
+        // Formato antiguo: cada registro es un documento completo
+        const total = mappedRecord.total !== null && mappedRecord.total !== undefined ? mappedRecord.total : 0;
+        mappedRecord.total = total;
+        mappedRecord.items = []; // Sin items en formato antiguo
+        documentsMap.set(documentKey, mappedRecord);
+        rowsProcessed++;
+      }
     } catch (error: any) {
-      const recordNum = sheetOffset > 0 ? `Hoja ${sheetOffset + 1}, registro ${i + 1}` : `Registro ${i + 1}`;
-      errors.push(`Error procesando ${recordNum}: ${error.message}`);
+      rowsWithErrors++;
+      const recordNum = sheetName
+        ? `Hoja "${sheetName}", fila ${i + 2}`
+        : sheetOffset > 0
+          ? `Hoja ${sheetOffset + 1}, fila ${i + 2}`
+          : `Fila ${i + 2}`;
+      const errorMsg = `Error procesando ${recordNum}: ${error.message} - Error al procesar la fila: ${error.message}`;
+      errors.push(errorMsg);
+      if (i < 10 || rowsWithErrors <= 5) { // Mostrar solo los primeros errores
+        console.log(`        ✗ ${errorMsg}`);
+      }
     }
   }
 
-  return documents;
+  // Log de estadísticas de procesamiento
+  if (sheetName) {
+    console.log(`     Estadísticas de procesamiento:`);
+    console.log(`       - Filas procesadas exitosamente: ${rowsProcessed}`);
+    console.log(`       - Filas omitidas (vacías): ${rowsSkipped}`);
+    console.log(`       - Filas con errores: ${rowsWithErrors}`);
+    console.log(`       - Documentos únicos creados: ${documentsMap.size}`);
+  }
+
+  // Convertir map a array
+  return Array.from(documentsMap.values());
 }
 

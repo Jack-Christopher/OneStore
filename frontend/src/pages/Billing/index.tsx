@@ -142,7 +142,6 @@ export default function BillingPage() {
           color="primary"
           startIcon={<Upload />}
           onClick={() => setOpenImportModal(true)}
-          disabled={!documentType}
         >
           Importar desde Keyfacil
         </Button>

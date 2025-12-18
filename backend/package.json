@@ -30,7 +30,8 @@
     "build": "tsc",
     "migrate:create": "migrate-mongo create",
     "migrate:up": "migrate-mongo up",
-    "migrate:down": "migrate-mongo down"
+    "migrate:down": "migrate-mongo down",
+    "delete:importable": "ts-node --transpile-only scripts/delete-importable-data.ts"
   },
   "type": "commonjs"
 }
