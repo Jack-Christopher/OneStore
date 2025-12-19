@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Modal } from "@mui/material";
+import { Box, Modal } from "@mui/material";
 import { getSupplier } from "@/services/api/suppliers";
 import type { Supplier } from "@/services/api/suppliers";
 
@@ -11,60 +11,73 @@ interface SuppliersViewModalProps {
 
 export default function SuppliersViewModal({ open, onClose, supplierId }: SuppliersViewModalProps) {
   const [supplier, setSupplier] = useState<Supplier | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const boxStyle = {
-    position: 'absolute' as const,
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    maxHeight: '80vh',
-    overflowY: 'auto',
-  };
 
   useEffect(() => {
-    if (supplierId && open) {
-      setLoading(true);
+    if (supplierId) {
       getSupplier(supplierId)
         .then((res) => {
-          if (res.success && res.data) {
-            setSupplier(res.data);
+          if (res.success) {
+            setSupplier(res.data)
+          } else {
+            console.error("Error fetching supplier:", res.message)
+            setSupplier(null)
           }
         })
-        .finally(() => setLoading(false));
+        .catch((err) => {
+          console.error("Error fetching supplier:", err)
+          setSupplier(null)
+        })
     }
-  }, [supplierId, open]);
-
-  if (loading) return null;
+  }, [supplierId])
 
   return (
     <Modal open={open} onClose={onClose} className="flex items-center justify-center">
-      <Box sx={boxStyle}>
+      <Box sx={{
+        backgroundColor: 'white',
+        padding: '2rem',
+        borderRadius: '0.5rem',
+        boxShadow: 24,
+        width: 600,
+      }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Ver Proveedor</h2>
-
-        {supplier && (
-          <div className="flex flex-col gap-2">
-            <p><strong>Nombre:</strong> {supplier.name}</p>
-            <p><strong>Contacto:</strong> {(supplier as any).contact_name || '-'}</p>
-            <p><strong>Documento (RUC/DNI):</strong> {supplier.document || '-'}</p>
-            <p><strong>Teléfono:</strong> {supplier.phone || '-'}</p>
-            <p><strong>Email:</strong> {supplier.email || '-'}</p>
-            <p><strong>Dirección:</strong> {supplier.address || '-'}</p>
-          </div>
-        )}
-
-        <div className="flex justify-center mt-4">
-          <Button variant="contained" color="primary" onClick={onClose}>
-            Cerrar
-          </Button>
+        <div className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-16">
+          <table className="w-full text-sm leading-5">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="py-3 px-4 text-left font-medium text-gray-600">Concepto</th>
+                <th className="py-3 px-4 text-left font-medium text-gray-600">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Nombre</td>
+                <td className="py-3 px-4 text-left">{supplier?.name || '-'}</td>
+              </tr>
+              <tr className="bg-gray-50">
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Contacto</td>
+                <td className="py-3 px-4 text-left">{supplier?.contactName || '-'}</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Documento (RUC/DNI)</td>
+                <td className="py-3 px-4 text-left">{supplier?.document || '-'}</td>
+              </tr>
+              <tr className="bg-gray-50">
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Teléfono</td>
+                <td className="py-3 px-4 text-left">{supplier?.phone || '-'}</td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Email</td>
+                <td className="py-3 px-4 text-left">{supplier?.email || '-'}</td>
+              </tr>
+              <tr className="bg-gray-50">
+                <td className="py-3 px-4 text-left font-medium text-gray-600">Dirección</td>
+                <td className="py-3 px-4 text-left">{supplier?.address || '-'}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </Box>
     </Modal>
-  );
+  )
 }
 

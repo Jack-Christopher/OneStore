@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Modal, Chip } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { Box, Modal } from "@mui/material";
 import { getPurchaseOrder, getPurchaseOrderItems } from "@/services/api/purchaseOrders";
 import type { PurchaseOrder, PurchaseOrderItem } from "@/services/api/purchaseOrders";
+import { formatCurrency } from "@/utils/currency";
 
 interface PurchaseOrdersViewModalProps {
   open: boolean;
@@ -13,49 +13,26 @@ interface PurchaseOrdersViewModalProps {
 export default function PurchaseOrdersViewModal({ open, onClose, orderId }: PurchaseOrdersViewModalProps) {
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const boxStyle = {
-    position: 'absolute' as const,
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 600,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    maxHeight: '80vh',
-    overflowY: 'auto',
-  };
 
   useEffect(() => {
-    if (orderId && open) {
-      setLoading(true);
+    if (orderId) {
       Promise.all([
         getPurchaseOrder(orderId),
         getPurchaseOrderItems(orderId)
       ])
         .then(([orderRes, itemsRes]) => {
-          if (orderRes.success && orderRes.data) {
+          if (orderRes.success) {
             setOrder(orderRes.data);
           }
-          if (itemsRes.success && itemsRes.data) {
-            setItems(itemsRes.data);
+          if (itemsRes.success) {
+            setItems(itemsRes.data || []);
           }
         })
-        .finally(() => setLoading(false));
+        .catch((err) => {
+          console.error("Error fetching purchase order:", err);
+        });
     }
-  }, [orderId, open]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'received': return 'success';
-      case 'canceled': return 'error';
-      default: return 'default';
-    }
-  };
+  }, [orderId]);
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -66,54 +43,95 @@ export default function PurchaseOrdersViewModal({ open, onClose, orderId }: Purc
     }
   };
 
-  const itemColumns = [
-    { field: 'product_id', headerName: 'Producto ID', flex: 1 },
-    { field: 'quantity', headerName: 'Cantidad', flex: 0.5 },
-    { field: 'unit_price', headerName: 'Precio Unit.', flex: 0.5 },
-    { field: 'subtotal', headerName: 'Subtotal', flex: 0.5 },
-    { field: 'received_quantity', headerName: 'Recibido', flex: 0.5 },
-  ];
-
-  if (loading) return null;
-
   return (
     <Modal open={open} onClose={onClose} className="flex items-center justify-center">
-      <Box sx={boxStyle}>
+      <Box sx={{
+        backgroundColor: 'white',
+        padding: '2rem',
+        borderRadius: '0.5rem',
+        boxShadow: 24,
+        width: 600,
+        maxHeight: '80vh',
+        overflowY: 'auto',
+      }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Detalle de Orden de Compra</h2>
 
         {order && (
-          <div className="flex flex-col gap-2 mb-4">
-            <p><strong>Referencia:</strong> {(order as any).reference_number || '-'}</p>
-            <p><strong>Estado:</strong> <Chip label={getStatusLabel((order as any).status)} color={getStatusColor((order as any).status)} size="small" /></p>
-            <p><strong>Monto Total:</strong> ${((order as any).total_amount || 0).toFixed(2)}</p>
-            <p><strong>Notas:</strong> {(order as any).notes || '-'}</p>
+          <div className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-16 mb-8">
+            <table className="w-full text-sm leading-5">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="py-3 px-4 text-left font-medium text-gray-600">Concepto</th>
+                  <th className="py-3 px-4 text-left font-medium text-gray-600">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-3 px-4 text-left font-medium text-gray-600">Referencia</td>
+                  <td className="py-3 px-4 text-left">{(order as any).reference_number || order.referenceNumber || '-'}</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="py-3 px-4 text-left font-medium text-gray-600">Estado</td>
+                  <td className="py-3 px-4 text-left">{getStatusLabel((order as any).status || order.status)}</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 text-left font-medium text-gray-600">Monto Total</td>
+                  <td className="py-3 px-4 text-left">{formatCurrency((order as any).total_amount || order.totalAmount || 0)}</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="py-3 px-4 text-left font-medium text-gray-600">Notas</td>
+                  <td className="py-3 px-4 text-left">{(order as any).notes || order.notes || '-'}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
 
-        <h3 className="text-lg font-semibold mb-2">Items</h3>
-        <div className="datagrid-theme" style={{ height: 300 }}>
-          <DataGrid
-            disableRowSelectionOnClick
-            rows={items}
-            columns={itemColumns}
-            localeText={{
-              noRowsLabel: "No hay items en esta orden.",
-            }}
-            getRowId={(row) => row._id}
-            pageSizeOptions={[5, 10]}
-            initialState={{
-              pagination: {
-                paginationModel: { pageSize: 5 },
-              },
-            }}
-          />
-        </div>
+        {items.length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-center">Items</h3>
+            {items.map((item, index) => (
+              <div key={item._id || index} className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-4">
+                <table className="w-full text-sm leading-5">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-3 px-4 text-left font-medium text-gray-600">Concepto</th>
+                      <th className="py-3 px-4 text-left font-medium text-gray-600">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="py-3 px-4 text-left font-medium text-gray-600">Producto ID</td>
+                      <td className="py-3 px-4 text-left">{((item as any).product_id?.name) || item.productId || '-'}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="py-3 px-4 text-left font-medium text-gray-600">Cantidad</td>
+                      <td className="py-3 px-4 text-left">{item.quantity || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 text-left font-medium text-gray-600">Precio Unitario</td>
+                      <td className="py-3 px-4 text-left">{formatCurrency((item as any).unit_price || item.unitPrice || 0)}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="py-3 px-4 text-left font-medium text-gray-600">Subtotal</td>
+                      <td className="py-3 px-4 text-left">{formatCurrency(item.subtotal || 0)}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 px-4 text-left font-medium text-gray-600">Cantidad Recibida</td>
+                      <td className="py-3 px-4 text-left">{(item as any).received_quantity !== undefined ? (item as any).received_quantity : (item.receivedQuantity !== undefined ? item.receivedQuantity : 0)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        )}
 
-        <div className="flex justify-center mt-4">
-          <Button variant="contained" color="primary" onClick={onClose}>
-            Cerrar
-          </Button>
-        </div>
+        {items.length === 0 && (
+          <div className="text-center text-gray-500 mt-4">
+            No hay items en esta orden.
+          </div>
+        )}
       </Box>
     </Modal>
   );
