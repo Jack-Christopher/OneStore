@@ -44,6 +44,8 @@ export default function ProductsViewModal({ open, onClose, productId }: Products
                 border: '2px solid #000',
                 boxShadow: 24,
                 p: 4,
+                maxHeight: '80vh',
+                overflowY: 'auto',
             }}>
                 <h2 className="text-2xl font-bold mb-4 text-center">Ver Producto</h2>
                 <div className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-16">

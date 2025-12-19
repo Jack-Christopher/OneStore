@@ -39,6 +39,8 @@ const ManagerClerksViewModal = ({ open, onClose, clerkId }: ManagerClerksViewMod
         borderRadius: '0.5rem',
         boxShadow: 24,
         width: 600,
+        maxHeight: '80vh',
+        overflowY: 'auto',
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Ver Clerk</h2>
         <div className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-16">

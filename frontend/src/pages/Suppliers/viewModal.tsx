@@ -38,6 +38,8 @@ export default function SuppliersViewModal({ open, onClose, supplierId }: Suppli
         borderRadius: '0.5rem',
         boxShadow: 24,
         width: 600,
+        maxHeight: '80vh',
+        overflowY: 'auto',
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Ver Proveedor</h2>
         <div className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-16">

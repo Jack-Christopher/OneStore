@@ -70,6 +70,8 @@ export default function SalesViewModal({ open, onClose, saleId }: SalesViewModal
         border: '2px solid #000',
         boxShadow: 24,
         p: 4,
+        maxHeight: '80vh',
+        overflowY: 'auto',
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Ver Venta</h2>
         <table className="w-full text-sm leading-5" style={{ width: '50%', margin: '0 auto' }}>
