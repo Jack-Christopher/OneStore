@@ -54,12 +54,12 @@ export default function ProductFormulasViewModal({ open, onClose, productFormula
 
         {productFormula && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <Alert type="info" message={`Formula para: ${productFormula?.reference_quantity} ${productFormula?.reference_unit_id?.name}`} />
+            <Alert type="info" message={`Formula para: ${(productFormula as any)?.reference_quantity || productFormula.referenceQuantity} ${((productFormula as any)?.reference_unit_id as any)?.name || ''}`} />
           </div>
         )}
 
-        {productFormula?.items.map((item) => (
-          <div key={item.productId} className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-4">
+        {productFormula?.items.map((item, index) => (
+          <div key={item.productId || index} className="border border-gray-300 shadow-sm rounded-lg overflow-hidden max-w-sm mx-auto mt-4">
             <table className="w-full text-sm leading-5">
               <thead className="bg-gray-100">
                 <tr>
@@ -70,11 +70,11 @@ export default function ProductFormulasViewModal({ open, onClose, productFormula
               <tbody>
                 <tr>
                   <td className="py-3 px-4 text-left font-medium text-gray-600">Nombre</td>
-                  <td className="py-3 px-4 text-left">{item.product_id?.name}</td>
+                  <td className="py-3 px-4 text-left">{((item as any)?.product_id as any)?.name || ''}</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4 text-left font-medium text-gray-600">Unidad de medida</td>
-                  <td className="py-3 px-4 text-left">{item.unit_id?.name}</td>
+                  <td className="py-3 px-4 text-left">{((item as any)?.unit_id as any)?.name || ''}</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4 text-left font-medium text-gray-600">Unidad</td>

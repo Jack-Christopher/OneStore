@@ -98,6 +98,7 @@ export default function WarehousesPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
+          disableRowSelectionOnClick
           rows={items ? items : []}
           columns={columns}
           localeText={{

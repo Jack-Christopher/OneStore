@@ -152,6 +152,7 @@ export default function BillingPage() {
       {documentType && !loading && (
         <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
           <DataGrid
+            disableRowSelectionOnClick
             rows={items || []}
             columns={getColumns()}
             localeText={{

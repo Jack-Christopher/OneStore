@@ -220,6 +220,7 @@ export default function ProductsPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
+          disableRowSelectionOnClick
           sx={{
             '& .MuiDataGrid-columnHeader.stock-column': {
               backgroundColor: 'var(--secondary) !important',
