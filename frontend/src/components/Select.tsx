@@ -18,8 +18,12 @@ export default function Select({ options = [], setFormInput, styles, value, disa
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredOptions, setFilteredOptions] = useState<SelectOption[]>([]);
+  const [internalValue, setInternalValue] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Use controlled value if provided, otherwise use internal state
+  const currentValue = value !== undefined ? value : internalValue;
 
   const shouldUseSearch = (options?.length || 0) >= searchThreshold;
 
@@ -65,6 +69,13 @@ export default function Select({ options = [], setFormInput, styles, value, disa
     };
   }, [isOpen]);
 
+  // Sync internal value when value prop changes (for controlled components)
+  useEffect(() => {
+    if (value !== undefined) {
+      setInternalValue(value);
+    }
+  }, [value]);
+
   // Focus input when dropdown opens
   useEffect(() => {
     if (isOpen && shouldUseSearch && inputRef.current) {
@@ -73,11 +84,14 @@ export default function Select({ options = [], setFormInput, styles, value, disa
   }, [isOpen, shouldUseSearch]);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormInput(event.target.value);
+    const selectedValue = event.target.value;
+    setFormInput(selectedValue);
+    setInternalValue(selectedValue);
   };
 
   const handleSelectChange = (selectedValue: string) => {
     setFormInput(selectedValue);
+    setInternalValue(selectedValue);
     setIsOpen(false);
     setSearchTerm('');
   };
@@ -91,7 +105,7 @@ export default function Select({ options = [], setFormInput, styles, value, disa
     }
   };
 
-  const selectedOption = sortedOptions?.find(opt => opt.value === value);
+  const selectedOption = sortedOptions?.find(opt => opt.value === currentValue);
   const displayValue = selectedOption ? selectedOption.label : 'Seleccione una opción';
 
   const defaultStyles = "border border-border rounded p-2 w-full mb-3 bg-card text-foreground dark:text-foreground";
@@ -103,7 +117,7 @@ export default function Select({ options = [], setFormInput, styles, value, disa
       <select
         className={combinedStyles}
         onChange={handleChange}
-        value={value || ''}
+        value={currentValue || ''}
         disabled={disabled}
       >
         <option value="" className="bg-white text-black dark:bg-black dark:text-white">Seleccione una opción</option>
@@ -121,7 +135,7 @@ export default function Select({ options = [], setFormInput, styles, value, disa
         className={`${combinedStyles} cursor-pointer flex items-center justify-between ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={handleToggle}
       >
-        <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
+        <span className={currentValue ? 'text-foreground' : 'text-muted-foreground'}>
           {displayValue}
         </span>
         <svg
@@ -178,11 +192,11 @@ export default function Select({ options = [], setFormInput, styles, value, disa
                   key={option.value}
                   className="p-2 cursor-pointer"
                   style={{
-                    backgroundColor: value === option.value ? 'var(--accent)' : 'var(--card)',
-                    color: value === option.value ? 'var(--accent-foreground)' : 'var(--card-foreground) !important'
+                    backgroundColor: currentValue === option.value ? 'var(--accent)' : 'var(--card)',
+                    color: currentValue === option.value ? 'var(--accent-foreground)' : 'var(--card-foreground) !important'
                   }}
                   onMouseEnter={(e) => {
-                    if (value !== option.value) {
+                    if (currentValue !== option.value) {
                       e.currentTarget.style.backgroundColor = 'var(--muted)';
                       e.currentTarget.style.color = 'var(--card-foreground) !important';
                     } else {
@@ -191,7 +205,7 @@ export default function Select({ options = [], setFormInput, styles, value, disa
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (value !== option.value) {
+                    if (currentValue !== option.value) {
                       e.currentTarget.style.backgroundColor = 'var(--card)';
                       e.currentTarget.style.color = 'var(--card-foreground) !important';
                     } else {
