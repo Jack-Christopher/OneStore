@@ -24,6 +24,9 @@ import MovementTypesBarChart from "./components/MovementTypesBarChart";
 import StockRotationDonutChart from "./components/StockRotationDonutChart";
 import InventoryEvolutionLineChart from "./components/InventoryEvolutionLineChart";
 import UserActivityHeatmap from "./components/UserActivityHeatmap";
+import SalesActivityHeatmap from "./components/SalesActivityHeatmap";
+import PurchasesActivityHeatmap from "./components/PurchasesActivityHeatmap";
+import OperationsActivityHeatmap from "./components/OperationsActivityHeatmap";
 
 export default function StatsPage() {
   const user = useAuthStore.getState().authUser?.user;
@@ -45,11 +48,17 @@ export default function StatsPage() {
     purchasesBySupplier,
     movementTypesFrequency,
     userActivity,
+    salesActivity,
+    purchasesActivity,
+    operationsActivity,
     loading,
     error,
     fetchAll,
     fetchMovementTypesFrequency,
-    fetchUserActivity
+    fetchUserActivity,
+    fetchSalesActivity,
+    fetchPurchasesActivity,
+    fetchOperationsActivity
   } = useStatsStore();
 
   useEffect(() => {
@@ -63,7 +72,10 @@ export default function StatsPage() {
     fetchAll(filters);
     fetchMovementTypesFrequency(filters);
     fetchUserActivity(filters);
-  }, [fetchAll, fetchMovementTypesFrequency, fetchUserActivity, user?.role]);
+    fetchSalesActivity(filters);
+    fetchPurchasesActivity(filters);
+    fetchOperationsActivity(filters);
+  }, [fetchAll, fetchMovementTypesFrequency, fetchUserActivity, fetchSalesActivity, fetchPurchasesActivity, fetchOperationsActivity, user?.role]);
 
   if (error) {
     return (
@@ -212,6 +224,27 @@ export default function StatsPage() {
         {userActivity.length > 0 && (
           <Box className="lg:col-span-2">
             <UserActivityHeatmap data={userActivity} />
+          </Box>
+        )}
+
+        {/* Actividad de Ventas (heatmap) */}
+        {salesActivity.length > 0 && (
+          <Box className="lg:col-span-2">
+            <SalesActivityHeatmap data={salesActivity} />
+          </Box>
+        )}
+
+        {/* Actividad de Compras (heatmap) */}
+        {purchasesActivity.length > 0 && (
+          <Box className="lg:col-span-2">
+            <PurchasesActivityHeatmap data={purchasesActivity} />
+          </Box>
+        )}
+
+        {/* Actividad de Operaciones (heatmap) */}
+        {operationsActivity.length > 0 && (
+          <Box className="lg:col-span-2">
+            <OperationsActivityHeatmap data={operationsActivity} />
           </Box>
         )}
       </Box>

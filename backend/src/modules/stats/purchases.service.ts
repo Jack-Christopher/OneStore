@@ -25,10 +25,15 @@ async function getBySupplier(filters: Filters) {
   return repository.getBySupplier(filters);
 }
 
+async function getPurchasesActivity(filters: Filters) {
+  return repository.getPurchasesActivity(filters);
+}
+
 module.exports = {
   getSummary,
   getByMonth,
   getAverageCostPerDay,
-  getBySupplier
+  getBySupplier,
+  getPurchasesActivity
 };
 

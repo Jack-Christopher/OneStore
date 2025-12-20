@@ -150,6 +150,17 @@ async function getProductMargins(req: Req, res: Res) {
   }
 }
 
+async function getSalesActivity(req: Req, res: Res) {
+  try {
+    const filters = parseFilters(req.query, req.user);
+    const data = await service.getSalesActivity(filters);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getSalesActivity:", error);
+    return fail(res, "Failed to get sales activity", "INTERNAL_ERROR", 500);
+  }
+}
+
 module.exports = {
   getSummary,
   getByDay,
@@ -161,6 +172,7 @@ module.exports = {
   getByWarehouse,
   getTopCustomers,
   getSalesByCategory,
-  getProductMargins
+  getProductMargins,
+  getSalesActivity
 };
 

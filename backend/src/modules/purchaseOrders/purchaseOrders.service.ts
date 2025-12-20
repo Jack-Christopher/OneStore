@@ -363,6 +363,27 @@ async function importFromKeyfacil(
       // Calcular total de items para validación
       const itemsTotal = purchase.items.reduce((sum, item) => sum + item.total_linea, 0);
       
+      // Handle dates: use fecha from purchase (metadata.fecha) if present, otherwise use current date
+      const now = new Date();
+      let createdAt: Date = now; // Default to current date
+      
+      console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1} (${purchase.identificador || `${purchase.serie}-${purchase.numero}`}): Processing dates`);
+      
+      // Check if purchase.fecha exists and is valid (it's already parsed as Date | null by the parser)
+      if (purchase.fecha !== null && purchase.fecha !== undefined) {
+        // purchase.fecha is already a Date object from the parser
+        if (purchase.fecha instanceof Date && !isNaN(purchase.fecha.getTime())) {
+          createdAt = purchase.fecha;
+          console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Found valid fecha: ${purchase.fecha.toISOString()}`);
+        } else {
+          console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: fecha exists but is invalid:`, purchase.fecha);
+        }
+      } else {
+        console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: No fecha found, using current date: ${now.toISOString()}`);
+      }
+      
+      console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Final dates - created_at: ${createdAt.toISOString()}, updated_at: ${now.toISOString()}`);
+      
       // Crear orden de compra
       const orderData: any = {
         tenant_id: tenantId,
@@ -385,11 +406,31 @@ async function importFromKeyfacil(
           otros: purchase.otros,
           keyfacil_import: true
         },
+        created_at: createdAt, // Set the parsed date
+        updated_at: now, // Always set to current date
         created_by: userId,
         updated_by: userId
       };
 
-      const order = await repo.create(orderData);
+      // Create document instance for validation and direct insertion to respect date values
+      const PurchaseOrder = require("../../database/models/PurchaseOrder");
+      const doc = new PurchaseOrder(orderData);
+      
+      // Validate the document before inserting
+      await doc.validate();
+      
+      // Use collection.insertOne to insert directly, respecting our date values
+      // This bypasses Mongoose timestamps and uses our explicit values
+      const docToInsert = doc.toObject();
+      // Ensure _id is removed so MongoDB generates it
+      delete docToInsert._id;
+      
+      console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Inserting order with dates - created_at: ${docToInsert.created_at?.toISOString()}, updated_at: ${docToInsert.updated_at?.toISOString()}`);
+      
+      const insertResult = await PurchaseOrder.collection.insertOne(docToInsert);
+      const order = await PurchaseOrder.findById(insertResult.insertedId);
+      
+      console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Order created successfully with ID: ${order._id}`);
 
       // Crear items de la compra
       const itemsData: any[] = [];

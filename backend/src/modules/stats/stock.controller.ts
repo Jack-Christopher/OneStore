@@ -13,6 +13,10 @@ function parseFilters(query: any, user: any) {
     filters.tenant_id = user.tenant_id;
   }
   
+  // Date filtering
+  if (query.date_from) filters.date_from = new Date(query.date_from);
+  if (query.date_to) filters.date_to = new Date(query.date_to);
+  
   return filters;
 }
 
@@ -61,10 +65,22 @@ async function getUserActivity(req: Req, res: Res) {
   }
 }
 
+async function getOperationsActivity(req: Req, res: Res) {
+  try {
+    const filters = parseFilters(req.query, req.user);
+    const data = await service.getOperationsActivity(filters);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getOperationsActivity:", error);
+    return fail(res, "Failed to get operations activity", "INTERNAL_ERROR", 500);
+  }
+}
+
 module.exports = {
   getStockValue,
   getMovementTypesFrequency,
   getInventoryEvolution,
-  getUserActivity
+  getUserActivity,
+  getOperationsActivity
 };
 

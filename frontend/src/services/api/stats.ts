@@ -302,6 +302,12 @@ export interface UserActivity {
   count: number;
 }
 
+export interface ActivityHeatmap {
+  dayOfWeek: number;
+  hour: number;
+  count: number;
+}
+
 export interface MonthComparison {
   month: string;
   totalAmount: number;
@@ -419,6 +425,36 @@ export const getUserActivity = async (filters?: StatsFilters) => {
   if (filters?.date_to) params.append('date_to', filters.date_to);
 
   const res = await api.get<ApiResponse<UserActivity[]>>(`${STATS_API_BASE}/stock/user-activity?${params}`);
+  return res.data;
+};
+
+export const getSalesActivity = async (filters?: StatsFilters) => {
+  const params = new URLSearchParams();
+  if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  const res = await api.get<ApiResponse<ActivityHeatmap[]>>(`${STATS_API_BASE}/sales/activity?${params}`);
+  return res.data;
+};
+
+export const getPurchasesActivity = async (filters?: StatsFilters) => {
+  const params = new URLSearchParams();
+  if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  const res = await api.get<ApiResponse<ActivityHeatmap[]>>(`${STATS_API_BASE}/purchases/activity?${params}`);
+  return res.data;
+};
+
+export const getOperationsActivity = async (filters?: StatsFilters) => {
+  const params = new URLSearchParams();
+  if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  const res = await api.get<ApiResponse<ActivityHeatmap[]>>(`${STATS_API_BASE}/stock/operations-activity?${params}`);
   return res.data;
 };
 

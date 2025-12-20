@@ -19,6 +19,9 @@ import {
   getStockValue,
   getMovementTypesFrequency,
   getUserActivity,
+  getSalesActivity,
+  getPurchasesActivity,
+  getOperationsActivity,
   getUserCount,
   getDashboardOverview
 } from "@/services/api/stats";
@@ -44,6 +47,7 @@ import type {
   PurchasesBySupplier,
   MovementTypeFrequency,
   UserActivity,
+  ActivityHeatmap,
   StatsFilters
 } from "@/services/api/stats";
 
@@ -74,6 +78,9 @@ interface StatsState {
   stockValue: StockValue | null;
   movementTypesFrequency: MovementTypeFrequency[];
   userActivity: UserActivity[];
+  salesActivity: ActivityHeatmap[];
+  purchasesActivity: ActivityHeatmap[];
+  operationsActivity: ActivityHeatmap[];
   
   // Users
   userCount: UserCount | null;
@@ -105,6 +112,9 @@ interface StatsState {
   fetchStockValue: (filters?: StatsFilters) => Promise<void>;
   fetchMovementTypesFrequency: (filters?: StatsFilters) => Promise<void>;
   fetchUserActivity: (filters?: StatsFilters) => Promise<void>;
+  fetchSalesActivity: (filters?: StatsFilters) => Promise<void>;
+  fetchPurchasesActivity: (filters?: StatsFilters) => Promise<void>;
+  fetchOperationsActivity: (filters?: StatsFilters) => Promise<void>;
   fetchUserCount: (filters?: StatsFilters) => Promise<void>;
   fetchDashboardOverview: (filters?: StatsFilters) => Promise<void>;
   fetchAll: (filters?: StatsFilters) => Promise<void>;
@@ -130,6 +140,9 @@ export const useStatsStore = create<StatsState>((set) => ({
   stockValue: null,
   movementTypesFrequency: [],
   userActivity: [],
+  salesActivity: [],
+  purchasesActivity: [],
+  operationsActivity: [],
   userCount: null,
   dashboardOverview: null,
   loading: false,
@@ -382,6 +395,45 @@ export const useStatsStore = create<StatsState>((set) => ({
     }
   },
 
+  fetchSalesActivity: async (filters) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await getSalesActivity(filters);
+      if (res.success) set({ salesActivity: res.data || [] });
+      else set({ error: res.message || "Error fetching sales activity" });
+    } catch (error: any) {
+      set({ error: error.message || "Error fetching sales activity" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchPurchasesActivity: async (filters) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await getPurchasesActivity(filters);
+      if (res.success) set({ purchasesActivity: res.data || [] });
+      else set({ error: res.message || "Error fetching purchases activity" });
+    } catch (error: any) {
+      set({ error: error.message || "Error fetching purchases activity" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchOperationsActivity: async (filters) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await getOperationsActivity(filters);
+      if (res.success) set({ operationsActivity: res.data || [] });
+      else set({ error: res.message || "Error fetching operations activity" });
+    } catch (error: any) {
+      set({ error: error.message || "Error fetching operations activity" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
   fetchUserCount: async (filters) => {
     try {
       set({ loading: true, error: null });
@@ -423,6 +475,9 @@ export const useStatsStore = create<StatsState>((set) => ({
         bySupplier,
         movements,
         userActivityData,
+        salesActivityData,
+        purchasesActivityData,
+        operationsActivityData,
         products,
         stock
       ] = await Promise.all([
@@ -437,6 +492,9 @@ export const useStatsStore = create<StatsState>((set) => ({
         getPurchasesBySupplier(filters),
         getMovementTypesFrequency(filters),
         getUserActivity(filters),
+        getSalesActivity(filters),
+        getPurchasesActivity(filters),
+        getOperationsActivity(filters),
         getProductsAddedByMonth(filters),
         getStockValue(filters)
       ]);
@@ -464,6 +522,9 @@ export const useStatsStore = create<StatsState>((set) => ({
       if (bySupplier.success) set({ purchasesBySupplier: bySupplier.data || [] });
       if (movements.success) set({ movementTypesFrequency: movements.data || [] });
       if (userActivityData.success) set({ userActivity: userActivityData.data || [] });
+      if (salesActivityData.success) set({ salesActivity: salesActivityData.data || [] });
+      if (purchasesActivityData.success) set({ purchasesActivity: purchasesActivityData.data || [] });
+      if (operationsActivityData.success) set({ operationsActivity: operationsActivityData.data || [] });
       if (products.success) set({ productsAddedByMonth: products.data || [] });
       if (stock.success) set({ stockValue: stock.data });
     } catch (error: any) {

@@ -53,6 +53,10 @@ async function getProductMargins(filters: Filters) {
   return repository.getProductMargins(filters);
 }
 
+async function getSalesActivity(filters: Filters) {
+  return repository.getSalesActivity(filters);
+}
+
 module.exports = {
   getSummary,
   getByDay,
@@ -64,6 +68,7 @@ module.exports = {
   getByWarehouse,
   getTopCustomers,
   getSalesByCategory,
-  getProductMargins
+  getProductMargins,
+  getSalesActivity
 };
 
