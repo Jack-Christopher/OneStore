@@ -73,10 +73,22 @@ async function getPurchasesActivity(req: Req, res: Res) {
   }
 }
 
+async function getPurchasesByDate(req: Req, res: Res) {
+  try {
+    const filters = parseFilters(req.query, req.user);
+    const data = await service.getPurchasesByDate(filters);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getPurchasesByDate:", error);
+    return fail(res, "Failed to get purchases by date", "INTERNAL_ERROR", 500);
+  }
+}
+
 module.exports = {
   getSummary,
   getByMonth,
   getBySupplier,
-  getPurchasesActivity
+  getPurchasesActivity,
+  getPurchasesByDate
 };
 

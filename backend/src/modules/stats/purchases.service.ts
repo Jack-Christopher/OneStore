@@ -29,11 +29,16 @@ async function getPurchasesActivity(filters: Filters) {
   return repository.getPurchasesActivity(filters);
 }
 
+async function getPurchasesByDate(filters: Filters) {
+  return repository.getPurchasesByDate(filters);
+}
+
 module.exports = {
   getSummary,
   getByMonth,
   getAverageCostPerDay,
   getBySupplier,
-  getPurchasesActivity
+  getPurchasesActivity,
+  getPurchasesByDate
 };
 

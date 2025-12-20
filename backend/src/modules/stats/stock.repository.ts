@@ -218,5 +218,41 @@ module.exports = {
     ]);
 
     return result;
+  },
+
+  async getOperationsByDate(filters: Filters) {
+    const matchStage: any = {};
+    
+    if (filters.tenant_id) matchStage.tenant_id = filters.tenant_id;
+    
+    // Filter for operations: adjustments and transfers
+    matchStage.movement_type = { 
+      $in: ['adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'] 
+    };
+    
+    if (filters.date_from || filters.date_to) {
+      matchStage.created_at = {};
+      if (filters.date_from) matchStage.created_at.$gte = filters.date_from;
+      if (filters.date_to) matchStage.created_at.$lte = filters.date_to;
+    }
+
+    const result = await StockMovement.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          date: "$_id",
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    return result;
   }
 };

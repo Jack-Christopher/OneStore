@@ -27,11 +27,16 @@ async function getOperationsActivity(filters: Filters) {
   return repository.getOperationsActivity(filters);
 }
 
+async function getOperationsByDate(filters: Filters) {
+  return repository.getOperationsByDate(filters);
+}
+
 module.exports = {
   getStockValue,
   getMovementTypesFrequency,
   getInventoryEvolution,
   getUserActivity,
-  getOperationsActivity
+  getOperationsActivity,
+  getOperationsByDate
 };
 

@@ -27,6 +27,7 @@ import UserActivityHeatmap from "./components/UserActivityHeatmap";
 import SalesActivityHeatmap from "./components/SalesActivityHeatmap";
 import PurchasesActivityHeatmap from "./components/PurchasesActivityHeatmap";
 import OperationsActivityHeatmap from "./components/OperationsActivityHeatmap";
+import ActivityCalendar from "./components/ActivityCalendar";
 
 export default function StatsPage() {
   const user = useAuthStore.getState().authUser?.user;
@@ -247,6 +248,15 @@ export default function StatsPage() {
             <OperationsActivityHeatmap data={operationsActivity} />
           </Box>
         )}
+
+        {/* Calendario de Actividad */}
+        <Box className="lg:col-span-2">
+          <ActivityCalendar 
+            showSales={true}
+            showPurchases={true}
+            showOperations={true}
+          />
+        </Box>
       </Box>
 
       {/* Tables Section */}

@@ -200,5 +200,38 @@ module.exports = {
     ]);
 
     return result;
+  },
+
+  async getPurchasesByDate(filters: Filters) {
+    const matchStage: any = {};
+    
+    if (filters.tenant_id) matchStage.tenant_id = filters.tenant_id;
+    
+    if (filters.date_from || filters.date_to) {
+      matchStage.created_at = {};
+      if (filters.date_from) matchStage.created_at.$gte = filters.date_from;
+      if (filters.date_to) matchStage.created_at.$lte = filters.date_to;
+    }
+
+    const result = await PurchaseOrder.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
+          count: { $sum: 1 },
+          totalAmount: { $sum: "$total_amount" }
+        }
+      },
+      {
+        $project: {
+          date: "$_id",
+          count: 1,
+          totalAmount: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    return result;
   }
 };

@@ -76,11 +76,23 @@ async function getOperationsActivity(req: Req, res: Res) {
   }
 }
 
+async function getOperationsByDate(req: Req, res: Res) {
+  try {
+    const filters = parseFilters(req.query, req.user);
+    const data = await service.getOperationsByDate(filters);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getOperationsByDate:", error);
+    return fail(res, "Failed to get operations by date", "INTERNAL_ERROR", 500);
+  }
+}
+
 module.exports = {
   getStockValue,
   getMovementTypesFrequency,
   getInventoryEvolution,
   getUserActivity,
-  getOperationsActivity
+  getOperationsActivity,
+  getOperationsByDate
 };
 

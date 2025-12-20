@@ -57,6 +57,10 @@ async function getSalesActivity(filters: Filters) {
   return repository.getSalesActivity(filters);
 }
 
+async function getSalesByDate(filters: Filters) {
+  return repository.getSalesByDate(filters);
+}
+
 module.exports = {
   getSummary,
   getByDay,
@@ -69,6 +73,7 @@ module.exports = {
   getTopCustomers,
   getSalesByCategory,
   getProductMargins,
-  getSalesActivity
+  getSalesActivity,
+  getSalesByDate
 };
 

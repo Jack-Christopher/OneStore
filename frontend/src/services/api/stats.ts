@@ -308,6 +308,12 @@ export interface ActivityHeatmap {
   count: number;
 }
 
+export interface ActivityByDate {
+  date: string; // YYYY-MM-DD format
+  count: number;
+  totalAmount?: number;
+}
+
 export interface MonthComparison {
   month: string;
   totalAmount: number;
@@ -455,6 +461,36 @@ export const getOperationsActivity = async (filters?: StatsFilters) => {
   if (filters?.date_to) params.append('date_to', filters.date_to);
 
   const res = await api.get<ApiResponse<ActivityHeatmap[]>>(`${STATS_API_BASE}/stock/operations-activity?${params}`);
+  return res.data;
+};
+
+export const getSalesByDate = async (filters?: StatsFilters) => {
+  const params = new URLSearchParams();
+  if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  const res = await api.get<ApiResponse<ActivityByDate[]>>(`${STATS_API_BASE}/sales/by-date?${params}`);
+  return res.data;
+};
+
+export const getPurchasesByDate = async (filters?: StatsFilters) => {
+  const params = new URLSearchParams();
+  if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  const res = await api.get<ApiResponse<ActivityByDate[]>>(`${STATS_API_BASE}/purchases/by-date?${params}`);
+  return res.data;
+};
+
+export const getOperationsByDate = async (filters?: StatsFilters) => {
+  const params = new URLSearchParams();
+  if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  const res = await api.get<ApiResponse<ActivityByDate[]>>(`${STATS_API_BASE}/stock/operations-by-date?${params}`);
   return res.data;
 };
 

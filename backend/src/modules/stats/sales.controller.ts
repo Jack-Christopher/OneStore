@@ -161,6 +161,17 @@ async function getSalesActivity(req: Req, res: Res) {
   }
 }
 
+async function getSalesByDate(req: Req, res: Res) {
+  try {
+    const filters = parseFilters(req.query, req.user);
+    const data = await service.getSalesByDate(filters);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getSalesByDate:", error);
+    return fail(res, "Failed to get sales by date", "INTERNAL_ERROR", 500);
+  }
+}
+
 module.exports = {
   getSummary,
   getByDay,
@@ -173,6 +184,7 @@ module.exports = {
   getTopCustomers,
   getSalesByCategory,
   getProductMargins,
-  getSalesActivity
+  getSalesActivity,
+  getSalesByDate
 };
 

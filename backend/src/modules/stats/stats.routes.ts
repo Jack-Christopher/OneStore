@@ -25,12 +25,14 @@ router.get("/sales/top-customers", authGuard, salesController.getTopCustomers);
 router.get("/sales/by-category", authGuard, salesController.getSalesByCategory);
 router.get("/sales/product-margins", authGuard, salesController.getProductMargins);
 router.get("/sales/activity", authGuard, salesController.getSalesActivity);
+router.get("/sales/by-date", authGuard, salesController.getSalesByDate);
 
 // Purchases stats
 router.get("/purchases/summary", authGuard, purchasesController.getSummary);
 router.get("/purchases/by-month", authGuard, purchasesController.getByMonth);
 router.get("/purchases/by-supplier", authGuard, purchasesController.getBySupplier);
 router.get("/purchases/activity", authGuard, purchasesController.getPurchasesActivity);
+router.get("/purchases/by-date", authGuard, purchasesController.getPurchasesByDate);
 
 // Products stats
 router.get("/products/added-by-month", authGuard, productsController.getAddedByMonth);
@@ -42,6 +44,7 @@ router.get("/stock/movement-types-frequency", authGuard, stockController.getMove
 router.get("/stock/inventory-evolution", authGuard, stockController.getInventoryEvolution);
 router.get("/stock/user-activity", authGuard, stockController.getUserActivity);
 router.get("/stock/operations-activity", authGuard, stockController.getOperationsActivity);
+router.get("/stock/operations-by-date", authGuard, stockController.getOperationsByDate);
 
 // Users stats
 router.get("/users/count", authGuard, usersController.getCount);

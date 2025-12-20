@@ -22,6 +22,9 @@ import {
   getSalesActivity,
   getPurchasesActivity,
   getOperationsActivity,
+  getSalesByDate,
+  getPurchasesByDate,
+  getOperationsByDate,
   getUserCount,
   getDashboardOverview
 } from "@/services/api/stats";
@@ -48,6 +51,7 @@ import type {
   MovementTypeFrequency,
   UserActivity,
   ActivityHeatmap,
+  ActivityByDate,
   StatsFilters
 } from "@/services/api/stats";
 
@@ -81,6 +85,9 @@ interface StatsState {
   salesActivity: ActivityHeatmap[];
   purchasesActivity: ActivityHeatmap[];
   operationsActivity: ActivityHeatmap[];
+  salesByDate: ActivityByDate[];
+  purchasesByDate: ActivityByDate[];
+  operationsByDate: ActivityByDate[];
   
   // Users
   userCount: UserCount | null;
@@ -115,6 +122,9 @@ interface StatsState {
   fetchSalesActivity: (filters?: StatsFilters) => Promise<void>;
   fetchPurchasesActivity: (filters?: StatsFilters) => Promise<void>;
   fetchOperationsActivity: (filters?: StatsFilters) => Promise<void>;
+  fetchSalesByDate: (filters?: StatsFilters) => Promise<void>;
+  fetchPurchasesByDate: (filters?: StatsFilters) => Promise<void>;
+  fetchOperationsByDate: (filters?: StatsFilters) => Promise<void>;
   fetchUserCount: (filters?: StatsFilters) => Promise<void>;
   fetchDashboardOverview: (filters?: StatsFilters) => Promise<void>;
   fetchAll: (filters?: StatsFilters) => Promise<void>;
@@ -143,6 +153,9 @@ export const useStatsStore = create<StatsState>((set) => ({
   salesActivity: [],
   purchasesActivity: [],
   operationsActivity: [],
+  salesByDate: [],
+  purchasesByDate: [],
+  operationsByDate: [],
   userCount: null,
   dashboardOverview: null,
   loading: false,
@@ -429,6 +442,45 @@ export const useStatsStore = create<StatsState>((set) => ({
       else set({ error: res.message || "Error fetching operations activity" });
     } catch (error: any) {
       set({ error: error.message || "Error fetching operations activity" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchSalesByDate: async (filters) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await getSalesByDate(filters);
+      if (res.success) set({ salesByDate: res.data || [] });
+      else set({ error: res.message || "Error fetching sales by date" });
+    } catch (error: any) {
+      set({ error: error.message || "Error fetching sales by date" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchPurchasesByDate: async (filters) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await getPurchasesByDate(filters);
+      if (res.success) set({ purchasesByDate: res.data || [] });
+      else set({ error: res.message || "Error fetching purchases by date" });
+    } catch (error: any) {
+      set({ error: error.message || "Error fetching purchases by date" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchOperationsByDate: async (filters) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await getOperationsByDate(filters);
+      if (res.success) set({ operationsByDate: res.data || [] });
+      else set({ error: res.message || "Error fetching operations by date" });
+    } catch (error: any) {
+      set({ error: error.message || "Error fetching operations by date" });
     } finally {
       set({ loading: false });
     }
