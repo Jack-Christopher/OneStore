@@ -47,17 +47,24 @@ async function getTenantId(userId: string): Promise<string> {
 }
 
 /**
- * Busca o crea una categoría por defecto
+ * Busca o crea una categoría por nombre
  */
-async function findOrCreateDefaultCategory(tenantId: string, userId: string): Promise<string> {
-  let category = await Category.findOne({ tenant_id: tenantId }).lean();
+async function findOrCreateCategory(tenantId: string, categoryName: string | null, userId: string): Promise<string> {
+  // Si no hay nombre de categoría, usar "BIEN" por defecto
+  const name = categoryName ? categoryName.trim() : 'BIEN';
+  
+  // Buscar categoría existente (case insensitive)
+  let category = await Category.findOne({ 
+    tenant_id: tenantId,
+    name: { $regex: new RegExp(`^${name}$`, 'i') }
+  }).lean();
   
   if (!category) {
-    // Crear categoría por defecto si no existe
+    // Crear categoría si no existe
     category = await Category.create({
       tenant_id: tenantId,
-      name: 'Categoría General',
-      description: 'Categoría creada automáticamente para importación',
+      name: name,
+      description: `Categoría creada automáticamente para importación`,
       created_by: userId,
       updated_by: userId
     });
@@ -67,23 +74,56 @@ async function findOrCreateDefaultCategory(tenantId: string, userId: string): Pr
 }
 
 /**
- * Busca o crea una unidad de medida por defecto
+ * Busca o crea una unidad de medida por nombre
  */
-async function findOrCreateDefaultUnit(tenantId: string, userId: string): Promise<string> {
+async function findOrCreateUnit(tenantId: string, unitName: string | null, userId: string): Promise<string> {
+  // Si no hay nombre de unidad, usar "UNIDADES" por defecto
+  let name = unitName ? unitName.trim() : 'UNIDADES';
+  
+  // Primero buscar en el tenant específico (case insensitive)
   let unit = await UnitOfMeasure.findOne({
-    $or: [
-      { tenant_id: tenantId },
-      { tenant_id: 'default' }
-    ]
+    tenant_id: tenantId,
+    name: { $regex: new RegExp(`^${name}$`, 'i') }
   }).lean();
   
+  // Si no se encuentra, buscar en unidades por defecto (tenant_id: "default")
   if (!unit) {
-    // Crear unidad de medida por defecto si no existe
+    unit = await UnitOfMeasure.findOne({
+      tenant_id: 'default',
+      name: { $regex: new RegExp(`^${name}$`, 'i') }
+    }).lean();
+  }
+  
+  // Si aún no se encuentra, crear la unidad
+  if (!unit) {
+    // Generar código único basado en el nombre (máximo 4 caracteres)
+    let code = name.substring(0, 4).toUpperCase().replace(/\s/g, '').replace(/[^A-Z0-9]/g, '');
+    if (!code || code.length === 0) {
+      code = 'UN';
+    }
+    
+    // Verificar si el código ya existe para este tenant
+    let existingUnitWithCode = await UnitOfMeasure.findOne({
+      tenant_id: tenantId,
+      code: code
+    }).lean();
+    
+    // Si el código existe, agregar un número
+    if (existingUnitWithCode) {
+      let counter = 1;
+      let newCode = `${code}${counter}`;
+      while (await UnitOfMeasure.findOne({ tenant_id: tenantId, code: newCode }).lean()) {
+        counter++;
+        newCode = `${code}${counter}`;
+      }
+      code = newCode;
+    }
+    
     unit = await UnitOfMeasure.create({
       tenant_id: tenantId,
-      code: 'UN',
-      name: 'Unidad',
-      description: 'Unidad de medida creada automáticamente para importación',
+      code: code,
+      name: name,
+      description: `Unidad de medida creada automáticamente para importación`,
       created_by: userId,
       updated_by: userId
     });
@@ -101,10 +141,6 @@ async function importFromKeyfacil(
   userId: string
 ): Promise<{ success: number; failed: number; errors: string[] }> {
   const tenantId = await getTenantId(userId);
-  
-  // Obtener categoría y unidad por defecto
-  const defaultCategoryId = await findOrCreateDefaultCategory(tenantId, userId);
-  const defaultUnitId = await findOrCreateDefaultUnit(tenantId, userId);
 
   // Parsear el archivo
   const { products, errors: parseErrors } = parseKeyfacilProductsFile(fileBuffer, fileName);
@@ -130,18 +166,29 @@ async function importFromKeyfacil(
         continue;
       }
 
+      // Buscar o crear categoría
+      const categoryId = await findOrCreateCategory(tenantId, product.categoria, userId);
+      
+      // Buscar o crear unidad de medida
+      const unitId = await findOrCreateUnit(tenantId, product.unidadDeMedida, userId);
+
+      // Usar PRECIO UNITARIO para ambos purchase_price y sale_price
+      const precioUnitario = typeof product.precioUnitario === 'number' 
+        ? product.precioUnitario 
+        : parseFloat(String(product.precioUnitario)) || 0;
+
       // Crear nuevo producto
       const newProduct = await Product.create({
         tenant_id: tenantId,
-        category_id: defaultCategoryId,
-        unit_id: defaultUnitId,
+        category_id: categoryId,
+        unit_id: unitId,
         sku: product.codigo.trim(),
-        name: product.producto.trim(),
-        sale_price: 0, // Precio de venta por defecto
+        name: product.descripcion.trim(),
+        purchase_price: precioUnitario,
+        sale_price: precioUnitario,
         is_active: true,
         metadata: {
-          principal: product.principal,
-          sucursal: product.sucursal,
+          moneda: product.moneda,
           keyfacil_import: true
         },
         created_by: userId,

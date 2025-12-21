@@ -8,9 +8,11 @@ import * as XLSX from 'xlsx';
  */
 export interface ParsedProduct {
   codigo: string;
-  producto: string;
-  principal: string | null;
-  sucursal: string | null;
+  descripcion: string;
+  categoria: string | null;
+  unidadDeMedida: string | null;
+  precioUnitario: number;
+  moneda: string | null;
 }
 
 /**
@@ -54,7 +56,7 @@ function normalizeValue(value: any, isNumeric = false): any {
  * Detecta automáticamente dónde empiezan los headers en el CSV/Excel
  */
 function findHeaderRow(lines: string[]): number {
-  const headerKeywords = ['CÓDIGO', 'CODIGO', 'PRODUCTO', 'PRINCIPAL', 'SUCURSAL'];
+  const headerKeywords = ['CÓDIGO', 'CODIGO', 'DESCRIPCIÓN', 'DESCRIPCION', 'CATEGORIA', 'CATEGORÍA', 'UNIDAD DE MEDIDA', 'PRECIO UNITARIO', 'MONEDA'];
 
   for (let i = 0; i < Math.min(5, lines.length); i++) {
     const line = lines[i].toUpperCase();
@@ -102,7 +104,7 @@ function excelToCSVFormat(excelRawData: any[][]): { headers: string[]; records: 
   }
 
   // Encontrar la fila donde empiezan los headers
-  const headerKeywords = ['CÓDIGO', 'CODIGO', 'PRODUCTO', 'PRINCIPAL', 'SUCURSAL'];
+  const headerKeywords = ['CÓDIGO', 'CODIGO', 'DESCRIPCIÓN', 'DESCRIPCION', 'CATEGORIA', 'CATEGORÍA', 'UNIDAD DE MEDIDA', 'PRECIO UNITARIO', 'MONEDA'];
   let headerRowIndex = 0;
 
   for (let i = 0; i < Math.min(5, excelRawData.length); i++) {
@@ -225,9 +227,11 @@ export function parseKeyfacilProductsFile(
 
         // Extraer campos
         const codigo = normalizeValue(normalizedRecord['CÓDIGO'] || normalizedRecord['CODIGO'] || '') || '';
-        const producto = normalizeValue(normalizedRecord['PRODUCTO'] || '') || '';
-        const principal = normalizeValue(normalizedRecord['PRINCIPAL'] || '');
-        const sucursal = normalizeValue(normalizedRecord['SUCURSAL'] || '');
+        const descripcion = normalizeValue(normalizedRecord['DESCRIPCIÓN'] || normalizedRecord['DESCRIPCION'] || '') || '';
+        const categoria = normalizeValue(normalizedRecord['CATEGORIA'] || normalizedRecord['CATEGORÍA'] || '');
+        const unidadDeMedida = normalizeValue(normalizedRecord['UNIDAD DE MEDIDA'] || '');
+        const precioUnitario = normalizeValue(normalizedRecord['PRECIO UNITARIO'] || '0', true) || 0;
+        const moneda = normalizeValue(normalizedRecord['MONEDA'] || '');
 
         // Validar campos requeridos
         if (!codigo) {
@@ -235,17 +239,19 @@ export function parseKeyfacilProductsFile(
           continue;
         }
 
-        if (!producto) {
-          errors.push(`Registro ${i + 1}: Falta PRODUCTO`);
+        if (!descripcion) {
+          errors.push(`Registro ${i + 1}: Falta DESCRIPCIÓN`);
           continue;
         }
 
         // Agregar producto
         products.push({
           codigo: codigo.trim(),
-          producto: producto.trim(),
-          principal: principal,
-          sucursal: sucursal,
+          descripcion: descripcion.trim(),
+          categoria: categoria,
+          unidadDeMedida: unidadDeMedida,
+          precioUnitario: typeof precioUnitario === 'number' ? precioUnitario : parseFloat(String(precioUnitario)) || 0,
+          moneda: moneda,
         });
       } catch (error: any) {
         errors.push(`Error procesando registro ${i + 1}: ${error.message}`);

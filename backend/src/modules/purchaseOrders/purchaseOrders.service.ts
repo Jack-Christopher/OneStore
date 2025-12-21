@@ -38,10 +38,10 @@ async function createWithItems(dto: CreatePurchaseOrderWithItemsDTO, userId: str
 
   // Validate and process currency fields
   const orderData: any = toSnakeCase(dto.order);
-  
+
   // Check if using foreign currency
   const useForeignCurrency = dto.order.useForeignCurrency || false;
-  
+
   if (useForeignCurrency) {
     // Validate required fields
     if (!dto.order.currencyCode) {
@@ -53,7 +53,7 @@ async function createWithItems(dto: CreatePurchaseOrderWithItemsDTO, userId: str
     if (dto.order.totalOriginal === undefined || dto.order.totalOriginal === null) {
       throw new Error("total_original is required when using foreign currency");
     }
-    
+
     orderData.currency_code = dto.order.currencyCode.toUpperCase();
     orderData.exchange_rate = dto.order.exchangeRate;
     // total_original is the sum of all item subtotals in alternative currency
@@ -67,7 +67,7 @@ async function createWithItems(dto: CreatePurchaseOrderWithItemsDTO, userId: str
     orderData.total_original = orderData.total_amount || 0;
     orderData.total_base = orderData.total_amount || 0;
   }
-  
+
   // Keep total_amount for backward compatibility
   orderData.total_amount = orderData.total_base;
 
@@ -77,7 +77,7 @@ async function createWithItems(dto: CreatePurchaseOrderWithItemsDTO, userId: str
     const itemsData = dto.items.map(item => {
       const itemData: any = toSnakeCase(item);
       itemData.purchase_order_id = order._id.toString();
-      
+
       // Calculate currency fields for items
       // item.unitPrice and item.subtotal are in base currency
       if (useForeignCurrency) {
@@ -88,10 +88,10 @@ async function createWithItems(dto: CreatePurchaseOrderWithItemsDTO, userId: str
         itemData.unit_cost_original = item.unitPrice || 0;
         itemData.unit_cost_base = item.unitPrice || 0;
       }
-      
+
       // Keep unit_price for backward compatibility
       itemData.unit_price = itemData.unit_cost_base;
-      
+
       return itemData;
     });
     await repo.createManyItems(itemsData);
@@ -183,9 +183,9 @@ async function findOrCreateSupplier(tenantId: string, document: string, name: st
   }
 
   // Buscar proveedor existente por documento
-  const existingSupplier = await Supplier.findOne({ 
-    tenant_id: tenantId, 
-    document: document.trim() 
+  const existingSupplier = await Supplier.findOne({
+    tenant_id: tenantId,
+    document: document.trim()
   }).lean();
 
   if (existingSupplier) {
@@ -213,9 +213,9 @@ async function findOrCreateProduct(tenantId: string, sku: string, name: string, 
   }
 
   // Buscar producto existente por SKU
-  const existingProduct = await Product.findOne({ 
-    tenant_id: tenantId, 
-    sku: sku.trim() 
+  const existingProduct = await Product.findOne({
+    tenant_id: tenantId,
+    sku: sku.trim()
   }).lean();
 
   if (existingProduct) {
@@ -242,13 +242,13 @@ async function findOrCreateProduct(tenantId: string, sku: string, name: string, 
       { tenant_id: 'default' }
     ]
   }).lean();
-  
+
   if (!defaultUnit) {
     // Crear unidad de medida por defecto si no existe
     defaultUnit = await UnitOfMeasure.create({
       tenant_id: tenantId,
       code: 'UN',
-      name: 'Unidad',
+      name: 'Unidades',
       description: 'Unidad de medida creada automáticamente para importación',
       created_by: userId,
       updated_by: userId
@@ -276,7 +276,7 @@ async function findOrCreateProduct(tenantId: string, sku: string, name: string, 
  */
 async function getDefaultWarehouse(tenantId: string, userId: string): Promise<string> {
   const warehouse = await Warehouse.findOne({ tenant_id: tenantId }).lean();
-  
+
   if (warehouse) {
     return warehouse._id.toString();
   }
@@ -313,7 +313,7 @@ async function importFromKeyfacil(
   userId: string
 ): Promise<{ success: number; failed: number; errors: string[] }> {
   const tenantId = await getTenantId(userId);
-  
+
   // Obtener moneda base
   const baseCurrency = await settingsService.getBaseCurrency(userId);
   if (!baseCurrency) {
@@ -325,7 +325,7 @@ async function importFromKeyfacil(
 
   // Parsear el archivo
   const { purchases, errors: parseErrors } = parseKeyfacilPurchasesFile(fileBuffer, fileName);
-  
+
   let totalSuccess = 0;
   let totalFailed = 0;
   const errors: string[] = [...parseErrors];
@@ -333,7 +333,7 @@ async function importFromKeyfacil(
   // Procesar cada compra
   for (let i = 0; i < purchases.length; i++) {
     const purchase = purchases[i];
-    
+
     try {
       // Buscar o crear proveedor
       const supplierId = await findOrCreateSupplier(
@@ -362,13 +362,13 @@ async function importFromKeyfacil(
 
       // Calcular total de items para validación
       const itemsTotal = purchase.items.reduce((sum, item) => sum + item.total_linea, 0);
-      
+
       // Handle dates: use fecha from purchase (metadata.fecha) if present, otherwise use current date
       const now = new Date();
       let createdAt: Date = now; // Default to current date
-      
+
       console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1} (${purchase.identificador || `${purchase.serie}-${purchase.numero}`}): Processing dates`);
-      
+
       // Check if purchase.fecha exists and is valid (it's already parsed as Date | null by the parser)
       if (purchase.fecha !== null && purchase.fecha !== undefined) {
         // purchase.fecha is already a Date object from the parser
@@ -381,9 +381,9 @@ async function importFromKeyfacil(
       } else {
         console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: No fecha found, using current date: ${now.toISOString()}`);
       }
-      
+
       console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Final dates - created_at: ${createdAt.toISOString()}, updated_at: ${now.toISOString()}`);
-      
+
       // Crear orden de compra
       const orderData: any = {
         tenant_id: tenantId,
@@ -415,21 +415,21 @@ async function importFromKeyfacil(
       // Create document instance for validation and direct insertion to respect date values
       const PurchaseOrder = require("../../database/models/PurchaseOrder");
       const doc = new PurchaseOrder(orderData);
-      
+
       // Validate the document before inserting
       await doc.validate();
-      
+
       // Use collection.insertOne to insert directly, respecting our date values
       // This bypasses Mongoose timestamps and uses our explicit values
       const docToInsert = doc.toObject();
       // Ensure _id is removed so MongoDB generates it
       delete docToInsert._id;
-      
+
       console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Inserting order with dates - created_at: ${docToInsert.created_at?.toISOString()}, updated_at: ${docToInsert.updated_at?.toISOString()}`);
-      
+
       const insertResult = await PurchaseOrder.collection.insertOne(docToInsert);
       const order = await PurchaseOrder.findById(insertResult.insertedId);
-      
+
       console.log(`[PURCHASE ORDER IMPORT] Purchase ${i + 1}: Order created successfully with ID: ${order._id}`);
 
       // Crear items de la compra
@@ -443,8 +443,8 @@ async function importFromKeyfacil(
           }
 
           // Usar código como nombre si el nombre está vacío
-          const productName = item.producto && item.producto.trim() !== '' 
-            ? item.producto 
+          const productName = item.producto && item.producto.trim() !== ''
+            ? item.producto
             : item.codigo_producto;
 
           // Validar que los valores no sean cero
@@ -509,7 +509,7 @@ async function importFromKeyfacil(
       if (itemsData.length > 0) {
         try {
           await repo.createManyItems(itemsData);
-          
+
           // Marcar la orden como recibida automáticamente (simular click en recibido)
           // Esto crea movimientos de stock y actualiza el inventario
           try {
@@ -519,7 +519,7 @@ async function importFromKeyfacil(
             errors.push(`Compra ${i + 1}: Se creó pero falló al marcar como recibida - ${receiveError.message || 'Error desconocido'}`);
             console.error(`Error recibiendo compra ${i + 1}:`, receiveError);
           }
-          
+
           totalSuccess++;
         } catch (itemsError: any) {
           // Si falla la creación de items, eliminar la orden

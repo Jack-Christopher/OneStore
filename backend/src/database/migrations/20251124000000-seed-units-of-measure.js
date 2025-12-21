@@ -12,7 +12,7 @@ module.exports = {
       {
         tenant_id: "default",
         code: "UN",
-        name: "Unidad",
+        name: "Unidades",
         description: "Cantidad individual o pieza",
         created_at: now,
         updated_at: now,
@@ -150,6 +150,16 @@ module.exports = {
         code: "DOC",
         name: "Docena",
         description: "Conjunto de 12 unidades",
+        created_at: now,
+        updated_at: now,
+        created_by: "System",
+        updated_by: "System"
+      },
+      {
+        tenant_id: "default",
+        code: "SERV",
+        name: "SERVICIOS",
+        description: "Unidad de medida para servicios",
         created_at: now,
         updated_at: now,
         created_by: "System",
