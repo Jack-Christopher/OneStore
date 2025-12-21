@@ -107,6 +107,8 @@ export default function UnitsOfMeasureEditModal({ open, onClose, unitOfMeasureId
         borderRadius: '0.5rem',
         boxShadow: 24,
         width: 400,
+        maxHeight: '80vh',
+        overflowY: 'auto',
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Unidad de Medida</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>

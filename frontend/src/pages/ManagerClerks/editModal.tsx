@@ -98,6 +98,8 @@ export default function ManagerClerksEditModal({ open, onClose, clerkId }: Manag
         borderRadius: '0.5rem',
         boxShadow: 24,
         width: 500,
+        maxHeight: '80vh',
+        overflowY: 'auto',
       }}>
         <h2 className="text-2xl font-bold mb-4 text-center">Editar Clerk</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
