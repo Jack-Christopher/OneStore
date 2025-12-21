@@ -284,7 +284,13 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
     // Autocomplete unitPrice from product's salePrice (handle both snake_case and camelCase)
     const selectedProduct = productItems.find(p => p._id === formulaItem.productId);
     if (selectedProduct) {
-      newItem.unitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+      // Get sub_units_per_unit for price calculation
+      const subUnitsPerUnit = (selectedProduct as any).subUnitsPerUnit || (selectedProduct as any).sub_units_per_unit || 1;
+      
+      // If product has sub-units, divide price by sub-units to get price per sub-unit
+      const baseUnitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+      const pricePerSubUnit = subUnitsPerUnit > 1 ? baseUnitPrice / subUnitsPerUnit : baseUnitPrice;
+      newItem.unitPrice = pricePerSubUnit;
 
       // Ensure unitId matches product's unitId (handle both snake_case and camelCase, and object/string cases)
       const unitIdField = (selectedProduct as any).unitId || (selectedProduct as any).unit_id;
@@ -294,7 +300,7 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
         newItem.unitId = unitIdField || formulaItem.unitId;
       }
 
-      // Recalculate subtotal
+      // Recalculate subtotal (quantity is in sub-units, price is per sub-unit)
       newItem.subtotal = multiply(newItem.quantity || 0, newItem.unitPrice || 0);
     }
 
@@ -386,15 +392,20 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
       if (key === "productId" && value) {
         const selectedProduct = productItems.find(p => p._id === value);
         if (selectedProduct) {
+          // Get sub_units_per_unit for price calculation
+          const subUnitsPerUnit = (selectedProduct as any).subUnitsPerUnit || (selectedProduct as any).sub_units_per_unit || 1;
+          
           // Autocomplete unitPrice with salePrice (handle both snake_case and camelCase)
-          const basePrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
-          target.unitPrice = basePrice;
+          // If product has sub-units, divide price by sub-units to get price per sub-unit
+          const baseUnitPrice = (selectedProduct as any).salePrice || (selectedProduct as any).sale_price || 0;
+          const pricePerSubUnit = subUnitsPerUnit > 1 ? baseUnitPrice / subUnitsPerUnit : baseUnitPrice;
+          target.unitPrice = pricePerSubUnit;
 
           // Si se usa moneda alternativa, convertir
           if (useForeignCurrency && exchangeRate > 0) {
-            target.unitPriceOriginal = multiply(basePrice, exchangeRate);
+            target.unitPriceOriginal = multiply(pricePerSubUnit, exchangeRate);
           } else {
-            target.unitPriceOriginal = basePrice;
+            target.unitPriceOriginal = pricePerSubUnit;
           }
 
           // Autocomplete unitId with product's unitId (handle both snake_case and camelCase, and object/string cases)
@@ -490,7 +501,16 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
 
   function toCreateSaleItemPayload(item: CreateSaleItemState): CreateSaleItemPayload {
     const { id, ...rest } = item;
-    return rest;
+    
+    // Convert quantity from sub-units to base units
+    const product = productItems.find(p => p._id === item.productId);
+    const subUnitsPerUnit = (product as any)?.subUnitsPerUnit || (product as any)?.sub_units_per_unit || 1;
+    const quantityInBaseUnits = subUnitsPerUnit > 1 ? rest.quantity / subUnitsPerUnit : rest.quantity;
+    
+    return {
+      ...rest,
+      quantity: quantityInBaseUnits,
+    };
   }
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -544,12 +564,17 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
         return;
       }
 
-      // Validate stock availability
+      // Validate stock availability (convert quantity to base units for comparison)
       const product = productItems.find(p => p._id === item.productId);
       if (product) {
-        const availableStock = product.currentStock || 0;
-        if (item.quantity > availableStock) {
-          setError(`Stock insuficiente para el producto "${product.name}" en el ítem ${i + 1}. Stock disponible: ${availableStock}, solicitado: ${item.quantity}`);
+        const subUnitsPerUnit = (product as any)?.subUnitsPerUnit || (product as any)?.sub_units_per_unit || 1;
+        const stockInUnits = product.currentStock || 0;
+        // Convert entered quantity (in sub-units) to base units
+        const quantityInBaseUnits = subUnitsPerUnit > 1 ? item.quantity / subUnitsPerUnit : item.quantity;
+        const availableStockInSubUnits = stockInUnits * subUnitsPerUnit;
+        
+        if (quantityInBaseUnits > stockInUnits) {
+          setError(`Stock insuficiente para el producto "${product.name}" en el ítem ${i + 1}. Stock disponible: ${availableStockInSubUnits.toFixed(2)} sub-unidades (${stockInUnits} unidades), solicitado: ${item.quantity} sub-unidades`);
           setLoading(false);
           return;
         }
@@ -678,9 +703,20 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
               <label className="block mb-2 text-sm font-medium">Cantidad</label>
               {(() => {
                 const selectedProduct = productItems.find(p => p._id === item.productId);
-                const availableStock = selectedProduct?.currentStock || 0;
+                const subUnitsPerUnit = (selectedProduct as any)?.subUnitsPerUnit || (selectedProduct as any)?.sub_units_per_unit || 1;
+                const stockInUnits = selectedProduct?.currentStock || 0;
+                // Mostrar stock en sub-unidades para el usuario
+                const availableStockInSubUnits = stockInUnits * subUnitsPerUnit;
                 const quantity = item.quantity || 0;
-                const exceedsStock = quantity > availableStock;
+                // La cantidad del item está en sub-unidades, convertir a unidades base para validar
+                const quantityInBaseUnits = subUnitsPerUnit > 1 ? quantity / subUnitsPerUnit : quantity;
+                const exceedsStock = quantityInBaseUnits > stockInUnits;
+                
+                // Obtener nombre de la unidad del producto
+                const productUnitId = (selectedProduct as any)?.unitId?._id || (selectedProduct as any)?.unit_id?._id || (selectedProduct as any)?.unitId || (selectedProduct as any)?.unit_id;
+                const productUnit = unitsOfMeasureItems.find(u => u._id === productUnitId);
+                const unitName = productUnit?.name || 'unidad';
+                const subUnitLabel = subUnitsPerUnit > 1 ? `(en sub-unidades de ${unitName})` : '';
 
                 return (
                   <>
@@ -695,9 +731,19 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
                     </div>
                     {item.productId && (
                       <div className="text-sm mt-1">
-                        <span className={availableStock > 0 ? 'text-green-600' : 'text-red-600'}>
-                          Stock disponible: {availableStock}
+                        {subUnitsPerUnit > 1 && (
+                          <span className="text-blue-600 block mb-1">
+                            📦 Cada {unitName} contiene {subUnitsPerUnit} sub-unidades
+                          </span>
+                        )}
+                        <span className={availableStockInSubUnits > 0 ? 'text-green-600' : 'text-red-600'}>
+                          Stock disponible: {availableStockInSubUnits.toFixed(2)} {subUnitLabel}
                         </span>
+                        {subUnitsPerUnit > 1 && (
+                          <span className="text-gray-500 block">
+                            ({stockInUnits} {unitName}s en almacén)
+                          </span>
+                        )}
                         {exceedsStock && (
                           <span className="text-red-600 block">⚠️ La cantidad excede el stock disponible</span>
                         )}
@@ -706,24 +752,39 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
                   </>
                 );
               })()}
-              <label className="block mb-2 text-sm font-medium">
-                Precio Unitario {useForeignCurrency && currencyCode ? `(${currencyCode})` : `(${baseCurrency || 'Base'})`}
-              </label>
-              <Input
-                type="number"
-                placeholder="Precio Unitario"
-                step="any"
-                value={useForeignCurrency ? (item.unitPriceOriginal || 0) : (item.unitPrice || 0)}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.target.value);
-                  if (useForeignCurrency && exchangeRate > 0) {
-                    // Si está en moneda alternativa, convertir a base
-                    handleUpdateItem(idx, "unitPrice", divide(value, exchangeRate));
-                  } else {
-                    handleUpdateItem(idx, "unitPrice", value);
-                  }
-                }}
-              />
+              {(() => {
+                const selectedProductForPrice = productItems.find(p => p._id === item.productId);
+                const subUnitsPerUnitForPrice = (selectedProductForPrice as any)?.subUnitsPerUnit || (selectedProductForPrice as any)?.sub_units_per_unit || 1;
+                const priceLabel = subUnitsPerUnitForPrice > 1 ? 'Precio por Sub-unidad' : 'Precio Unitario';
+                
+                return (
+                  <>
+                    <label className="block mb-2 text-sm font-medium">
+                      {priceLabel} {useForeignCurrency && currencyCode ? `(${currencyCode})` : `(${baseCurrency || 'Base'})`}
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="Precio Unitario"
+                      step="any"
+                      value={useForeignCurrency ? (item.unitPriceOriginal || 0) : (item.unitPrice || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = Number(e.target.value);
+                        if (useForeignCurrency && exchangeRate > 0) {
+                          // Si está en moneda alternativa, convertir a base
+                          handleUpdateItem(idx, "unitPrice", divide(value, exchangeRate));
+                        } else {
+                          handleUpdateItem(idx, "unitPrice", value);
+                        }
+                      }}
+                    />
+                    {subUnitsPerUnitForPrice > 1 && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        Precio original por unidad completa: {((selectedProductForPrice as any)?.salePrice || (selectedProductForPrice as any)?.sale_price || 0).toFixed(2)}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
               {useForeignCurrency && (
                 <p className="text-xs text-gray-500 mt-1">
                   En {baseCurrency}: {(item.unitPrice || 0).toFixed(2)}

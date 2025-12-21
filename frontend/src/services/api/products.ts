@@ -12,6 +12,7 @@ export interface Product {
   salePrice: number;
   minStock: number;
   maxStock: number;
+  subUnitsPerUnit: number;
   description: string;
   currentStock?: number;
 }
@@ -30,6 +31,7 @@ export interface CreateProductPayload {
   salePrice: number;
   minStock: number;
   maxStock: number;
+  subUnitsPerUnit: number;
   description: string;
 }
 
@@ -44,6 +46,7 @@ export interface UpdateProductPayload {
   salePrice?: number;
   minStock?: number;
   maxStock?: number;
+  subUnitsPerUnit?: number;
   description?: string;
 }
 

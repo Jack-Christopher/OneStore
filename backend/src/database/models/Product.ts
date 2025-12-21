@@ -13,6 +13,7 @@ const ProductSchema = new Schema({
   min_stock: { type: Number },
   max_stock: { type: Number },
   description: { type: String },
+  sub_units_per_unit: { type: Number, default: 1 },
   is_active: { type: Boolean, default: true },
   metadata: Schema.Types.Mixed,
   created_by: { type: String },

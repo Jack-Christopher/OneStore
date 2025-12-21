@@ -6,6 +6,7 @@ export interface ProductDTO {
   salePrice: Number,
   minStock: Number,
   maxStock: Number,
+  subUnitsPerUnit: Number,
   isActive: Boolean,
   tenantId: string;
   name: string;
@@ -22,6 +23,7 @@ export interface ProductEntity {
   salePrice: Number,
   minStock: Number,
   maxStock: Number,
+  subUnitsPerUnit: Number,
   isActive: Boolean,
   tenantId: string;
   name: string;
@@ -37,6 +39,7 @@ export interface ProductUpdateDTO {
   salePrice?: Number,
   minStock?: Number,
   maxStock?: Number,
+  subUnitsPerUnit?: Number,
   isActive?: Boolean,
   name?: string;
   description?: string;

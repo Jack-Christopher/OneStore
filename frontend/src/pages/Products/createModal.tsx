@@ -33,6 +33,7 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
     salePrice: 0,
     minStock: 0,
     maxStock: 0,
+    subUnitsPerUnit: 1,
     description: "",
   };
   const [form, setForm] = useState<CreateProductPayload>(initialForm);
@@ -232,6 +233,15 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
             value={form.maxStock}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, maxStock: +e.target.value })}
           />
+          <label className="block mb-2 text-sm font-medium">Sub-unidades por Unidad</label>
+          <Input
+            type="number"
+            placeholder="Ej: 25 si cada unidad tiene 25kg"
+            step="any"
+            value={form.subUnitsPerUnit}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, subUnitsPerUnit: parseFloat(e.target.value) || 1 })}
+          />
+          <p className="text-xs text-gray-500 mb-3">Si el producto se vende fraccionado (ej: bolsa de 25kg vendida por kg), indica cuántas sub-unidades contiene cada unidad. Default: 1</p>
           <label className="block mb-2 text-sm font-medium">Descripción</label>
           <textarea 
             placeholder="Descripción" 

@@ -82,6 +82,7 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                     salePrice: res.data?.sale_price || 0,
                     minStock: res.data?.min_stock || 0,
                     maxStock: res.data?.max_stock || 0,
+                    subUnitsPerUnit: res.data?.sub_units_per_unit || 1,
                 };
                 setForm(initialData);
                 setInitialForm(initialData);
@@ -150,6 +151,8 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                 borderRadius: '0.5rem',
                 boxShadow: 24,
                 width: 400,
+                maxHeight: '80vh',
+                overflowY: 'auto',
             }}>
                 <h2 className="text-2xl font-bold mb-4 text-center">Editar Producto</h2>
                 <form className="flex flex-col" onSubmit={onSubmit}>
@@ -171,6 +174,9 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                     <Input type="number" placeholder="Stock mínimo" value={form.minStock} onChange={e => setForm({ ...form, minStock: Number(e.target.value) })} />
                     <label className="block mb-2 text-sm font-medium">Stock máximo</label>
                     <Input type="number" placeholder="Stock máximo" value={form.maxStock} onChange={e => setForm({ ...form, maxStock: Number(e.target.value) })} />
+                    <label className="block mb-2 text-sm font-medium">Sub-unidades por Unidad</label>
+                    <Input type="number" placeholder="Ej: 25 si cada unidad tiene 25kg" step="any" value={form.subUnitsPerUnit} onChange={e => setForm({ ...form, subUnitsPerUnit: parseFloat(e.target.value) || 1 })} />
+                    <p className="text-xs text-gray-500 mb-3">Si el producto se vende fraccionado (ej: bolsa de 25kg vendida por kg), indica cuántas sub-unidades contiene cada unidad.</p>
                     
                     {error && <Alert type="error" message={error} styles="mb-4 mt-4" />}
                 </form>
