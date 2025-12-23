@@ -151,6 +151,8 @@ export default function ManagerClerksPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
+          showToolbar={true}
+          disableColumnMenu={true}
           disableRowSelectionOnClick
           rows={clerks || []}
           columns={columns}

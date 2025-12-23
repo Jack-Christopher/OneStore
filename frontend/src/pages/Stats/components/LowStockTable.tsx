@@ -54,6 +54,8 @@ export default function LowStockTable({ data, loading = false }: LowStockTablePr
         </Typography>
         <div className="datagrid-theme">
           <DataGrid
+            showToolbar={true}
+            disableColumnMenu={true}
             disableRowSelectionOnClick
             sx={{
               '& .MuiDataGrid-columnHeader.warning-column': {

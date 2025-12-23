@@ -221,6 +221,8 @@ export default function AuditPage() {
       {/* Table */}
       <div className="mt-4 datagrid-theme" style={{ height: 600 }}>
         <DataGrid
+          showToolbar={true}
+          disableColumnMenu={true}
           disableRowSelectionOnClick
           rows={logs || []}
           columns={columns}

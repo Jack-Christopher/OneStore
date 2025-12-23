@@ -143,6 +143,8 @@ export default function AdminTenantsPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
+          showToolbar={true}
+          disableColumnMenu={true}
           disableRowSelectionOnClick
           rows={tenants || []}
           columns={columns}

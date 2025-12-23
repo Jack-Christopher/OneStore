@@ -56,6 +56,8 @@ export default function TopProductsTable({ data, loading = false }: TopProductsT
         </Typography>
         <div className="datagrid-theme">
           <DataGrid
+            showToolbar={true}
+            disableColumnMenu={true}
             disableRowSelectionOnClick
             sx={{
               '& .MuiDataGrid-columnHeader.main-column': {

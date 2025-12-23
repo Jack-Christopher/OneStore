@@ -165,6 +165,8 @@ export default function ProductFormulasPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
+          showToolbar={true}
+          disableColumnMenu={true}
           disableRowSelectionOnClick
           rows={productFormulas ? productFormulas : []}
           columns={columns}
