@@ -70,6 +70,10 @@ export default function ProductsViewModal({ open, onClose, productId }: Products
                                 <td className="py-3 px-4 text-left">{product?.unit_id?.name}</td>
                             </tr>
                             <tr>
+                                <td className="py-3 px-4 text-left font-medium text-gray-600">Sub-unidades por unidad</td>
+                                <td className="py-3 px-4 text-left">{product?.subUnitsPerUnit || (product as any)?.sub_units_per_unit || 1}</td>
+                            </tr>
+                            <tr>
                                 <td className="py-3 px-4 text-left font-medium text-gray-600">Descripción</td>
                                 <td className="py-3 px-4 text-left">{product?.description}</td>
                             </tr>

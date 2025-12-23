@@ -177,6 +177,11 @@ async function importFromKeyfacil(
         ? product.precioUnitario 
         : parseFloat(String(product.precioUnitario)) || 0;
 
+      // Usar subUnitsPerUnit del producto parseado, con valor por defecto 1
+      const subUnitsPerUnit = product.subUnitsPerUnit && product.subUnitsPerUnit > 0 
+        ? product.subUnitsPerUnit 
+        : 1;
+
       // Crear nuevo producto
       const newProduct = await Product.create({
         tenant_id: tenantId,
@@ -186,6 +191,7 @@ async function importFromKeyfacil(
         name: product.descripcion.trim(),
         purchase_price: precioUnitario,
         sale_price: precioUnitario,
+        sub_units_per_unit: subUnitsPerUnit,
         is_active: true,
         metadata: {
           moneda: product.moneda,

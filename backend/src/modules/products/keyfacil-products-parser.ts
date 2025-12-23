@@ -13,6 +13,7 @@ export interface ParsedProduct {
   unidadDeMedida: string | null;
   precioUnitario: number;
   moneda: string | null;
+  subUnitsPerUnit?: number | null;
 }
 
 /**
@@ -136,6 +137,73 @@ function excelToCSVFormat(excelRawData: any[][]): { headers: string[]; records: 
 }
 
 /**
+ * Resultado de la extracción de unidad desde descripción
+ */
+interface UnitExtractionResult {
+  unitName: string | null;
+  quantity: number | null;
+}
+
+/**
+ * Extrae la unidad de medida y la cantidad desde la descripción del producto
+ * Busca patrones como "5 KG", "500ML", "1 L", "250GR", "10 UND", etc.
+ * @param description Descripción del producto
+ * @returns Objeto con el nombre de la unidad y la cantidad encontrada, o null si no se encuentra
+ */
+function extractUnitFromDescription(description: string): UnitExtractionResult | null {
+  if (!description || typeof description !== 'string') {
+    return null;
+  }
+
+  // Patrón regex con grupos de captura: número y unidad (con espacio opcional)
+  // Busca: número (entero o decimal) seguido de espacio opcional y símbolo de unidad
+  // Los símbolos más largos deben ir primero (LTS antes de LT, UNDS antes de UND, GRS antes de GR)
+  // Sin flag global para que match() retorne los grupos de captura
+  const pattern = /(\d+(?:[.,]\d+)?)\s*(KG|ML|LTS|LT|L|GRS|GR|G|UNDS|UND)\b/i;
+  const match = description.match(pattern);
+
+  if (!match || match.length < 3) {
+    return null;
+  }
+
+  // El grupo 1 contiene la cantidad (número)
+  const quantityStr = match[1].replace(',', '.');
+  const quantity = parseFloat(quantityStr);
+
+  if (isNaN(quantity) || quantity <= 0) {
+    return null;
+  }
+
+  // El grupo 2 contiene el símbolo de la unidad capturado
+  const unitSymbol = match[2].toUpperCase();
+
+  // Mapear símbolos a nombres de unidades
+  const unitMap: Record<string, string> = {
+    'KG': 'Kilogramo',
+    'ML': 'Mililitro',
+    'L': 'Litro',
+    'LT': 'Litro',
+    'LTS': 'Litro',
+    'GR': 'Gramo',
+    'G': 'Gramo',
+    'GRS': 'Gramo',
+    'UND': 'Unidades',
+    'UNDS': 'Unidades'
+  };
+
+  const unitName = unitMap[unitSymbol] || null;
+
+  if (!unitName) {
+    return null;
+  }
+
+  return {
+    unitName,
+    quantity
+  };
+}
+
+/**
  * Parsea un archivo CSV o Excel de Keyfacil y retorna los productos
  */
 export function parseKeyfacilProductsFile(
@@ -229,7 +297,7 @@ export function parseKeyfacilProductsFile(
         const codigo = normalizeValue(normalizedRecord['CÓDIGO'] || normalizedRecord['CODIGO'] || '') || '';
         const descripcion = normalizeValue(normalizedRecord['DESCRIPCIÓN'] || normalizedRecord['DESCRIPCION'] || '') || '';
         const categoria = normalizeValue(normalizedRecord['CATEGORIA'] || normalizedRecord['CATEGORÍA'] || '');
-        const unidadDeMedida = normalizeValue(normalizedRecord['UNIDAD DE MEDIDA'] || '');
+        const unidadDeMedidaColumna = normalizeValue(normalizedRecord['UNIDAD DE MEDIDA'] || '');
         const precioUnitario = normalizeValue(normalizedRecord['PRECIO UNITARIO'] || '0', true) || 0;
         const moneda = normalizeValue(normalizedRecord['MONEDA'] || '');
 
@@ -244,6 +312,15 @@ export function parseKeyfacilProductsFile(
           continue;
         }
 
+        // Intentar extraer unidad de medida y cantidad desde la descripción (prioridad)
+        const extractionResult = extractUnitFromDescription(descripcion);
+        // Usar unidad extraída de descripción si existe, sino usar la columna
+        const unidadDeMedida = extractionResult?.unitName || unidadDeMedidaColumna || null;
+        // Usar la cantidad extraída como sub-unidades, por defecto 1 si no se encuentra
+        const subUnitsPerUnit = extractionResult?.quantity || 1;
+
+        console.log('Producto: ', descripcion, ' - UM extraida: ', extractionResult?.unitName, ' - UM columna: ', unidadDeMedidaColumna, ' - Cantidad: ', extractionResult?.quantity);
+
         // Agregar producto
         products.push({
           codigo: codigo.trim(),
@@ -252,6 +329,7 @@ export function parseKeyfacilProductsFile(
           unidadDeMedida: unidadDeMedida,
           precioUnitario: typeof precioUnitario === 'number' ? precioUnitario : parseFloat(String(precioUnitario)) || 0,
           moneda: moneda,
+          subUnitsPerUnit: subUnitsPerUnit,
         });
       } catch (error: any) {
         errors.push(`Error procesando registro ${i + 1}: ${error.message}`);
