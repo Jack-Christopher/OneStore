@@ -9,7 +9,7 @@ export { }; // Empty export to force module scope
  * Optional: Override MongoDB connection (for local execution):
  *   npm run delete:importable -- --email user@example.com --mongo-uri mongodb://localhost:27017/onestore --confirm
  * 
- * Importable collections based on imports.types.ts:
+ * Importable collections based on imports.types.ts and billing imports:
  * - sales
  * - products
  * - categories
@@ -22,6 +22,13 @@ export { }; // Empty export to force module scope
  * - units_of_measure
  * - product_formulas
  * - sale_items
+ * - invoices
+ * - sale_tickets
+ * - credit_notes
+ * - debit_notes
+ * - sale_notes
+ * - proformas
+ * - billing_document_items
  */
 
 const mongoose = require("mongoose");
@@ -42,6 +49,13 @@ const IMPORTABLE_COLLECTIONS = [
   'units_of_measure',
   'product_formulas',
   'sale_items',
+  'invoices',
+  'sale_tickets',
+  'credit_notes',
+  'debit_notes',
+  'sale_notes',
+  'proformas',
+  'billing_document_items',
 ];
 
 function parseArgs() {
@@ -49,17 +63,17 @@ function parseArgs() {
   const emailIndex = args.indexOf('--email');
   const mongoUriIndex = args.indexOf('--mongo-uri');
   const confirmFlag = args.includes('--confirm');
-  
+
   let email: string | null = null;
   if (emailIndex !== -1 && args[emailIndex + 1]) {
     email = args[emailIndex + 1];
   }
-  
+
   let mongoUri: string | null = null;
   if (mongoUriIndex !== -1 && args[mongoUriIndex + 1]) {
     mongoUri = args[mongoUriIndex + 1];
   }
-  
+
   return { email, mongoUri, confirmFlag };
 }
 
@@ -79,7 +93,7 @@ async function deleteImportableData() {
 
     // Determine which MongoDB URL to use
     const databaseUrl = mongoUri || process.env.MONGO_URI || dbUrl;
-    
+
     // Check if URL contains "db:" (Docker hostname) and suggest localhost alternative
     if (databaseUrl.includes('://db:')) {
       console.warn('⚠️  WARNING: Database URL contains "db:" hostname (Docker service name)');
@@ -112,7 +126,7 @@ async function deleteImportableData() {
     // Find user by email
     console.log(`Looking up user with email: ${email}...`);
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    
+
     if (!user) {
       console.error(`❌ Error: User with email '${email}' not found`);
       await mongoose.connection.close();
@@ -120,7 +134,7 @@ async function deleteImportableData() {
     }
 
     const tenantId = user.tenant_id;
-    
+
     if (!tenantId || tenantId === 'orphan') {
       console.error(`❌ Error: User has invalid tenant_id: '${tenantId}'`);
       await mongoose.connection.close();
@@ -139,12 +153,12 @@ async function deleteImportableData() {
       try {
         const collection = db.collection(collectionName);
         const count = await collection.countDocuments({ tenant_id: tenantId });
-        
+
         if (count > 0) {
           const result = await collection.deleteMany({ tenant_id: tenantId });
-          results.push({ 
-            collection: collectionName, 
-            deletedCount: result.deletedCount || 0 
+          results.push({
+            collection: collectionName,
+            deletedCount: result.deletedCount || 0
           });
           console.log(`✓ Deleted ${result.deletedCount} documents from '${collectionName}' (tenant: ${tenantId})`);
         } else {
