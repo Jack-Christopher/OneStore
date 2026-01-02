@@ -56,7 +56,7 @@ export default function TopProductsTable({ data, loading = false }: TopProductsT
         </Typography>
         <div className="datagrid-theme">
           <DataGrid
-            showToolbar={true}
+            showToolbar={false}
             disableColumnMenu={true}
             disableRowSelectionOnClick
             sx={{
@@ -73,7 +73,6 @@ export default function TopProductsTable({ data, loading = false }: TopProductsT
           columns={columns}
           loading={loading}
           autoHeight
-          disableRowSelectionOnClick
           hideFooter
           localeText={{
             noRowsLabel: "No hay productos vendidos",

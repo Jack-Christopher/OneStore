@@ -120,7 +120,7 @@ export default function ProductsPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Productos </h1>
-      
+
       {/* Export/Import Section */}
       <Box
         sx={{
@@ -179,13 +179,13 @@ export default function ProductsPage() {
       >
         Agregar Producto
       </Button>
-      <ProductsCreateModal 
-        open={openCreateModal} 
+      <ProductsCreateModal
+        open={openCreateModal}
         onClose={() => setOpenCreateModal(false)}
         onSuccess={refreshData}
       />
-      <ProductsImportModal 
-        open={openImportModal} 
+      <ProductsImportModal
+        open={openImportModal}
         onClose={() => setOpenImportModal(false)}
         onSuccess={() => {
           setOpenImportModal(false)
@@ -193,9 +193,9 @@ export default function ProductsPage() {
         }}
       />
       <ProductsViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} productId={selectedProductId} />
-      <ProductsEditModal 
-        open={openEditModal} 
-        onClose={() => setOpenEditModal(false)} 
+      <ProductsEditModal
+        open={openEditModal}
+        onClose={() => setOpenEditModal(false)}
         productId={selectedProductId}
         onSuccess={refreshData}
       />
@@ -220,7 +220,7 @@ export default function ProductsPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
-          showToolbar={true}
+          showToolbar={false}
           disableColumnMenu={true}
           disableRowSelectionOnClick
           sx={{

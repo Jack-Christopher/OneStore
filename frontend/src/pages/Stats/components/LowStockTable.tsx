@@ -54,7 +54,7 @@ export default function LowStockTable({ data, loading = false }: LowStockTablePr
         </Typography>
         <div className="datagrid-theme">
           <DataGrid
-            showToolbar={true}
+            showToolbar={false}
             disableColumnMenu={true}
             disableRowSelectionOnClick
             sx={{
@@ -71,7 +71,6 @@ export default function LowStockTable({ data, loading = false }: LowStockTablePr
           columns={columns}
           loading={loading}
           autoHeight
-          disableRowSelectionOnClick
           hideFooter
           localeText={{
             noRowsLabel: "No hay productos con stock bajo",

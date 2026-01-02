@@ -154,6 +154,31 @@ body {
   color: var(--foreground);
 }
 
+/* Column visibility menu (Manage columns) - Dark theme styling */
+/* Use dark theme card background */
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root {
+  background-color: var(--card) !important;
+}
+
+/* Override text color for all text elements in column menu - use card-foreground */
+/* This specifically overrides the inherited body color only for this menu */
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiFormControlLabel-root,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiFormControlLabel-label,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiInputBase-root,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiInputBase-input,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiTypography-root,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiButton-root,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiMenuItem-root,
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root span:not(.MuiCheckbox-root):not(.MuiSvgIcon-root),
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root div:not(.MuiCheckbox-root):not(.MuiSvgIcon-root) {
+  color: var(--card-foreground) !important;
+}
+
+.dark .MuiPopover-root[role="presentation"] .MuiPaper-root .MuiInputBase-input::placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 1;
+}
+
 /* ===========================================================
    AUTH PAGES - FIXED NEUTRAL STYLE (NOT AFFECTED BY THEME)
    =========================================================== */

@@ -83,7 +83,7 @@ export default function SalesPage() {
       <SalesViewModal open={openViewModal} onClose={() => setOpenViewModal(false)} saleId={selectedSaleId} />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
-          showToolbar={true}
+          showToolbar={false}
           disableColumnMenu={true}
           disableRowSelectionOnClick
           rows={sales ? sales : []}

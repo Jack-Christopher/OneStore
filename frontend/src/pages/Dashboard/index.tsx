@@ -154,7 +154,7 @@ export default function DashboardPage() {
               <Typography variant="h6" className="text-card-foreground">Productos más vendidos</Typography>
               <div className="datagrid-theme">
                 <DataGrid
-                  showToolbar={true}
+                  showToolbar={false}
                   disableColumnMenu={true}
                   disableRowSelectionOnClick
                   sx={{
@@ -189,7 +189,7 @@ export default function DashboardPage() {
               <Typography variant="h6" className="text-card-foreground">Categorías más vendidas</Typography>
               <div className="datagrid-theme">
                 <DataGrid
-                  showToolbar={true}
+                  showToolbar={false}
                   disableColumnMenu={true}
                   disableRowSelectionOnClick
                   sx={{
@@ -224,7 +224,7 @@ export default function DashboardPage() {
               <Typography variant="h6" className="text-accent">⚠️ Productos con stock bajo</Typography>
               <div className="datagrid-theme">
                 <DataGrid
-                  showToolbar={true}
+                  showToolbar={false}
                   disableColumnMenu={true}
                   disableRowSelectionOnClick
                   sx={{
