@@ -26,7 +26,10 @@ FROM nginx:1.25-alpine
 # Install wget for healthcheck
 RUN apk add --no-cache wget
 
-# Copy custom nginx configurations
+# Remove default nginx.conf and copy custom nginx configurations
+# We need to do this as root before switching to nginx user
+RUN rm -f /etc/nginx/nginx.conf && \
+    rm -f /etc/nginx/conf.d/default.conf
 COPY nginx-main.conf /etc/nginx/nginx.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
