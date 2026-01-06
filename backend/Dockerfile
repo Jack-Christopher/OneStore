@@ -14,7 +14,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build TypeScript (allow errors to not block build)
+# Build TypeScript and resolve path aliases (allow errors to not block build)
 RUN npm run build || true
 
 # Stage 2: Production
