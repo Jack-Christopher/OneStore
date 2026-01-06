@@ -45,8 +45,6 @@ services:
       timeout: 3s
       retries: 3
       start_period: 40s
-    volumes:
-      - ./backend/uploads:/app/uploads:rw
 
   db:
     image: mongo:7
