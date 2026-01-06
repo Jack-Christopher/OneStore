@@ -32,6 +32,10 @@ RUN npm ci --only=production && npm cache clean --force && \
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy migrate-mongo config and migrations for running migrations
+COPY migrate-mongo-config.js ./
+COPY --from=builder /app/src/database/migrations ./src/database/migrations
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
   adduser -S nodejs -u 1001
