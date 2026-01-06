@@ -1,13 +1,72 @@
 version: '3.9'
+
 services:
   onestore-frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-/api}
     container_name: onestore_frontend
     ports:
-      - "5173:80"
-    environment:
-      - VITE_API_URL=http://localhost:4000
+      - "${FRONTEND_PORT:-80}:80"
     restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - onestore-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: onestore_api
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    environment:
+      - PORT=${PORT:-4000}
+      - MONGO_URI=${MONGO_URI:-mongodb://db:27017/onestore}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - onestore-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./backend/uploads:/app/uploads:rw
+
+  db:
+    image: mongo:7
+    container_name: onestore_db
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - ./mongo_data:/data/db
+      - ./backend/mongod.conf:/etc/mongod.conf
+    command: [ "mongod", "--config", "/etc/mongod.conf" ]
+    networks:
+      - onestore-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  onestore-network:
+    driver: bridge

@@ -35,6 +35,11 @@ expressApp.use(body.json());
 // Serve static files from uploads directory
 expressApp.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+// Health check endpoint
+expressApp.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 const apiRouter = express.Router();
 
 apiRouter.use("/auth", authRoutes);
