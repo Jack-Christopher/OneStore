@@ -167,7 +167,21 @@ module.exports = {
       }
     ];
 
-    await db.collection("units_of_measure").insertMany(units);
+    // Check which units already exist (idempotent)
+    const unitCodes = units.map(u => u.code);
+    const existingUnits = await db.collection("units_of_measure")
+      .find({ tenant_id: "default", code: { $in: unitCodes } })
+      .toArray();
+    
+    const existingCodes = existingUnits.map(u => u.code);
+    const unitsToInsert = units.filter(u => !existingCodes.includes(u.code));
+
+    if (unitsToInsert.length > 0) {
+      await db.collection("units_of_measure").insertMany(unitsToInsert);
+      console.log(`Inserted ${unitsToInsert.length} new units of measure`);
+    } else {
+      console.log("All units of measure already exist, skipping insertion");
+    }
   },
 
   /**
