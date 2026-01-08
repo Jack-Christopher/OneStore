@@ -31,7 +31,9 @@ services:
       - "${BACKEND_PORT:-4000}:4000"
     environment:
       - PORT=${PORT:-4000}
-      - MONGO_URI=${MONGO_URI:-mongodb://db:27017/onestore}
+      # MongoDB connection with authentication - authSource=admin ensures we authenticate against the admin database
+      # where the root user is created. This is required when using MONGO_INITDB_ROOT_USERNAME/PASSWORD.
+      - MONGO_URI=${MONGO_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-admin}:${MONGO_INITDB_ROOT_PASSWORD}@db:27017/${MONGO_INITDB_DATABASE:-onestore}?authSource=admin}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=production
     restart: unless-stopped
@@ -50,16 +52,31 @@ services:
     image: mongo:7
     container_name: onestore_db
     restart: unless-stopped
-    ports:
-      - "${MONGO_PORT:-27017}:27017"
+    # SECURITY: MongoDB port is NOT exposed to the host. This prevents external access to the database.
+    # MongoDB is only accessible through the internal Docker network (onestore-network).
+    # Exposing port 27017 publicly allows ransomware bots and attackers to access your database directly.
+    # All database access must go through the API service, which has proper authentication and validation.
+    # ports:
+    #   - "${MONGO_PORT:-27017}:27017"  # REMOVED FOR SECURITY
     volumes:
       - mongo_data:/data/db
       - ./backend/mongod.conf:/etc/mongod.conf
+    environment:
+      # SECURITY: MongoDB authentication is REQUIRED for production deployments.
+      # Without authentication, anyone with network access can read, modify, or delete all data.
+      # These environment variables create a root user during initial database setup.
+      # The root user has full administrative privileges and should be used only for initial setup.
+      # For production, create application-specific users with minimal required permissions.
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE:-onestore}
     command: [ "mongod", "--config", "/etc/mongod.conf" ]
     networks:
       - onestore-network
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      # Healthcheck uses mongosh with authentication
+      # $$ escapes to $ so the shell inside the container expands the environment variables
+      test: [ "sh", "-c", "mongosh -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")' --quiet" ]
       interval: 10s
       timeout: 5s
       retries: 5
