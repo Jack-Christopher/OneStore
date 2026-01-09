@@ -26,7 +26,7 @@ module.exports = {
             sku: { bsonType: "string" },
             barcode: { bsonType: ["string", "null"] },
             purchase_price: { bsonType: ["double", "int", "null"] },
-            sale_price: { bsonType: ["double", "int"] },
+            sale_price: { bsonType: ["double", "int", "null"] },
             min_stock: { bsonType: ["double", "int", "null"] },
             max_stock: { bsonType: ["double", "int", "null"] },
             description: { bsonType: ["string", "null"] },

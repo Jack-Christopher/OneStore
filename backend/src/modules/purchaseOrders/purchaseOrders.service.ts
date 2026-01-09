@@ -146,8 +146,33 @@ async function receiveOrder(id: string, userId: string) {
     });
   }
 
-  // Update order status
-  return repo.update(id, { status: 'received', updated_by: userId });
+  // Get base currency to ensure currency fields exist
+  const baseCurrency = await settingsService.getBaseCurrency(userId);
+  const orderObj = order.toObject ? order.toObject() : order;
+
+  // Prepare update data - ensure all required fields are present
+  const updateData: any = {
+    status: 'received',
+    updated_by: userId
+  };
+
+  // Ensure currency fields exist - if they don't, set defaults
+  // This prevents MongoDB validation errors when updating
+  if (!orderObj.currency_code) {
+    updateData.currency_code = baseCurrency || 'PEN';
+  }
+  if (orderObj.exchange_rate === undefined || orderObj.exchange_rate === null) {
+    updateData.exchange_rate = 1;
+  }
+  if (orderObj.total_original === undefined || orderObj.total_original === null) {
+    updateData.total_original = orderObj.total_amount || 0;
+  }
+  if (orderObj.total_base === undefined || orderObj.total_base === null) {
+    updateData.total_base = orderObj.total_amount || 0;
+  }
+
+  // Update order status with all required fields
+  return repo.update(id, updateData);
 }
 
 // Items functions
