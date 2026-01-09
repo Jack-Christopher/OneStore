@@ -86,39 +86,24 @@ export default function PurchaseOrdersPage() {
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Órdenes de Compra</h1>
       
-      {/* Import Section */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          alignItems: 'center',
-          padding: 2,
-          marginBottom: 2,
-          backgroundColor: '#f5f5f5',
-          borderRadius: 1,
-          border: '1px solid #e0e0e0',
-        }}
-      >
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            startIcon={<Upload />}
-            onClick={() => setOpenImportModal(true)}
-          >
-            Importar Órdenes de Compra
-          </Button>
-        </Box>
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenCreateModal(true)}
+        >
+          Nueva Orden de Compra
+        </Button>
+        
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<Upload />}
+          onClick={() => setOpenImportModal(true)}
+        >
+          Importar Órdenes de Compra
+        </Button>
       </Box>
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setOpenCreateModal(true)}
-        sx={{ marginBottom: 2 }}
-      >
-        Nueva Orden de Compra
-      </Button>
       <PurchaseOrdersCreateModal open={openCreateModal} onClose={() => { setOpenCreateModal(false); fetch(); }} />
       <PurchaseOrdersImportModal 
         open={openImportModal} 
