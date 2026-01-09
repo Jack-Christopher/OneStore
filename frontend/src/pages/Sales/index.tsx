@@ -36,7 +36,6 @@ export default function SalesPage() {
 
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'status', headerName: 'Estado', flex: 1 },
     { field: 'payment_method', headerName: 'Método de pago', flex: 1 },
     { field: 'total_amount', headerName: 'Monto Total', flex: 1 },

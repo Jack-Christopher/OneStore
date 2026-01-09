@@ -24,7 +24,6 @@ export default function WarehousesPage() {
   }, []);
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'address', headerName: 'Dirección', flex: 1 },
     { field: 'phone', headerName: 'Teléfono', flex: 1 },

@@ -106,11 +106,6 @@ export default function AuditPage() {
       }
     },
     {
-      field: 'entity_id',
-      headerName: 'ID',
-      width: 100,
-    },
-    {
       field: 'actions',
       headerName: 'Detalles',
       width: 120,

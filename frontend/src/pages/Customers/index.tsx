@@ -24,7 +24,6 @@ export default function CustomersPage() {
   }, []);
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'document', headerName: 'Documento (RUC/DNI)', flex: 1 },
     { field: 'phone', headerName: 'Teléfono', flex: 1 },

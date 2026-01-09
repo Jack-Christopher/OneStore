@@ -48,7 +48,6 @@ export default function AdminManagersPage() {
   // En un sistema real, necesitarías agregar GET /api/admin/users/manager
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'full_name', headerName: 'Nombre Completo', flex: 1 },
     {

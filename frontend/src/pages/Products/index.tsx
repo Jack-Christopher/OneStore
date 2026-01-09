@@ -42,7 +42,6 @@ export default function ProductsPage() {
 
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'category_name', headerName: 'Categoría', flex: 1 },
     { field: 'unit_name', headerName: 'Unidad', flex: 1 },
@@ -149,8 +148,8 @@ export default function ProductsPage() {
       />
       <div className="mt-4 datagrid-theme" style={{ height: 750 }}>
         <DataGrid
-          showToolbar={false}
-          disableColumnMenu={true}
+          showToolbar={true}
+          disableColumnMenu={false}
           disableRowSelectionOnClick
           sx={{
             '& .MuiDataGrid-columnHeader.stock-column': {

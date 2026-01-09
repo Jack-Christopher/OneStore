@@ -67,7 +67,6 @@ export default function AdminTenantsPage() {
   }
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'legal_name', headerName: 'Razón Social', flex: 1 },
     { field: 'email', headerName: 'Email', flex: 1 },

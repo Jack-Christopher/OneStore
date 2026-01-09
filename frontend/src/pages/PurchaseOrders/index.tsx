@@ -45,7 +45,6 @@ export default function PurchaseOrdersPage() {
 
 
   const columns = [
-    { field: '_id', headerName: 'ID', width: 70 },
     { field: 'reference_number', headerName: 'Referencia', flex: 1 },
     { field: 'status', headerName: 'Estado', flex: 1, renderCell: (params: GridRenderCellParams) => {
       return <Chip label={getStatusLabel(params.row.status)} color={getStatusColor(params.row.status)} size="small" />
