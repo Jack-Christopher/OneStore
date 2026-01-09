@@ -6,9 +6,6 @@ import SalesCreateModal from './createModal'
 // import { useSaleItemsStore } from '@/store/saleItemsStore'
 import { Eye } from 'lucide-react'
 import SalesViewModal from './viewModal'
-import ExportImportButtons from '@/components/ExportImportButtons'
-
-
 export default function SalesPage() {
   const { items: sales, fetch: fetchSales, loading } = useSalesStore();
   // const { items: saleItems, fetch: fetchSaleItems } = useSaleItemsStore();
@@ -63,11 +60,6 @@ export default function SalesPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Ventas </h1>
-      <ExportImportButtons 
-        module="sales" 
-        moduleLabel="Ventas"
-        onImportSuccess={() => fetchSales()}
-      />
       <Button
         variant="contained"
         color="primary"

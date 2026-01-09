@@ -8,9 +8,6 @@ import UnitsOfMeasureEditModal from './editModal'
 import UnitsOfMeasureViewModal from './viewModal'
 import DeleteModal from '@/components/DeleteModal'
 import { deleteUnitOfMeasure } from '@/services/api/unitsOfMeasure'
-import ExportImportButtons from '@/components/ExportImportButtons'
-
-
 export default function UnitsOfMeasurePage() {
   const { items, fetch, loading } = useUnitsOfMeasureStore()
   const [openCreateModal, setOpenCreateModal] = useState(false)
@@ -83,11 +80,6 @@ export default function UnitsOfMeasurePage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Unidades de Medida </h1>
-      <ExportImportButtons 
-        module="unitsOfMeasure" 
-        moduleLabel="Unidades de Medida"
-        onImportSuccess={() => fetch()}
-      />
       <Button 
       variant="contained" 
       color="primary"

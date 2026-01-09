@@ -8,9 +8,6 @@ import DeleteModal from '@/components/DeleteModal'
 import WarehousesViewModal from './viewModal'
 import WarehousesEditModal from './editModal'
 import { deleteWarehouse } from '@/services/api/warehouses'
-import ExportImportButtons from '@/components/ExportImportButtons'
-
-
 export default function WarehousesPage() {
   const { items, fetch, loading } = useWarehousesStore()
   const [openCreateModal, setOpenCreateModal] = useState(false)
@@ -60,11 +57,6 @@ export default function WarehousesPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Bodegas</h1>
-      <ExportImportButtons 
-        module="warehouses" 
-        moduleLabel="Bodegas"
-        onImportSuccess={() => fetch()}
-      />
       <Button
         variant="contained"
         color="primary"

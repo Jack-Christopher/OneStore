@@ -1,15 +1,14 @@
 import { useEffect, useState, useRef } from 'react'
 import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid'
-import { Button, Box, FormControl, InputLabel, Select, MenuItem, Alert, Snackbar } from '@mui/material'
+import { Button, Box } from '@mui/material'
 import { useProductsStore } from '@/store/productsStore'
 import ProductsCreateModal from './createModal'
 import ProductsImportModal from './importModal'
-import { Eye, Pencil, Trash, Upload, Download } from 'lucide-react'
+import { Eye, Pencil, Trash, Upload } from 'lucide-react'
 import DeleteModal from '@/components/DeleteModal'
 import ProductsViewModal from './viewModal'
 import ProductsEditModal from './editModal'
 import { deleteProduct } from '@/services/api/products'
-import { exportModule, type ExportFormat } from '@/services/api/exports'
 
 
 export default function ProductsPage() {
@@ -21,13 +20,6 @@ export default function ProductsPage() {
   const [openImportModal, setOpenImportModal] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const hasFetchedRef = useRef(false)
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv')
-  const [exportLoading, setExportLoading] = useState(false)
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  })
 
   // Fetch data only on mount
   useEffect(() => {
@@ -48,29 +40,6 @@ export default function ProductsPage() {
       })
   }
 
-  const handleExport = async () => {
-    try {
-      setExportLoading(true);
-      await exportModule('products', exportFormat);
-      setSnackbar({
-        open: true,
-        message: `Datos exportados exitosamente en formato ${exportFormat.toUpperCase()}`,
-        severity: 'success',
-      });
-    } catch (error: any) {
-      setSnackbar({
-        open: true,
-        message: `Error al exportar: ${error.message || 'Error desconocido'}`,
-        severity: 'error',
-      });
-    } finally {
-      setExportLoading(false);
-    }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 70 },
@@ -121,7 +90,7 @@ export default function ProductsPage() {
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Productos </h1>
 
-      {/* Export/Import Section */}
+      {/* Import Section */}
       <Box
         sx={{
           display: 'flex',
@@ -134,31 +103,6 @@ export default function ProductsPage() {
           border: '1px solid #e0e0e0',
         }}
       >
-        {/* Export Section */}
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>Formato</InputLabel>
-            <Select
-              value={exportFormat}
-              label="Formato"
-              onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
-            >
-              <MenuItem value="csv">CSV</MenuItem>
-              <MenuItem value="json">JSON</MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Download />}
-            onClick={handleExport}
-            disabled={exportLoading}
-          >
-            Exportar Productos
-          </Button>
-        </Box>
-
-        {/* Import Section */}
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Button
             variant="outlined"
@@ -249,17 +193,6 @@ export default function ProductsPage() {
           getRowId={(row) => row._id}
         />
       </div>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </div>
   )
 }

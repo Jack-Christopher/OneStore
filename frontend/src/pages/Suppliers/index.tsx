@@ -8,9 +8,6 @@ import DeleteModal from '@/components/DeleteModal'
 import SuppliersViewModal from './viewModal'
 import SuppliersEditModal from './editModal'
 import { deleteSupplier } from '@/services/api/suppliers'
-import ExportImportButtons from '@/components/ExportImportButtons'
-
-
 export default function SuppliersPage() {
   const { items, fetch, loading } = useSuppliersStore()
   const [openCreateModal, setOpenCreateModal] = useState(false)
@@ -61,11 +58,6 @@ export default function SuppliersPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Proveedores</h1>
-      <ExportImportButtons
-        module="suppliers"
-        moduleLabel="Proveedores"
-        onImportSuccess={() => fetch()}
-      />
       <Button
         variant="contained"
         color="primary"

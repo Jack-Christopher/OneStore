@@ -10,9 +10,6 @@ import ProductFormulasViewModal from './viewModal'
 import DeleteModal from '@/components/DeleteModal'
 import { deleteProductFormula } from '@/services/api/productFormulas'
 import ProductFormulasEditModal from './editModal'
-import ExportImportButtons from '@/components/ExportImportButtons'
-
-
 export default function ProductFormulasPage() {
   const { items: productFormulas, fetch: fetchProductFormulas, loading } = useProductFormulasStore()
   const [openCreateModal, setOpenCreateModal] = useState(false)
@@ -120,11 +117,6 @@ export default function ProductFormulasPage() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Fórmulas de Productos </h1>
-      <ExportImportButtons 
-        module="productFormulas" 
-        moduleLabel="Fórmulas de Productos"
-        onImportSuccess={() => fetchProductFormulas()}
-      />
       <Button
         variant="contained"
         color="primary"
