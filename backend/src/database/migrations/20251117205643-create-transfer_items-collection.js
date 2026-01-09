@@ -5,31 +5,44 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "transfer_items" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("transfer_items", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "transfer_id", "product_id", "quantity", "created_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              transfer_id: { bsonType: "string" },
-              product_id: { bsonType: "string" },
-              quantity: { bsonType: ["double", "int", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: ["date", "null"] },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "transfer_id", "product_id", "quantity", "created_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            transfer_id: { bsonType: "string" },
+            product_id: { bsonType: "string" },
+            quantity: { bsonType: ["double", "int", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: ["date", "null"] },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("transfer_items", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "transfer_items",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for transfer_items (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

@@ -5,33 +5,46 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "sessions" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("sessions", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["user_id", "tenant_id", "last_activity", "created_at"],
-            properties: {
-              user_id: { bsonType: "string" },
-              tenant_id: { bsonType: "string" },
-              ip_address: { bsonType: ["string", "null"] },
-              user_agent: { bsonType: ["string", "null"] },
-              last_activity: { bsonType: "date" },
-              expires_at: { bsonType: ["date", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["user_id", "tenant_id", "last_activity", "created_at"],
+          properties: {
+            user_id: { bsonType: "string" },
+            tenant_id: { bsonType: "string" },
+            ip_address: { bsonType: ["string", "null"] },
+            user_agent: { bsonType: ["string", "null"] },
+            last_activity: { bsonType: "date" },
+            expires_at: { bsonType: ["date", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "moderate",
-        validationAction: "warn"
-      });
+        }
+      },
+      validationLevel: "moderate",
+      validationAction: "warn"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("sessions", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "sessions",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for sessions (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

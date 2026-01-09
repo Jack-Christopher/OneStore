@@ -5,35 +5,48 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "stock_movements" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("stock_movements", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "warehouse_id", "product_id", "movement_type", "quantity", "created_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              warehouse_id: { bsonType: "string" },
-              product_id: { bsonType: "string" },
-              movement_type: { bsonType: "string", enum: ["purchase", "sale", "adjustment_in", "adjustment_out", "transfer_in", "transfer_out"] },
-              quantity: { bsonType: ["double", "int", "null"] },
-              related_id: { bsonType: ["string", "null"] },
-              comment: { bsonType: ["string", "null"] },
-              metadata: { bsonType: ["object", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: ["date", "null"] },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "warehouse_id", "product_id", "movement_type", "quantity", "created_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            warehouse_id: { bsonType: "string" },
+            product_id: { bsonType: "string" },
+            movement_type: { bsonType: "string", enum: ["purchase", "sale", "adjustment_in", "adjustment_out", "transfer_in", "transfer_out"] },
+            quantity: { bsonType: ["double", "int", "null"] },
+            related_id: { bsonType: ["string", "null"] },
+            comment: { bsonType: ["string", "null"] },
+            metadata: { bsonType: ["object", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: ["date", "null"] },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("stock_movements", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "stock_movements",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for stock_movements (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

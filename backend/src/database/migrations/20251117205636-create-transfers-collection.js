@@ -5,34 +5,47 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "transfers" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("transfers", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "from_warehouse_id", "to_warehouse_id", "user_id", "status", "created_at", "updated_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              from_warehouse_id: { bsonType: "string" },
-              to_warehouse_id: { bsonType: "string" },
-              user_id: { bsonType: "string" },
-              status: { bsonType: "string", enum: ["pending", "completed", "canceled"] },
-              reference: { bsonType: ["string", "null"] },
-              notes: { bsonType: ["string", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "from_warehouse_id", "to_warehouse_id", "user_id", "status", "created_at", "updated_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            from_warehouse_id: { bsonType: "string" },
+            to_warehouse_id: { bsonType: "string" },
+            user_id: { bsonType: "string" },
+            status: { bsonType: "string", enum: ["pending", "completed", "canceled"] },
+            reference: { bsonType: ["string", "null"] },
+            notes: { bsonType: ["string", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("transfers", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "transfers",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for transfers (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

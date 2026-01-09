@@ -5,35 +5,48 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "users" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("users", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "password", "email"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              password: { bsonType: "string" },
-              email: { bsonType: "string" },
-              full_name: { bsonType: ["string", "null"] },
-              role: { bsonType: "string", enum: ["admin", "manager", "clerk"] },
-              is_active: { bsonType: "bool" },
-              last_login_at: { bsonType: ["date", "null"] },
-              metadata: { bsonType: ["object", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "password", "email"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            password: { bsonType: "string" },
+            email: { bsonType: "string" },
+            full_name: { bsonType: ["string", "null"] },
+            role: { bsonType: "string", enum: ["admin", "manager", "clerk"] },
+            is_active: { bsonType: "bool" },
+            last_login_at: { bsonType: ["date", "null"] },
+            metadata: { bsonType: ["object", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("users", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "users",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for users (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

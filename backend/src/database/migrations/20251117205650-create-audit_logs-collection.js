@@ -5,35 +5,48 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "audit_logs" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("audit_logs", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "user_id", "action", "entity", "performed_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              user_id: { bsonType: "string" },
-              action: { bsonType: "string" },
-              entity: { bsonType: "string" },
-              entity_id: { bsonType: ["string", "null"] },
-              old_data: { bsonType: ["object", "null"] },
-              new_data: { bsonType: ["object", "null"] },
-              performed_at: { bsonType: "date" },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "user_id", "action", "entity", "performed_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            user_id: { bsonType: "string" },
+            action: { bsonType: "string" },
+            entity: { bsonType: "string" },
+            entity_id: { bsonType: ["string", "null"] },
+            old_data: { bsonType: ["object", "null"] },
+            new_data: { bsonType: ["object", "null"] },
+            performed_at: { bsonType: "date" },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "moderate",
-        validationAction: "warn"
-      });
+        }
+      },
+      validationLevel: "moderate",
+      validationAction: "warn"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("audit_logs", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "audit_logs",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for audit_logs (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

@@ -5,34 +5,47 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "sale_items" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("sale_items", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "sale_id", "product_id", "quantity", "unit_price", "subtotal", "created_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              sale_id: { bsonType: "string" },
-              product_id: { bsonType: "string" },
-              unit_id: { bsonType: "string" },
-              quantity: { bsonType: ["double", "int", "null"] },
-              unit_price: { bsonType: ["double", "int", "null"] },
-              subtotal: { bsonType: ["double", "int", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: ["date", "null"] },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "sale_id", "product_id", "quantity", "unit_price", "subtotal", "created_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            sale_id: { bsonType: "string" },
+            product_id: { bsonType: "string" },
+            unit_id: { bsonType: "string" },
+            quantity: { bsonType: ["double", "int", "null"] },
+            unit_price: { bsonType: ["double", "int", "null"] },
+            subtotal: { bsonType: ["double", "int", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: ["date", "null"] },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("sale_items", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "sale_items",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for sale_items (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

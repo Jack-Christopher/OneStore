@@ -5,31 +5,44 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "units_of_measure" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("units_of_measure", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "code", "name", "created_at", "updated_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              code: { bsonType: "string" },
-              name: { bsonType: "string" },
-              description: { bsonType: ["string", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "code", "name", "created_at", "updated_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            code: { bsonType: "string" },
+            name: { bsonType: "string" },
+            description: { bsonType: ["string", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("units_of_measure", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "units_of_measure",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for units_of_measure (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

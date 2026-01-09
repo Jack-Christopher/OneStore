@@ -5,33 +5,46 @@ module.exports = {
    * @returns {Promise<void>}
    */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "warehouses" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("warehouses", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["tenant_id", "name", "created_at", "updated_at"],
-            properties: {
-              tenant_id: { bsonType: "string" },
-              name: { bsonType: "string" },
-              address: { bsonType: ["string", "null"] },
-              phone: { bsonType: ["string", "null"] },
-              is_active: { bsonType: "bool" },
-              metadata: { bsonType: ["object", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["tenant_id", "name", "created_at", "updated_at"],
+          properties: {
+            tenant_id: { bsonType: "string" },
+            name: { bsonType: "string" },
+            address: { bsonType: ["string", "null"] },
+            phone: { bsonType: ["string", "null"] },
+            is_active: { bsonType: "bool" },
+            metadata: { bsonType: ["object", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("warehouses", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "warehouses",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          console.log('Note: Could not update validator for warehouses (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)

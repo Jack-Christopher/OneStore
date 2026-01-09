@@ -5,34 +5,49 @@ module.exports = {
  * @returns {Promise<void>}
  */
   async up(db, client) {
-    // Check if collection already exists
-    const collections = await db.listCollections({ name: "tenants" }).toArray();
-    const collectionExists = collections.length > 0;
-
-    if (!collectionExists) {
-      await db.createCollection("tenants", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["name", "created_at", "updated_at"],
-            properties: {
-              name: { bsonType: "string", description: "display name" },
-              legal_name: { bsonType: ["string", "null"] },
-              document_type: { bsonType: ["string", "null"] },
-              document_number: { bsonType: ["string", "null"] },
-              address: { bsonType: ["string", "null"] },
-              phone: { bsonType: ["string", "null"] },
-              email: { bsonType: ["string", "null"] },
-              created_at: { bsonType: "date" },
-              updated_at: { bsonType: "date" },
-              created_by: { bsonType: ["string", "null"] },
-              updated_by: { bsonType: ["string", "null"] }
-            }
+    const validatorConfig = {
+      validator: {
+        $jsonSchema: {
+          bsonType: "object",
+          required: ["name", "created_at", "updated_at"],
+          properties: {
+            name: { bsonType: "string", description: "display name" },
+            legal_name: { bsonType: ["string", "null"] },
+            document_type: { bsonType: ["string", "null"] },
+            document_number: { bsonType: ["string", "null"] },
+            address: { bsonType: ["string", "null"] },
+            phone: { bsonType: ["string", "null"] },
+            email: { bsonType: ["string", "null"] },
+            created_at: { bsonType: "date" },
+            updated_at: { bsonType: "date" },
+            created_by: { bsonType: ["string", "null"] },
+            updated_by: { bsonType: ["string", "null"] }
           }
-        },
-        validationLevel: "strict",
-        validationAction: "error"
-      });
+        }
+      },
+      validationLevel: "strict",
+      validationAction: "error"
+    };
+
+    // Try to create collection, use collMod if it already exists
+    try {
+      await db.createCollection("tenants", validatorConfig);
+    } catch (error) {
+      // Collection already exists - update validator using collMod
+      if (error.codeName === 'NamespaceExists' || error.code === 48 || error.message?.includes('already exists')) {
+        try {
+          await db.command({
+            collMod: "tenants",
+            ...validatorConfig
+          });
+        } catch (collModError) {
+          // If collMod fails, it might be because validator is already set or other reason
+          // Log but don't fail - collection exists and indexes will be created
+          console.log('Note: Could not update validator for tenants (may already be set):', collModError.message);
+        }
+      } else {
+        throw error;
+      }
     }
 
     // Create indexes (idempotent - will skip if already exist)
