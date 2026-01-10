@@ -365,8 +365,16 @@ For production deployments, use the provided deployment script which handles:
 # Make sure the script is executable
 chmod +x deploy.sh
 
-# Run the deployment script
+# Normal deployment (exits if no changes detected)
 ./deploy.sh
+
+# Force deployment even if no new changes are detected
+./deploy.sh --force
+# or
+./deploy.sh -f
+
+# Show help message
+./deploy.sh --help
 ```
 
 **What the script does:**

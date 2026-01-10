@@ -5,6 +5,12 @@
 # 
 # This script automates the deployment process for OneStore in production.
 # It handles: git pull, docker rebuild, migrations, health checks, and rollback.
+#
+# Usage:
+#   ./deploy.sh              # Normal deployment (exits if no changes)
+#   ./deploy.sh --force      # Force deployment even if no changes detected
+#   ./deploy.sh -f           # Short form of --force
+#   ./deploy.sh --help       # Show help message
 ###############################################################################
 
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
@@ -27,6 +33,9 @@ FRONTEND_CONTAINER="onestore_frontend"
 DB_CONTAINER="onestore_db"
 BACKEND_PORT="${BACKEND_PORT:-4000}"
 FRONTEND_PORT="${FRONTEND_PORT:-80}"
+
+# Flags
+FORCE_DEPLOY=false
 
 # Functions
 log() {
@@ -146,8 +155,15 @@ pull_latest_code() {
     local local_commit=$(git rev-parse HEAD)
     
     if [ "$remote_commit" == "$local_commit" ]; then
-        warning "No new changes detected. Already up to date."
-        return 1
+        if [ "$FORCE_DEPLOY" = true ]; then
+            warning "No new changes detected, but --force flag is set. Continuing deployment..."
+            # Still try to pull to ensure we're on the latest commit
+            git pull origin "$current_branch" || true
+            return 0
+        else
+            warning "No new changes detected. Already up to date."
+            return 1
+        fi
     fi
     
     if ! git pull origin "$current_branch"; then
@@ -356,10 +372,42 @@ rollback() {
     fi
 }
 
+# Parse command line arguments
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -f|--force)
+                FORCE_DEPLOY=true
+                shift
+                ;;
+            -h|--help)
+                echo "Usage: $0 [OPTIONS]"
+                echo ""
+                echo "Options:"
+                echo "  -f, --force    Force deployment even if no new changes are detected"
+                echo "  -h, --help     Show this help message"
+                echo ""
+                exit 0
+                ;;
+            *)
+                error "Unknown option: $1"
+                echo "Use -h or --help for usage information"
+                exit 1
+                ;;
+        esac
+    done
+}
+
 # Main deployment function
 main() {
+    # Parse command line arguments
+    parse_arguments "$@"
+    
     echo "=========================================="
     echo "  OneStore Production Deployment"
+    if [ "$FORCE_DEPLOY" = true ]; then
+        echo "  [FORCE MODE]"
+    fi
     echo "=========================================="
     echo ""
     
@@ -377,8 +425,10 @@ main() {
     
     # Step 4: Pull latest code
     if ! pull_latest_code; then
-        info "No changes detected. Exiting."
-        exit 0
+        if [ "$FORCE_DEPLOY" = false ]; then
+            info "No changes detected. Use --force to deploy anyway. Exiting."
+            exit 0
+        fi
     fi
     
     # Step 5: Backup current state
