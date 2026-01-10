@@ -65,8 +65,8 @@ check_prerequisites() {
         missing=1
     fi
     
-    if ! command_exists docker-compose; then
-        error "Docker Compose is not installed"
+    if ! docker compose version >/dev/null 2>&1; then
+        error "Docker Compose plugin is not available. Please install Docker Compose V2."
         missing=1
     fi
     
@@ -176,8 +176,8 @@ backup_current_images() {
 stop_containers() {
     log "Stopping containers..."
     
-    if docker-compose -f "$COMPOSE_FILE" ps -q | grep -q .; then
-        docker-compose -f "$COMPOSE_FILE" stop
+    if docker compose -f "$COMPOSE_FILE" ps -q | grep -q .; then
+        docker compose -f "$COMPOSE_FILE" stop
         success "Containers stopped"
     else
         info "No running containers found"
@@ -188,12 +188,12 @@ stop_containers() {
 rebuild_containers() {
     log "Rebuilding and starting containers..."
     
-    if ! docker-compose -f "$COMPOSE_FILE" build --no-cache; then
+    if ! docker compose -f "$COMPOSE_FILE" build --no-cache; then
         error "Failed to build Docker images"
         exit 1
     fi
     
-    if ! docker-compose -f "$COMPOSE_FILE" up -d; then
+    if ! docker compose -f "$COMPOSE_FILE" up -d; then
         error "Failed to start containers"
         exit 1
     fi
@@ -311,7 +311,7 @@ run_migrations() {
 # Show container status
 show_status() {
     log "Container status:"
-    docker-compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" ps
     
     echo ""
     log "Recent logs (last 20 lines):"

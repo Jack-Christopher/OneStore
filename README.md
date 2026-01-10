@@ -113,10 +113,10 @@ git clone https://github.com/yourusername/onestore.git
 cd onestore
 
 # Start all services (development mode)
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 
 # Or start production services
-docker-compose up --build
+docker compose up --build
 ```
 
 The application will be available at:
@@ -328,7 +328,7 @@ npm run lint
 ### Development
 
 ```bash
-docker-compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up
 ```
 
 This starts:
@@ -341,7 +341,7 @@ This starts:
 #### Quick Start
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 This builds and starts production containers:
@@ -402,16 +402,16 @@ If you prefer to deploy manually:
 git pull origin main  # or your branch
 
 # 2. Rebuild and restart containers
-docker-compose -f docker-compose.yml up -d --build
+docker compose -f docker-compose.yml up -d --build
 
 # 3. Run database migrations
 docker exec -it onestore_api npm run migrate:up
 
 # 4. Verify containers are running
-docker-compose -f docker-compose.yml ps
+docker compose -f docker-compose.yml ps
 
 # 5. Check logs if needed
-docker-compose -f docker-compose.yml logs -f
+docker compose -f docker-compose.yml logs -f
 ```
 
 ## 🧪 Testing
