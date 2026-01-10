@@ -338,14 +338,81 @@ This starts:
 
 ### Production
 
+#### Quick Start
+
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 This builds and starts production containers:
 - Frontend served via Nginx
 - Backend API
 - MongoDB database
+
+#### Automated Deployment Script
+
+For production deployments, use the provided deployment script which handles:
+- ✅ Git pull with version tracking
+- ✅ Docker image rebuild
+- ✅ Database migrations
+- ✅ Health checks for all services
+- ✅ Automatic rollback on failure
+- ✅ Logging and error handling
+
+**Usage:**
+
+```bash
+# Make sure the script is executable
+chmod +x deploy.sh
+
+# Run the deployment script
+./deploy.sh
+```
+
+**What the script does:**
+
+1. **Validates prerequisites** - Checks for Docker, Docker Compose, Git, and required files
+2. **Validates environment** - Verifies required environment variables are set
+3. **Saves current version** - Stores current commit for potential rollback
+4. **Pulls latest code** - Fetches and merges latest changes from repository
+5. **Backs up current state** - Creates backup of current Docker images
+6. **Stops containers** - Gracefully stops running containers
+7. **Rebuilds containers** - Builds new Docker images from latest code
+8. **Starts containers** - Starts all services with new images
+9. **Runs migrations** - Executes pending database migrations
+10. **Health checks** - Verifies all services are healthy and accessible
+11. **Cleanup** - Removes old unused Docker images
+12. **Shows status** - Displays container status and recent logs
+
+**Environment Variables Required:**
+
+The script will check for these required environment variables in your `.env` file:
+- `JWT_SECRET` - Secret key for JWT tokens
+- `MONGO_INITDB_ROOT_PASSWORD` - MongoDB root password
+- `VITE_API_URL` - Frontend API URL (recommended)
+- `BACKEND_PORT` - Backend port (default: 4000)
+- `FRONTEND_PORT` - Frontend port (default: 80)
+
+**Manual Deployment Steps:**
+
+If you prefer to deploy manually:
+
+```bash
+# 1. Pull latest code
+git pull origin main  # or your branch
+
+# 2. Rebuild and restart containers
+docker-compose -f docker-compose.yml up -d --build
+
+# 3. Run database migrations
+docker exec -it onestore_api npm run migrate:up
+
+# 4. Verify containers are running
+docker-compose -f docker-compose.yml ps
+
+# 5. Check logs if needed
+docker-compose -f docker-compose.yml logs -f
+```
 
 ## 🧪 Testing
 

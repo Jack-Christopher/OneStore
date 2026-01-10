@@ -7,3 +7,5 @@ dist
 .idea
 mongo_data
 backend/uploads
+backups/
+.last_deployed_commit
