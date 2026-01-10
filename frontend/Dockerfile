@@ -29,7 +29,7 @@ RUN apk add --no-cache wget
 # Remove default nginx.conf and copy custom nginx configurations
 # We need to do this as root before switching to nginx user
 RUN rm -f /etc/nginx/nginx.conf && \
-    rm -f /etc/nginx/conf.d/default.conf
+  rm -f /etc/nginx/conf.d/default.conf
 COPY nginx-main.conf /etc/nginx/nginx.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -43,16 +43,19 @@ RUN mkdir -p /var/cache/nginx/client_temp && \
   mkdir -p /var/cache/nginx/uwsgi_temp && \
   mkdir -p /var/cache/nginx/scgi_temp && \
   mkdir -p /tmp && \
+  mkdir -p /etc/nginx/ssl && \
   chown -R nginx:nginx /var/cache/nginx && \
   chown -R nginx:nginx /usr/share/nginx/html && \
   chown -R nginx:nginx /var/log/nginx && \
   chown -R nginx:nginx /etc/nginx/conf.d && \
+  chown -R nginx:nginx /etc/nginx/ssl && \
   chown -R nginx:nginx /tmp
 
-# Switch to non-root user
-USER nginx
+# NOTE: Running as root is required for SSL certificate access
+# nginx can still drop privileges internally for worker processes
+# USER nginx
 
-EXPOSE 80
+EXPOSE 80 443
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

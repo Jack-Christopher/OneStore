@@ -9,3 +9,10 @@ mongo_data
 backend/uploads
 backups/
 .last_deployed_commit
+
+# SSL Certificates (never commit private keys)
+ssl-certs/*.pem
+ssl-certs/*.key
+ssl-certs/backup-*
+certbot/conf/
+certbot/www/
