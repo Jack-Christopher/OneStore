@@ -83,7 +83,11 @@ export default function ProductsViewModal({ open, onClose, productId }: Products
                             </tr>
                             <tr>
                                 <td className="py-3 px-4 text-left font-medium text-gray-600">SKU</td>
-                                <td className="py-3 px-4 text-left">{product?.sku}</td>
+                                <td className="py-3 px-4 text-left">{product?.sku || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td className="py-3 px-4 text-left font-medium text-gray-600">Código de Barras</td>
+                                <td className="py-3 px-4 text-left">{product?.barcode || (product as any)?.barcode || '-'}</td>
                             </tr>
                             <tr>
                                 <td className="py-3 px-4 text-left font-medium text-gray-600">Precio de compra</td>

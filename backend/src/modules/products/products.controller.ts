@@ -36,6 +36,21 @@ async function getOne(req: Req, res: Res) {
   }
 }
 
+async function getByBarcode(req: Req, res: Res) {
+  try {
+    const barcode = req.params.barcode;
+    if (!barcode) {
+      return fail(res, "Barcode is required", "VALIDATION_ERROR", 400);
+    }
+    const product = await service.getByBarcode(barcode, req?.user?.id);
+    if (!product) return fail(res, "Product not found with this barcode", "NOT_FOUND", 404);
+    return ok(res, product);
+  } catch (error) {
+    console.error("Error in getByBarcode product:", error);
+    return fail(res, "Failed to fetch product by barcode", "INTERNAL_ERROR", 500);
+  }
+}
+
 async function create(req: Req, res: Res) {
   try {
     const product = await service.create(req.body);
@@ -118,4 +133,4 @@ async function importFromKeyfacil(req: Req, res: Res) {
   }
 }
 
-module.exports = { getAll, getMostSold, getOne, create, update, remove, importFromKeyfacil };
+module.exports = { getAll, getMostSold, getOne, getByBarcode, create, update, remove, importFromKeyfacil };

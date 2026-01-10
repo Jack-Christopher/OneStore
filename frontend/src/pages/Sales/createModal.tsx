@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Select, { type SelectOption } from "@/components/Select";
 import { useProductsStore } from "@/store/productsStore";
 import type { Product } from "@/services/api/products";
+import { getProductByBarcode } from "@/services/api/products";
 import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
 import type { UnitOfMeasure } from "@/services/api/unitsOfMeasure";
 import type { CreateProductFormulaItem, ProductFormula } from "@/services/api/productFormulas";
@@ -20,6 +21,8 @@ import Input from "@/components/Input";
 import { getBaseCurrency, getCurrencyRates } from "@/services/api/settings";
 import { createSaleWithItems } from "@/services/api/sales";
 import { multiply, divide, cleanFloat } from "@/utils/math";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import { ScanBarcode } from "lucide-react";
 
 
 interface SalesCreateModalProps {
@@ -206,6 +209,10 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
   const [openFormulaModal, setOpenFormulaModal] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<SelectOption | null>(null);
   const [desiredQuantity, setDesiredQuantity] = useState<number>(0);
+  
+  // Barcode scanner state
+  const [openBarcodeScanner, setOpenBarcodeScanner] = useState(false);
+  const [isScanningBarcode, setIsScanningBarcode] = useState(false);
 
 
   const handleRemoveItem = (idx: number) => {
@@ -363,6 +370,74 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
   }, [desiredQuantity, selectedFormula, productFormulasItems, handleAddItemWithFormula]);
 
 
+  // Handle barcode scan result - search product by barcode and add to sale
+  const handleBarcodeScan = useCallback(async (barcode: string) => {
+    setIsScanningBarcode(true);
+    setError("");
+    
+    try {
+      const response = await getProductByBarcode(barcode);
+      
+      if (response.success && response.data) {
+        const product = response.data as any;
+        
+        // Create a new item with the found product
+        const newItem = createDefaultSaleItem();
+        newItem.productId = product._id;
+        
+        // Get sub_units_per_unit for price calculation
+        const subUnitsPerUnit = product.subUnitsPerUnit || product.sub_units_per_unit || 1;
+        
+        // Calculate unit price (price per sub-unit if applicable)
+        const baseUnitPrice = product.salePrice || product.sale_price || 0;
+        const pricePerSubUnit = subUnitsPerUnit > 1 ? baseUnitPrice / subUnitsPerUnit : baseUnitPrice;
+        newItem.unitPrice = pricePerSubUnit;
+        
+        // Set currency conversion if using foreign currency
+        if (useForeignCurrency && exchangeRate > 0) {
+          newItem.unitPriceOriginal = multiply(pricePerSubUnit, exchangeRate);
+        } else {
+          newItem.unitPriceOriginal = pricePerSubUnit;
+        }
+        
+        // Set unit from product
+        const unitIdField = product.unitId || product.unit_id;
+        if (typeof unitIdField === 'object' && unitIdField !== null) {
+          newItem.unitId = unitIdField._id || "";
+        } else {
+          newItem.unitId = unitIdField || "";
+        }
+        
+        // Set default quantity to 1
+        newItem.quantity = 1;
+        newItem.subtotal = multiply(newItem.quantity, newItem.unitPrice);
+        if (useForeignCurrency && exchangeRate > 0) {
+          newItem.subtotalOriginal = multiply(newItem.subtotal, exchangeRate);
+        } else {
+          newItem.subtotalOriginal = newItem.subtotal;
+        }
+        
+        // Add item to the list
+        setItems(prev => {
+          const updated = [...prev, newItem];
+          const total = cleanFloat(updated.reduce((sum, it) => sum + (it.subtotal || 0), 0));
+          setSaleForm(s => ({ ...s, totalAmount: total }));
+          return updated;
+        });
+        
+        setOpenBarcodeScanner(false);
+      } else {
+        setError(`Producto no encontrado con código de barras: ${barcode}`);
+      }
+    } catch (err: any) {
+      console.error("Error searching product by barcode:", err);
+      const errorMessage = err?.response?.data?.message || err?.message || "Error al buscar producto";
+      setError(`${errorMessage} (Código: ${barcode})`);
+    } finally {
+      setIsScanningBarcode(false);
+    }
+  }, [useForeignCurrency, exchangeRate, createDefaultSaleItem]);
+
 
   const resetForm = () => {
     setSaleForm(defaultSaleFormData);
@@ -374,6 +449,8 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
     setOpenFormulaModal(false);
     setSelectedFormula(null);
     setDesiredQuantity(0);
+    setOpenBarcodeScanner(false);
+    setIsScanningBarcode(false);
   };
 
   const handleClose = () => {
@@ -817,14 +894,31 @@ export default function SalesCreateModal({ open, onClose, onSuccess }: SalesCrea
             </Box>
           ))}
 
-          <div className="flex justify-center mb-2 gap-2">
+          <div className="flex justify-center mb-2 gap-2 flex-wrap">
             <Button variant="outlined" color="primary" onClick={addEmptyItem}>
               Agregar Item
+            </Button>
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              onClick={() => setOpenBarcodeScanner(true)}
+              startIcon={<ScanBarcode size={18} />}
+              disabled={isScanningBarcode}
+            >
+              Escanear Código
             </Button>
             <Button variant="outlined" color="primary" onClick={() => setOpenFormulaModal(true)}>
               Aplicar Fórmula
             </Button>
           </div>
+          
+          {/* Barcode Scanner Modal */}
+          <BarcodeScanner
+            isOpen={openBarcodeScanner}
+            onScan={handleBarcodeScan}
+            onClose={() => setOpenBarcodeScanner(false)}
+            title="Escanear Producto"
+          />
 
           <Modal open={openFormulaModal} onClose={handleCloseModal} className="flex items-center justify-center">
             <Box sx={boxStyle}>

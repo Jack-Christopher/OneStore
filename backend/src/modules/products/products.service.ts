@@ -22,6 +22,19 @@ async function getOne(id: string) {
   return repo.findById(id);
 }
 
+async function getByBarcode(barcode: string, userId: string) {
+  const tenantId = await getTenantId(userId);
+  const product = await Product.findOne({
+    tenant_id: tenantId,
+    barcode: barcode.trim()
+  })
+    .populate("category_id", "name")
+    .populate("unit_id", "name")
+    .populate("supplier_id", "name")
+    .lean();
+  return product;
+}
+
 async function create(dto: ProductUpdateDTO) {
   // Clean empty strings for optional ObjectId fields - remove them (don't include in DB)
   const cleanedDto: any = { ...dto };
@@ -393,8 +406,10 @@ module.exports = {
   getAll,
   getMostSold,
   getOne,
+  getByBarcode,
   create,
   update,
   remove,
-  importFromKeyfacil
+  importFromKeyfacil,
+  getTenantId
 };

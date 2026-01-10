@@ -31,6 +31,7 @@ const router = express.Router();
 
 router.get("/", authGuard, controller.getAll);
 router.get("/most-sold", authGuard, controller.getMostSold);
+router.get("/barcode/:barcode", authGuard, controller.getByBarcode);
 router.get("/:id", authGuard, controller.getOne);
 router.post("/", authGuard, controller.create);
 router.put("/:id", authGuard, controller.update);

@@ -13,6 +13,8 @@ import { useSuppliersStore } from "@/store/suppliersStore";
 import type { Supplier } from "@/services/api/suppliers";
 import Input from "@/components/Input";
 import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import { ScanBarcode } from "lucide-react";
 
 interface ProductsCreateModalProps {
   open: boolean;
@@ -33,6 +35,7 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
     supplierId: "",
     name: "",
     sku: "",
+    barcode: "",
     purchasePrice: 0,
     salePrice: 0,
     minStock: 0,
@@ -42,6 +45,7 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
   };
   const [form, setForm] = useState<CreateProductPayload>(initialForm);
   const [loading, setLoading] = useState(false);
+  const [openBarcodeScanner, setOpenBarcodeScanner] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
   const [suppliers, setSuppliers] = useState<SelectOption[]>([]);
@@ -200,6 +204,36 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, sku: e.target.value })}
             onBlur={createTrimmedBlurHandler(setForm, 'sku')}
           />
+          
+          <label className="block mb-2 text-sm font-medium">Código de Barras</label>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 3 }}>
+            <input
+              type="text"
+              placeholder="Código de barras"
+              className="border rounded p-2 flex-1"
+              value={form.barcode || ""}
+              onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+              onBlur={createTrimmedBlurHandler(setForm, 'barcode')}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => setOpenBarcodeScanner(true)}
+              sx={{ minWidth: 'auto', p: 1 }}
+              title="Escanear código de barras"
+            >
+              <ScanBarcode size={20} />
+            </Button>
+          </Box>
+          <BarcodeScanner
+            isOpen={openBarcodeScanner}
+            onScan={(barcode) => {
+              setForm({ ...form, barcode });
+              setOpenBarcodeScanner(false);
+            }}
+            onClose={() => setOpenBarcodeScanner(false)}
+            title="Escanear Código de Barras"
+          />
+
           <label className="block mb-2 text-sm font-medium">Precio de Compra</label>
           <Input
             type="number"

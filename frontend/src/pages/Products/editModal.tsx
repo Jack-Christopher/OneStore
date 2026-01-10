@@ -14,6 +14,8 @@ import type { Supplier } from "@/services/api/suppliers";
 import { ProductsErrorMessages } from "@/constants/productsErrors";
 import Alert from "@/components/Alert";
 import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import { ScanBarcode } from "lucide-react";
 
 interface ProductsEditModalProps {
     open: boolean;
@@ -42,6 +44,7 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
     const [categories, setCategories] = useState<SelectOption[]>([]);
     const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
     const [suppliers, setSuppliers] = useState<SelectOption[]>([]);
+    const [openBarcodeScanner, setOpenBarcodeScanner] = useState(false);
 
     const { items: categoryItems, fetch: fetchCategories } = useCategoriesStore();
     const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
@@ -98,6 +101,7 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                         supplierId: res.data?.supplier_id?._id || "",
                         description: res.data?.description || "",
                         sku: res.data?.sku || "",
+                        barcode: res.data?.barcode || "",
                         purchasePrice: res.data?.purchase_price || 0,
                         salePrice: res.data?.sale_price || 0,
                         minStock: res.data?.min_stock || 0,
@@ -193,6 +197,35 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                     <Input type="text" placeholder="Descripción" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                     <label className="block mb-2 text-sm font-medium">SKU</label>
                     <Input type="text" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+                    
+                    <label className="block mb-2 text-sm font-medium">Código de Barras</label>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 3 }}>
+                        <input
+                            type="text"
+                            placeholder="Código de barras"
+                            className="border rounded p-2 flex-1"
+                            value={form.barcode || ""}
+                            onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                        />
+                        <Button
+                            variant="outlined"
+                            onClick={() => setOpenBarcodeScanner(true)}
+                            sx={{ minWidth: 'auto', p: 1 }}
+                            title="Escanear código de barras"
+                        >
+                            <ScanBarcode size={20} />
+                        </Button>
+                    </Box>
+                    <BarcodeScanner
+                        isOpen={openBarcodeScanner}
+                        onScan={(barcode) => {
+                            setForm({ ...form, barcode });
+                            setOpenBarcodeScanner(false);
+                        }}
+                        onClose={() => setOpenBarcodeScanner(false)}
+                        title="Escanear Código de Barras"
+                    />
+
                     <label className="block mb-2 text-sm font-medium">Precio de compra</label>
                     <Input type="number" placeholder="Precio de compra" value={form.purchasePrice} onChange={e => setForm({ ...form, purchasePrice: Number(e.target.value) })} />
                     <label className="block mb-2 text-sm font-medium">Precio de venta</label>

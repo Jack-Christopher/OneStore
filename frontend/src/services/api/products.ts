@@ -9,6 +9,7 @@ export interface Product {
   supplierId?: string & { name: string };
   name: string;
   sku?: string;
+  barcode?: string;
   purchasePrice?: number;
   salePrice?: number;
   minStock?: number;
@@ -29,6 +30,7 @@ export interface CreateProductPayload {
   supplierId: string;
   name: string;
   sku?: string;
+  barcode?: string;
   purchasePrice?: number;
   salePrice?: number;
   minStock?: number;
@@ -45,6 +47,7 @@ export interface UpdateProductPayload {
   supplierId?: string;
   name?: string;
   sku?: string;
+  barcode?: string;
   purchasePrice?: number;
   salePrice?: number;
   minStock?: number;
@@ -85,6 +88,11 @@ export const updateProduct = async (id: string, payload: UpdateProductPayload) =
 
 export const deleteProduct = async (id: string) => {
   const res = await api.delete<ApiResponse<null>>(`${PRODUCT_API_BASE}/${id}`)
+  return res.data
+}
+
+export const getProductByBarcode = async (barcode: string) => {
+  const res = await api.get<ApiResponse<Product>>(`${PRODUCT_API_BASE}/barcode/${encodeURIComponent(barcode)}`)
   return res.data
 }
 
