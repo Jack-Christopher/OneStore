@@ -4,16 +4,17 @@ import type { ApiResponse } from "@/types/api";
 export interface Product {
   _id: string;
   tenantId: string;
-  categoryId: string & { name: string };
-  unitId: string & { name: string };
+  categoryId?: string & { name: string };
+  unitId?: string & { name: string };
+  supplierId?: string & { name: string };
   name: string;
-  sku: string;
-  purchasePrice: number;
-  salePrice: number;
-  minStock: number;
-  maxStock: number;
-  subUnitsPerUnit: number;
-  description: string;
+  sku?: string;
+  purchasePrice?: number;
+  salePrice?: number;
+  minStock?: number;
+  maxStock?: number;
+  subUnitsPerUnit?: number;
+  description?: string;
   currentStock?: number;
 }
 
@@ -23,16 +24,17 @@ export interface MostSoldProduct extends Product {
 
 export interface CreateProductPayload {
   tenantId: string;
-  categoryId: string;
-  unitId: string;
+  categoryId?: string;
+  unitId?: string;
+  supplierId: string;
   name: string;
-  sku: string;
-  purchasePrice: number;
-  salePrice: number;
-  minStock: number;
-  maxStock: number;
-  subUnitsPerUnit: number;
-  description: string;
+  sku?: string;
+  purchasePrice?: number;
+  salePrice?: number;
+  minStock?: number;
+  maxStock?: number;
+  subUnitsPerUnit?: number;
+  description?: string;
 }
 
 export interface UpdateProductPayload {
@@ -40,6 +42,7 @@ export interface UpdateProductPayload {
   tenantId?: string;
   categoryId?: string;
   unitId?: string;
+  supplierId?: string;
   name?: string;
   sku?: string;
   purchasePrice?: number;
@@ -91,7 +94,7 @@ export const deleteProduct = async (id: string) => {
 export const importFromKeyfacil = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  
+
   const res = await api.post<ApiResponse<{
     success: number;
     failed: number;

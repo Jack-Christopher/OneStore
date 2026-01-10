@@ -16,6 +16,7 @@ module.exports = {
         const productsList = await Product.find({ tenant_id: tenantId })
           .populate("category_id", "name")
           .populate("unit_id", "name")
+          .populate("supplier_id", "name")
           .lean();
 
         const warehouseProducts = await WarehouseProduct.find({ tenant_id: tenantId }).lean();
@@ -46,6 +47,7 @@ module.exports = {
         const allProducts = await Product.find({ tenant_id: tenantId })
           .populate("category_id", "name")
           .populate("unit_id", "name")
+          .populate("supplier_id", "name")
           .lean();
 
         // Step 2: Aggregate sale items for total sold by product
@@ -88,15 +90,27 @@ module.exports = {
   findById(id: string) {
     return Product.findById(id)
       .populate("category_id", "name")
-      .populate("unit_id", "name");
+      .populate("unit_id", "name")
+      .populate("supplier_id", "name")
+      .lean();
   },
 
   create(data: ProductDTO) {
-    return Product.create(data);
+    return Product.create(data).then((product: any) => {
+      return Product.findById(product._id)
+        .populate("category_id", "name")
+        .populate("unit_id", "name")
+        .populate("supplier_id", "name")
+        .lean();
+    });
   },
 
   update(id: string, data: ProductDTO) {
-    return Product.findByIdAndUpdate(id, data, { new: true });
+    return Product.findByIdAndUpdate(id, data, { new: true })
+      .populate("category_id", "name")
+      .populate("unit_id", "name")
+      .populate("supplier_id", "name")
+      .lean();
   },
 
   delete(id: string) {

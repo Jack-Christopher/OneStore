@@ -39,7 +39,16 @@ async function getOne(req: Req, res: Res) {
 async function create(req: Req, res: Res) {
   try {
     const product = await service.create(req.body);
-    await auditCreate("Product", product, req);
+    
+    // Convert to plain object for audit to avoid circular references
+    let productForAudit = product;
+    if (product && typeof product.toObject === 'function') {
+      productForAudit = product.toObject({ depopulate: true });
+    } else if (product && typeof product.toJSON === 'function') {
+      productForAudit = product.toJSON();
+    }
+    
+    await auditCreate("Product", productForAudit, req);
     return ok(res, product);
 
   } catch (error) {

@@ -9,6 +9,8 @@ import { useCategoriesStore } from "@/store/categoriesStore";
 import type { Category } from "@/services/api/categories";
 import type { CreateProductPayload } from "@/services/api/products";
 import { useUnitsOfMeasureStore } from "@/store/unitsOfMeasureStore";
+import { useSuppliersStore } from "@/store/suppliersStore";
+import type { Supplier } from "@/services/api/suppliers";
 import Input from "@/components/Input";
 import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 
@@ -22,11 +24,13 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
   const addProduct = useProductsStore(s => s.add);
   const { items: categoryItems, fetch: fetchCategories } = useCategoriesStore();
   const { items: unitsOfMeasureItems, fetch: fetchUnitsOfMeasure } = useUnitsOfMeasureStore();
+  const { items: supplierItems, fetch: fetchSuppliers } = useSuppliersStore();
   const [error, setError] = useState("");
   const initialForm: CreateProductPayload = {
     tenantId: useAuthStore.getState().authUser?.user?.tenantId || "orphan",
     categoryId: "",
     unitId: "",
+    supplierId: "",
     name: "",
     sku: "",
     purchasePrice: 0,
@@ -40,11 +44,19 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<SelectOption[]>([]);
+  const [suppliers, setSuppliers] = useState<SelectOption[]>([]);
 
   const toSelectOption = (category: Category) => {
     return {
       value: category._id,
       label: category.name
+    }
+  }
+
+  const toSupplierSelectOption = (supplier: Supplier) => {
+    return {
+      value: supplier._id,
+      label: supplier.name
     }
   }
 
@@ -75,6 +87,10 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
       .then(() => {
         setUnitsOfMeasure(unitsOfMeasureItems.map((uomi) => toSelectOption(uomi)));
       });
+    fetchSuppliers()
+      .then(() => {
+        setSuppliers(supplierItems.map((si) => toSupplierSelectOption(si)));
+      });
   }, [])
 
   const resetForm = () => {
@@ -93,44 +109,14 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
     setLoading(true);
     setError("")
 
-    if (!form.name || !form.sku || !form.purchasePrice || !form.salePrice || !form.minStock || !form.maxStock || !form.description) {
-      setError("Debe completar todos los campos");
+    if (!form.name || form.name.trim() === "") {
+      setError("El nombre es obligatorio");
       setLoading(false);
       return;
     }
 
-    if (!form.categoryId || form.categoryId === "") {
-      setError("Categoría requerida");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.unitId || form.unitId === "") {
-      setError("Unidad de medida requerida");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.purchasePrice || form.purchasePrice <= 0) {
-      setError("Precio de compra debe ser mayor a 0");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.salePrice || form.salePrice <= 0) {
-      setError("Precio de venta debe ser mayor a 0");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.minStock || form.minStock <= 0) {
-      setError("Stock mínimo debe ser mayor a 0");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.maxStock || form.maxStock <= 0) {
-      setError("Stock máximo debe ser mayor a 0");
+    if (!form.supplierId || form.supplierId === "") {
+      setError("El proveedor es obligatorio");
       setLoading(false);
       return;
     }
@@ -151,10 +137,10 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
       // Use the parsed error from axios interceptor or parse it ourselves
       const errorMessage = error?.userMessage || error?.parsedError?.message || error?.response?.data?.message;
       const errorCode = error?.errorCode || error?.parsedError?.code || error?.response?.data?.code;
-      
+
       // Try to get message from error constants first, then use parsed message
-      const msg = errorCode && ProductsErrorMessages[errorCode] 
-        ? ProductsErrorMessages[errorCode] 
+      const msg = errorCode && ProductsErrorMessages[errorCode]
+        ? ProductsErrorMessages[errorCode]
         : errorMessage || "Ocurrió un error inesperado";
       setError(msg);
     } finally {
@@ -163,28 +149,38 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
   }
 
   return (
-    <Modal 
-      open={open} 
-      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }} 
-      className="flex items-center justify-center" 
+    <Modal
+      open={open}
+      onClose={(e, reason) => { if (reason !== 'backdropClick') handleClose(); }}
+      className="flex items-center justify-center"
     >
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
-          <label className="block mb-2 text-sm font-medium">Nombre</label>
-          <input 
-            type="text" 
-            placeholder="Nombre" 
-            className="border rounded p-2 w-full mb-3" 
-            value={form.name} 
+          <label className="block mb-2 text-sm font-medium">Nombre <span className="text-red-500">*</span></label>
+          <input
+            type="text"
+            placeholder="Nombre"
+            className="border rounded p-2 w-full mb-3"
+            value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
             onBlur={createTrimmedBlurHandler(setForm, 'name')}
+            required
+          />
+
+          <label className="block mb-2 text-sm font-medium">Proveedor <span className="text-red-500">*</span></label>
+          <Select
+            options={suppliers}
+            setFormInput={(value) => setForm({ ...form, supplierId: value })}
+            value={form.supplierId || ""}
+            styles="border rounded p-2 w-full mb-3"
           />
 
           <label className="block mb-2 text-sm font-medium">Categoría</label>
           <Select
             options={categories}
             setFormInput={(value) => setForm({ ...form, categoryId: value })}
+            value={form.categoryId || ""}
             styles="border rounded p-2 w-full mb-3"
           />
 
@@ -192,6 +188,7 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
           <Select
             options={unitsOfMeasure}
             setFormInput={(value) => setForm({ ...form, unitId: value })}
+            value={form.unitId || ""}
             styles="border rounded p-2 w-full mb-3"
           />
 
@@ -243,10 +240,10 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
           />
           <p className="text-xs text-gray-500 mb-3">Si el producto se vende fraccionado (ej: bolsa de 25kg vendida por kg), indica cuántas sub-unidades contiene cada unidad. Default: 1</p>
           <label className="block mb-2 text-sm font-medium">Descripción</label>
-          <textarea 
-            placeholder="Descripción" 
-            className="border rounded p-2 w-full mb-3" 
-            value={form.description} 
+          <textarea
+            placeholder="Descripción"
+            className="border rounded p-2 w-full mb-3"
+            value={form.description}
             onChange={e => setForm({ ...form, description: e.target.value })}
             onBlur={createTrimmedBlurHandler(setForm, 'description')}
           />

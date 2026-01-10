@@ -20,6 +20,14 @@ function extractFieldFromMongoError(error: MongoError): string | null {
   if (error.keyPattern) {
     const keys = Object.keys(error.keyPattern);
     if (keys.length > 0) {
+      // For compound indexes, prioritize non-tenant_id fields
+      // For products, if both tenant_id and name are present, return 'name'
+      if (keys.includes('name')) {
+        return 'name';
+      }
+      if (keys.includes('sku')) {
+        return 'sku';
+      }
       // Remove tenant_id from the key if present (it's usually part of compound indexes)
       const field = keys.find(k => k !== 'tenant_id') || keys[0];
       return field;
@@ -30,6 +38,13 @@ function extractFieldFromMongoError(error: MongoError): string | null {
   if (error.keyValue) {
     const keys = Object.keys(error.keyValue);
     if (keys.length > 0) {
+      // For compound indexes, prioritize non-tenant_id fields
+      if (keys.includes('name')) {
+        return 'name';
+      }
+      if (keys.includes('sku')) {
+        return 'sku';
+      }
       const field = keys.find(k => k !== 'tenant_id') || keys[0];
       return field;
     }
@@ -74,7 +89,11 @@ function getDuplicateKeyMessage(field: string | null, entityType?: string): stri
           return 'Ya existe un producto con este SKU. Por favor, utiliza un SKU diferente.';
         }
         if (field === 'name') {
-          return 'Ya existe un producto con este nombre. Por favor, utiliza un nombre diferente.';
+          return 'Ya existe un producto con este nombre en tu tenant. Por favor, utiliza un nombre diferente.';
+        }
+        // Si el campo es 'tenant_id' o una combinación, probablemente es el índice único tenant_id + name
+        if (!field || field === 'tenant_id') {
+          return 'Ya existe un producto con este nombre en tu tenant. Por favor, utiliza un nombre diferente.';
         }
         break;
       case 'warehouse':
@@ -106,7 +125,11 @@ function getDuplicateKeyMessage(field: string | null, entityType?: string): stri
     }
   }
 
-  // Generic message
+  // Generic message - but for products with name field, be more specific
+  if (entityType && (entityType.toLowerCase() === 'product' || entityType.toLowerCase() === 'products') && field === 'name') {
+    return 'Ya existe un producto con este nombre en tu tenant. Por favor, utiliza un nombre diferente.';
+  }
+
   return `Ya existe un registro con este ${fieldName}. Por favor, utiliza un ${fieldName} diferente.`;
 }
 

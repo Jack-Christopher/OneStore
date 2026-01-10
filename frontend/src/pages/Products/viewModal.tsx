@@ -14,23 +14,23 @@ export default function ProductsViewModal({ open, onClose, productId }: Products
 
     useEffect(() => {
         if (productId) {
-          getProduct(productId)
-            .then((res) => {
-              if (res.success) {
-                setProduct(res.data)
-                console.log("product", res.data)
-              } else {
-                console.error("Error fetching product:", res.message)
-                setProduct(null)
-              }
-            })
-            .catch((err) => {
-              console.error("Error fetching product:", err)
-              setProduct(null)
-            })
+            getProduct(productId)
+                .then((res) => {
+                    if (res.success) {
+                        setProduct(res.data)
+                        console.log("product", res.data)
+                    } else {
+                        console.error("Error fetching product:", res.message)
+                        setProduct(null)
+                    }
+                })
+                .catch((err) => {
+                    console.error("Error fetching product:", err)
+                    setProduct(null)
+                })
         }
-      }, [productId])
-    
+    }, [productId])
+
 
     return (
         <Modal open={open} onClose={onClose}>
@@ -62,8 +62,12 @@ export default function ProductsViewModal({ open, onClose, productId }: Products
                                 <td className="py-3 px-4 text-left">{product?.name}</td>
                             </tr>
                             <tr>
+                                <td className="py-3 px-4 text-left font-medium text-gray-600">Proveedor</td>
+                                <td className="py-3 px-4 text-left">{product?.supplier_id?.name || (product as any)?.supplier_id?.name || '-'}</td>
+                            </tr>
+                            <tr>
                                 <td className="py-3 px-4 text-left font-medium text-gray-600">Categoría</td>
-                                <td className="py-3 px-4 text-left">{product?.category_id?.name}</td>
+                                <td className="py-3 px-4 text-left">{product?.category_id?.name || '-'}</td>
                             </tr>
                             <tr>
                                 <td className="py-3 px-4 text-left font-medium text-gray-600">Unidad</td>

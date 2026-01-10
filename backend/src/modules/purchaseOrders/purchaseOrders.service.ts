@@ -230,17 +230,17 @@ async function findOrCreateSupplier(tenantId: string, document: string, name: st
 }
 
 /**
- * Busca o crea un producto por SKU
+ * Busca o crea un producto por nombre (unicidad basada en nombre)
  */
 async function findOrCreateProduct(tenantId: string, sku: string, name: string, userId: string): Promise<string> {
-  if (!sku || !name) {
-    throw new Error('SKU y nombre del producto son requeridos');
+  if (!name) {
+    throw new Error('El nombre del producto es requerido');
   }
 
-  // Buscar producto existente por SKU
+  // Buscar producto existente por nombre (unicidad basada en nombre)
   const existingProduct = await Product.findOne({
     tenant_id: tenantId,
-    sku: sku.trim()
+    name: name.trim()
   }).lean();
 
   if (existingProduct) {

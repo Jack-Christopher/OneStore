@@ -43,6 +43,7 @@ export default function ProductsPage() {
 
   const columns = [
     { field: 'name', headerName: 'Nombre', flex: 1 },
+    { field: 'supplier_name', headerName: 'Proveedor', flex: 1 },
     { field: 'category_name', headerName: 'Categoría', flex: 1 },
     { field: 'unit_name', headerName: 'Unidad', flex: 1 },
     { field: 'sku', headerName: 'SKU', flex: 1 },
@@ -97,7 +98,7 @@ export default function ProductsPage() {
         >
           Agregar Producto
         </Button>
-        
+
         <Button
           variant="contained"
           color="primary"
@@ -167,6 +168,8 @@ export default function ProductsPage() {
             category_name: p.category_id?.name ?? "",
             // @ts-expect-error: Accessing snake_case property from an untyped object that might have it
             unit_name: p.unit_id?.name ?? "",
+            // @ts-expect-error: Accessing snake_case property from an untyped object that might have it
+            supplier_name: p.supplier_id?.name ?? "",
             currentStock: p.currentStock ?? 0
           }))
             : []}
