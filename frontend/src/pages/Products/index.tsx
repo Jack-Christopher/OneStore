@@ -4,7 +4,7 @@ import { Button, Box } from '@mui/material'
 import { useProductsStore } from '@/store/productsStore'
 import ProductsCreateModal from './createModal'
 import ProductsImportModal from './importModal'
-import { Eye, Pencil, Trash, Upload, RefreshCw } from 'lucide-react'
+import { Eye, Pencil, Trash, Upload, Diff } from 'lucide-react'
 import DeleteModal from '@/components/DeleteModal'
 import ProductsViewModal from './viewModal'
 import ProductsEditModal from './editModal'
@@ -47,7 +47,6 @@ export default function ProductsPage() {
 
   const columns = [
     { field: 'name', headerName: 'Nombre', flex: 1 },
-    { field: 'supplier_name', headerName: 'Proveedor', flex: 1 },
     { field: 'category_name', headerName: 'Categoría', flex: 1 },
     { field: 'unit_name', headerName: 'Unidad', flex: 1 },
     { field: 'sku', headerName: 'SKU', flex: 1 },
@@ -63,11 +62,8 @@ export default function ProductsPage() {
         <span style={{ fontWeight: 'bold' }}>{params.value ?? 0}</span>
       )
     },
-    { field: 'min_stock', headerName: 'Stock mínimo', flex: 1 },
-    { field: 'max_stock', headerName: 'Stock máximo', flex: 1 },
-    { field: 'description', headerName: 'Description', flex: 1 },
     {
-      field: 'actions', headerName: 'Acciones', width: 250, renderCell: (params: GridRenderCellParams) => {
+      field: 'actions', headerName: 'Acciones', width: 300, renderCell: (params: GridRenderCellParams) => {
         return (
           <div style={{ display: 'flex', gap: 5 }}>
             <Button variant="text" color="primary" size="small" onClick={() => {
@@ -76,7 +72,7 @@ export default function ProductsPage() {
             }}><Eye /></Button>
             <Button
               variant="text"
-              color="primary"
+              color="warning"
               size="small"
               title="Modificar stock"
               onClick={() => {
@@ -87,7 +83,7 @@ export default function ProductsPage() {
                 })
                 setOpenAdjustStockModal(true)
               }}
-            ><RefreshCw /></Button>
+            ><Diff /></Button>
             <Button variant="text" style={{ color: '#FFC107' }} size="small" onClick={() => {
               setOpenEditModal(true)
               setSelectedProductId(params.row._id as string)
@@ -197,8 +193,6 @@ export default function ProductsPage() {
             category_name: p.category_id?.name ?? "",
             // @ts-expect-error: Accessing snake_case property from an untyped object that might have it
             unit_name: p.unit_id?.name ?? "",
-            // @ts-expect-error: Accessing snake_case property from an untyped object that might have it
-            supplier_name: p.supplier_id?.name ?? "",
             currentStock: p.currentStock ?? 0
           }))
             : []}
