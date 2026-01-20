@@ -133,4 +133,43 @@ async function importFromKeyfacil(req: Req, res: Res) {
   }
 }
 
-module.exports = { getAll, getMostSold, getOne, getByBarcode, create, update, remove, importFromKeyfacil };
+/**
+ * Ajusta el stock total del producto al valor deseado.
+ * Crea un StockMovement (adjustment_in/out) y actualiza warehouse_products.
+ */
+async function adjustStock(req: Req, res: Res) {
+  try {
+    const productId = req.params.id;
+    const body: any = req.body || {};
+
+    // Accept both names for convenience
+    const desiredStockRaw = body.desiredStock ?? body.newStock ?? body.stock ?? body.quantity;
+    const desiredStock = Number(desiredStockRaw);
+
+    if (!Number.isFinite(desiredStock)) {
+      return fail(res, "El stock deseado es requerido y debe ser numérico", "VALIDATION_ERROR", 400);
+    }
+    if (desiredStock < 0) {
+      return fail(res, "El stock deseado no puede ser negativo", "VALIDATION_ERROR", 400);
+    }
+
+    const data = await service.adjustStockTo(productId, desiredStock, req?.user?.id, {
+      warehouseId: body.warehouseId,
+      comment: body.comment,
+      metadata: body.metadata
+    });
+
+    // Audit stock movement creation if any movement was generated
+    if (data?.movement) {
+      await auditCreate("StockMovement", data.movement, req);
+    }
+
+    return ok(res, data);
+  } catch (error: any) {
+    console.error("Error in adjustStock:", error);
+    const msg = error?.message || "Failed to adjust stock";
+    return fail(res, msg, "INTERNAL_ERROR", 500);
+  }
+}
+
+module.exports = { getAll, getMostSold, getOne, getByBarcode, create, update, remove, importFromKeyfacil, adjustStock };

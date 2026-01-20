@@ -4,21 +4,25 @@ import { Button, Box } from '@mui/material'
 import { useProductsStore } from '@/store/productsStore'
 import ProductsCreateModal from './createModal'
 import ProductsImportModal from './importModal'
-import { Eye, Pencil, Trash, Upload } from 'lucide-react'
+import { Eye, Pencil, Trash, Upload, RefreshCw } from 'lucide-react'
 import DeleteModal from '@/components/DeleteModal'
 import ProductsViewModal from './viewModal'
 import ProductsEditModal from './editModal'
+import ProductsAdjustStockModal from './adjustStockModal'
 import { deleteProduct } from '@/services/api/products'
 
 
 export default function ProductsPage() {
   const { items, fetch, loading } = useProductsStore()
+  const updateCurrentStock = useProductsStore((s) => s.updateCurrentStock)
   const [openCreateModal, setOpenCreateModal] = useState(false)
   const [openViewModal, setOpenViewModal] = useState(false)
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [openImportModal, setOpenImportModal] = useState(false)
+  const [openAdjustStockModal, setOpenAdjustStockModal] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [selectedProductForStock, setSelectedProductForStock] = useState<{ _id: string; name: string; currentStock: number } | null>(null)
   const hasFetchedRef = useRef(false)
 
   // Fetch data only on mount
@@ -70,6 +74,20 @@ export default function ProductsPage() {
               setOpenViewModal(true)
               setSelectedProductId(params.row._id as string)
             }}><Eye /></Button>
+            <Button
+              variant="text"
+              color="primary"
+              size="small"
+              title="Modificar stock"
+              onClick={() => {
+                setSelectedProductForStock({
+                  _id: params.row._id as string,
+                  name: String(params.row.name || ""),
+                  currentStock: Number(params.row.currentStock ?? 0),
+                })
+                setOpenAdjustStockModal(true)
+              }}
+            ><RefreshCw /></Button>
             <Button variant="text" style={{ color: '#FFC107' }} size="small" onClick={() => {
               setOpenEditModal(true)
               setSelectedProductId(params.row._id as string)
@@ -127,6 +145,17 @@ export default function ProductsPage() {
         onClose={() => setOpenEditModal(false)}
         productId={selectedProductId}
         onSuccess={refreshData}
+      />
+      <ProductsAdjustStockModal
+        open={openAdjustStockModal}
+        onClose={() => setOpenAdjustStockModal(false)}
+        product={selectedProductForStock}
+        onSuccess={(newCurrentStock) => {
+          if (selectedProductForStock?._id) {
+            updateCurrentStock(selectedProductForStock._id, newCurrentStock)
+            setSelectedProductForStock((prev) => prev ? ({ ...prev, currentStock: newCurrentStock }) : prev)
+          }
+        }}
       />
       <DeleteModal
         open={openDeleteModal}

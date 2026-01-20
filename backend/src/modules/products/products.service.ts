@@ -9,6 +9,10 @@ const Category = require("../../database/models/Category");
 const UnitOfMeasure = require("../../database/models/UnitOfMeasure");
 const Supplier = require("../../database/models/Supplier");
 const User = require("../../database/models/User");
+const WarehouseProduct = require("../../database/models/WarehouseProduct");
+const Warehouse = require("../../database/models/Warehouse");
+const stockMovementsService = require("../stockMovements/stockMovements.service");
+const warehouseProductsService = require("../warehouseProducts/warehouseProducts.service");
 
 async function getAll(user_id: string) {
   return repo.findAll(user_id);
@@ -411,5 +415,127 @@ module.exports = {
   update,
   remove,
   importFromKeyfacil,
-  getTenantId
+  getTenantId,
+  adjustStockTo
 };
+
+function sumStock(warehouseProducts: any[]): number {
+  return (warehouseProducts || []).reduce((sum: number, wp: any) => sum + (Number(wp?.quantity) || 0), 0);
+}
+
+async function pickWarehouseIdForAdjustment(
+  tenantId: string,
+  productId: string,
+  delta: number
+): Promise<{ warehouseId: string; warehouseProducts: any[] }> {
+  const warehouseProducts = await WarehouseProduct.find({ tenant_id: tenantId, product_id: productId }).lean();
+
+  if (warehouseProducts.length > 0) {
+    if (delta < 0) {
+      const sorted = [...warehouseProducts].sort((a: any, b: any) => (Number(b.quantity) || 0) - (Number(a.quantity) || 0));
+      return { warehouseId: sorted[0].warehouse_id, warehouseProducts };
+    }
+    return { warehouseId: warehouseProducts[0].warehouse_id, warehouseProducts };
+  }
+
+  const warehouse = await Warehouse.findOne({ tenant_id: tenantId, is_active: true }).lean();
+  if (!warehouse) {
+    const err: any = new Error("No existe una bodega activa para poder ajustar el stock");
+    err.code = "NO_WAREHOUSE";
+    throw err;
+  }
+
+  return { warehouseId: warehouse._id.toString(), warehouseProducts };
+}
+
+/**
+ * Ajusta el stock total del producto al valor deseado (a nivel de tenant).
+ * - Calcula el stock actual como suma de `warehouse_products.quantity`
+ * - Calcula delta = desired - current
+ * - Crea un StockMovement adjustment_in/out por |delta|
+ * - Aplica el incremento/decremento en una bodega (seleccionada automáticamente si no se especifica)
+ */
+async function adjustStockTo(
+  productId: string,
+  desiredStock: number,
+  userId: string,
+  opts?: { warehouseId?: string; comment?: string; metadata?: any }
+) {
+  const tenantId = await getTenantId(userId);
+
+  const product = await Product.findOne({ _id: productId, tenant_id: tenantId }).lean();
+  if (!product) {
+    const err: any = new Error("Producto no encontrado");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+
+  const existingWarehouseProducts = await WarehouseProduct.find({ tenant_id: tenantId, product_id: productId }).lean();
+  const currentStock = sumStock(existingWarehouseProducts);
+  const delta = desiredStock - currentStock;
+
+  // Avoid floating point noise
+  if (Math.abs(delta) < 1e-9) {
+    return {
+      productId,
+      previousStock: currentStock,
+      desiredStock,
+      delta: 0,
+      newCurrentStock: currentStock,
+      movement: null
+    };
+  }
+
+  const warehouseId =
+    opts?.warehouseId ||
+    (await pickWarehouseIdForAdjustment(tenantId, productId, delta)).warehouseId;
+
+  const movementType = delta > 0 ? "adjustment_in" : "adjustment_out";
+  const quantity = Math.abs(delta);
+  const comment =
+    opts?.comment ||
+    `Ajuste manual de stock (${currentStock} -> ${desiredStock})`;
+
+  const movement = await stockMovementsService.create({
+    tenantId,
+    warehouseId,
+    productId,
+    movementType,
+    quantity,
+    relatedId: productId,
+    comment,
+    metadata: opts?.metadata,
+    createdBy: userId
+  });
+
+  let updatedWarehouseProduct: any = null;
+  if (delta > 0) {
+    updatedWarehouseProduct = await warehouseProductsService.incrementQuantity(
+      tenantId,
+      warehouseId,
+      productId,
+      quantity
+    );
+  } else {
+    updatedWarehouseProduct = await warehouseProductsService.decrementQuantity(
+      tenantId,
+      warehouseId,
+      productId,
+      quantity
+    );
+  }
+
+  const afterWarehouseProducts = await WarehouseProduct.find({ tenant_id: tenantId, product_id: productId }).lean();
+  const newCurrentStock = sumStock(afterWarehouseProducts);
+
+  return {
+    productId,
+    warehouseId,
+    previousStock: currentStock,
+    desiredStock,
+    delta,
+    newCurrentStock,
+    movement,
+    warehouseProduct: updatedWarehouseProduct
+  };
+}

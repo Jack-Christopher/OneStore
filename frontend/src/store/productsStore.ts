@@ -13,6 +13,7 @@ interface ProductsState {
   edit: (id: string, data: UpdateProductPayload) => Promise<void>
   remove: (id: string) => Promise<void>
   importFromKeyfacil: (file: File) => Promise<{ success: number; failed: number; errors: string[] }>
+  updateCurrentStock: (id: string, currentStock: number) => void
 }
 
 export const useProductsStore = create<ProductsState>((set, get) => ({
@@ -86,5 +87,10 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     } finally {
       set({ loading: false })
     }
-  }
+  },
+
+  updateCurrentStock: (id: string, currentStock: number) => {
+    const updated = get().items.map((p) => (p._id === id ? ({ ...p, currentStock } as Product) : p))
+    set({ items: updated })
+  },
 }))

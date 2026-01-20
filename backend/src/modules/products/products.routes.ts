@@ -34,6 +34,7 @@ router.get("/most-sold", authGuard, controller.getMostSold);
 router.get("/barcode/:barcode", authGuard, controller.getByBarcode);
 router.get("/:id", authGuard, controller.getOne);
 router.post("/", authGuard, controller.create);
+router.post("/:id/adjust-stock", authGuard, controller.adjustStock);
 router.put("/:id", authGuard, controller.update);
 router.delete("/:id", authGuard, controller.remove);
 

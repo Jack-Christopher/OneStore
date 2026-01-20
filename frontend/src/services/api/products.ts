@@ -114,3 +114,24 @@ export const importFromKeyfacil = async (file: File) => {
   });
   return res.data;
 }
+
+export interface AdjustProductStockPayload {
+  desiredStock: number;
+  warehouseId?: string;
+  comment?: string;
+  metadata?: any;
+}
+
+export interface AdjustProductStockResult {
+  productId: string;
+  warehouseId?: string;
+  previousStock: number;
+  desiredStock: number;
+  delta: number;
+  newCurrentStock: number;
+}
+
+export const adjustProductStock = async (id: string, payload: AdjustProductStockPayload) => {
+  const res = await api.post<ApiResponse<AdjustProductStockResult>>(`${PRODUCT_API_BASE}/${id}/adjust-stock`, payload)
+  return res.data
+}
