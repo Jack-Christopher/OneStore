@@ -106,7 +106,8 @@ export const MainLayout = () => {
 
               links = [...links, ...commonLinks];
 
-              return links;
+              // Sort all menu items alphabetically by label (Spanish locale)
+              return links.sort((a, b) => a.label.localeCompare(b.label, "es"));
             })().map((link) => (
               <Link
                 key={link.to}
