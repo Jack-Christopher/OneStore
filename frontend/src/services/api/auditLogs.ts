@@ -58,3 +58,16 @@ export const getAuditLog = async (id: string) => {
   return res.data;
 };
 
+export interface AllowedUser {
+  _id: string;
+  email: string;
+  full_name?: string;
+  role: string;
+  tenant_id: string;
+}
+
+export const getAllowedUsers = async () => {
+  const res = await api.get<ApiResponse<AllowedUser[]>>(`${AUDIT_LOGS_API_BASE}/allowed-users`);
+  return res.data;
+};
+

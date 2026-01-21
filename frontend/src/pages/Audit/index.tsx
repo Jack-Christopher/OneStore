@@ -8,6 +8,7 @@ import { Eye } from 'lucide-react';
 import dayjs from 'dayjs';
 import { formatDate } from '@/utils/date';
 import DateInput from '@/components/DateInput';
+import { getAllowedUsers, type AllowedUser } from '@/services/api/auditLogs';
 
 const ENTITIES = ['Product', 'Sale', 'StockMovement', 'PurchaseOrder', 'Supplier', 'Category', 'Warehouse', 'Tenant', 'User'];
 const ACTIONS = ['create', 'update', 'delete', 'login', 'logout'];
@@ -19,6 +20,7 @@ export default function AuditPage() {
 
   const [openDetailsModal, setOpenDetailsModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [allowedUsers, setAllowedUsers] = useState<AllowedUser[]>([]);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -31,6 +33,35 @@ export default function AuditPage() {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Load allowed users on mount
+  useEffect(() => {
+    const loadAllowedUsers = async () => {
+      try {
+        const response = await getAllowedUsers();
+        if (response.success && response.data) {
+          setAllowedUsers(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to load allowed users:', error);
+      }
+    };
+
+    if (role === 'admin' || role === 'manager') {
+      loadAllowedUsers();
+    } else if (role === 'clerk') {
+      // For clerk, set only themselves
+      if (user?.id) {
+        setAllowedUsers([{
+          _id: user.id,
+          email: user.email || '',
+          full_name: user.fullname || '',
+          role: 'clerk',
+          tenant_id: user.tenantId || ''
+        }]);
+      }
+    }
+  }, [role, user]);
 
   useEffect(() => {
     const fetchFilters: any = {
@@ -147,23 +178,54 @@ export default function AuditPage() {
               onChange={(e) => handleFilterChange('tenant_id', e.target.value)}
               sx={{ minWidth: 150 }}
             />
-            <TextField
-              label="User ID"
-              size="small"
-              value={filters.user_id}
-              onChange={(e) => handleFilterChange('user_id', e.target.value)}
-              sx={{ minWidth: 150 }}
-            />
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Usuario</InputLabel>
+              <Select
+                value={filters.user_id}
+                label="Usuario"
+                onChange={(e) => handleFilterChange('user_id', e.target.value)}
+              >
+                <MenuItem value="">Todos</MenuItem>
+                {allowedUsers.map((user) => (
+                  <MenuItem key={user._id} value={user._id}>
+                    {user.full_name || user.email} ({user.role})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </>
         )}
         {role === 'manager' && (
-          <TextField
-            label="User ID"
-            size="small"
-            value={filters.user_id}
-            onChange={(e) => handleFilterChange('user_id', e.target.value)}
-            sx={{ minWidth: 150 }}
-          />
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Usuario</InputLabel>
+            <Select
+              value={filters.user_id}
+              label="Usuario"
+              onChange={(e) => handleFilterChange('user_id', e.target.value)}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {allowedUsers.map((user) => (
+                <MenuItem key={user._id} value={user._id}>
+                  {user.full_name || user.email}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+        {role === 'clerk' && allowedUsers.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 200 }} disabled>
+            <InputLabel>Usuario</InputLabel>
+            <Select
+              value={user?.id || ''}
+              label="Usuario"
+            >
+              {allowedUsers.map((u) => (
+                <MenuItem key={u._id} value={u._id}>
+                  {u.full_name || u.email}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         )}
         {(role === 'admin' || role === 'manager') && (
           <>

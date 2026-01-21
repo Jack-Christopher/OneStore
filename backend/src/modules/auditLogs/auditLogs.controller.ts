@@ -2,6 +2,7 @@ export { }; // Empty export to force module scope
 
 const repository = require("./auditLogs.repository");
 const { ok, fail } = require("../../shared/utils/response");
+const User = require("../../database/models/User");
 
 async function listAuditLogs(req: Req, res: Res) {
   try {
@@ -104,5 +105,44 @@ async function getOne(req: Req, res: Res) {
   }
 }
 
-module.exports = { listAuditLogs, getOne };
+async function getAllowedUsers(req: Req, res: Res) {
+  try {
+    const userRole = req.user?.role;
+    const userTenantId = req.user?.tenant_id;
+    const userId = req.user?.id;
+
+    let users = [];
+
+    if (userRole === "admin") {
+      // Admin: todos los usuarios (incluyendo admins)
+      users = await User.find({})
+        .select("_id email full_name role tenant_id")
+        .sort({ full_name: 1, email: 1 });
+    } else if (userRole === "manager") {
+      // Manager: a sí mismo y a los clerks de su tenant
+      users = await User.find({
+        tenant_id: userTenantId,
+        $or: [
+          { _id: userId }, // Incluir a sí mismo
+          { role: "clerk" } // Incluir clerks
+        ]
+      })
+        .select("_id email full_name role tenant_id")
+        .sort({ full_name: 1, email: 1 });
+    } else if (userRole === "clerk") {
+      // Clerk: solo a sí mismo
+      users = await User.find({ _id: userId })
+        .select("_id email full_name role tenant_id");
+    } else {
+      return fail(res, "Forbidden: Insufficient permissions", "FORBIDDEN", 403);
+    }
+
+    return ok(res, users);
+  } catch (error) {
+    console.log(JSON.stringify(error, null, 2));
+    return fail(res, "Failed to fetch allowed users", "INTERNAL_ERROR", 500);
+  }
+}
+
+module.exports = { listAuditLogs, getOne, getAllowedUsers };
 
