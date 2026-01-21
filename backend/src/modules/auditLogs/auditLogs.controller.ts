@@ -9,16 +9,41 @@ async function listAuditLogs(req: Req, res: Res) {
     const limit = parseInt(req.query.limit as string) || 50;
 
     const filters: any = {};
+    const userRole = req.user?.role;
+    const userTenantId = String(req.user?.tenant_id || "");
+    const userId = String(req.user?.id || "");
 
-    // Apply query filters (restrictAuditQuery middleware already applied tenant_id and user_id restrictions)
-    if (req.query.tenant_id) {
-      filters.tenant_id = req.query.tenant_id;
+    // Enforce tenant filtering based on user role
+    // Always use req.user.tenant_id (set by middleware) to prevent query manipulation
+    if (userRole === "admin") {
+      // Admin can optionally filter by tenant_id from query
+      if (req.query.tenant_id) {
+        filters.tenant_id = String(req.query.tenant_id);
+      }
+    } else if (userRole === "manager" || userRole === "clerk") {
+      // Manager and Clerk: MUST filter by their own tenant_id (cannot be overridden)
+      if (!userTenantId || userTenantId === "") {
+        return fail(res, "User tenant not found", "UNAUTHORIZED", 401);
+      }
+      filters.tenant_id = userTenantId;
+    } else {
+      return fail(res, "Forbidden: Insufficient permissions", "FORBIDDEN", 403);
     }
 
-    if (req.query.user_id) {
-      filters.user_id = req.query.user_id;
+    // User filtering: only clerks are restricted to their own logs
+    if (userRole === "clerk") {
+      if (!userId || userId === "") {
+        return fail(res, "User ID not found", "UNAUTHORIZED", 401);
+      }
+      filters.user_id = userId;
+    } else if (userRole === "admin" || userRole === "manager") {
+      // Admin and Manager can optionally filter by user_id from query
+      if (req.query.user_id) {
+        filters.user_id = String(req.query.user_id);
+      }
     }
 
+    // Apply optional filters
     if (req.query.entity) {
       filters.entity = req.query.entity;
     }
@@ -51,19 +76,21 @@ async function getOne(req: Req, res: Res) {
     
     // Security check: ensure user can only access logs from their tenant
     const userRole = req.user?.role;
-    const userTenantId = req.user?.tenant_id;
-    const userId = req.user?.id;
+    const userTenantId = String(req.user?.tenant_id || "");
+    const userId = String(req.user?.id || "");
+    const logTenantId = String(log.tenant_id || "");
+    const logUserId = String(log.user_id || "");
     
     if (userRole === "admin") {
       // Admin can access all logs
     } else if (userRole === "manager") {
       // Manager can only access logs from their tenant
-      if (log.tenant_id !== userTenantId) {
+      if (!userTenantId || logTenantId !== userTenantId) {
         return fail(res, "Forbidden: Cannot access audit log from another tenant", "FORBIDDEN", 403);
       }
     } else if (userRole === "clerk") {
       // Clerk can only access their own logs from their tenant
-      if (log.tenant_id !== userTenantId || log.user_id !== userId) {
+      if (!userTenantId || !userId || logTenantId !== userTenantId || logUserId !== userId) {
         return fail(res, "Forbidden: Cannot access audit log from another tenant or user", "FORBIDDEN", 403);
       }
     } else {

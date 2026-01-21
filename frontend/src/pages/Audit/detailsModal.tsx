@@ -31,9 +31,80 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+/**
+ * Normaliza objetos que fueron serializados incorrectamente (ObjectId, Date, etc.)
+ * Convierte objetos con índices numéricos a strings legibles
+ */
+function normalizeObject(obj: any, visited = new WeakSet()): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  // Prevenir referencias circulares
+  if (typeof obj === 'object' && visited.has(obj)) {
+    return '[Circular Reference]';
+  }
+
+  if (typeof obj === 'object') {
+    visited.add(obj);
+  }
+
+  // Detectar ObjectId serializado: objeto con índices numéricos que forman un string hexadecimal
+  if (typeof obj === 'object' && !Array.isArray(obj) && obj !== null) {
+    const keys = Object.keys(obj);
+    // Si todas las claves son índices numéricos (0, 1, 2, ...)
+    const isNumericIndexed = keys.length > 0 && keys.every((key, index) => key === String(index));
+    
+    if (isNumericIndexed) {
+      // Reconstruir el string desde los índices
+      const reconstructed = keys.map(key => obj[key]).join('');
+      
+      // Verificar si parece un ObjectId (24 caracteres hexadecimales)
+      if (/^[0-9a-fA-F]{24}$/.test(reconstructed)) {
+        return reconstructed;
+      }
+      
+      // Verificar si parece una fecha ISO (formato ISO 8601)
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(reconstructed)) {
+        try {
+          const date = new Date(reconstructed);
+          if (!isNaN(date.getTime())) {
+            return date.toISOString();
+          }
+        } catch (e) {
+          // Si no es una fecha válida, devolver el string reconstruido
+        }
+        return reconstructed;
+      }
+      
+      // Si no coincide con ningún patrón conocido, devolver el string reconstruido
+      return reconstructed;
+    }
+  }
+
+  // Manejar arrays
+  if (Array.isArray(obj)) {
+    return obj.map(item => normalizeObject(item, visited));
+  }
+
+  // Manejar objetos normales
+  if (typeof obj === 'object' && obj !== null) {
+    const normalized: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        normalized[key] = normalizeObject(obj[key], visited);
+      }
+    }
+    return normalized;
+  }
+
+  return obj;
+}
+
 function formatJSON(obj: any): string {
   if (!obj) return 'N/A';
-  return JSON.stringify(obj, null, 2);
+  const normalized = normalizeObject(obj);
+  return JSON.stringify(normalized, null, 2);
 }
 
 function DiffViewer({ oldData, newData }: { oldData: any; newData: any }) {
@@ -49,7 +120,7 @@ function DiffViewer({ oldData, newData }: { oldData: any; newData: any }) {
     <Box sx={{ display: 'flex', gap: 2, height: '400px', overflow: 'auto' }}>
       <Box sx={{ flex: 1, border: '1px solid #ddd', borderRadius: 1, p: 1 }}>
         <Typography variant="subtitle2" sx={{ mb: 1, color: '#f44336', fontWeight: 'bold' }}>
-          Datos Anteriores
+          Antes
         </Typography>
         <pre style={{ margin: 0, fontSize: '12px', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
           {oldStr}
@@ -57,7 +128,7 @@ function DiffViewer({ oldData, newData }: { oldData: any; newData: any }) {
       </Box>
       <Box sx={{ flex: 1, border: '1px solid #ddd', borderRadius: 1, p: 1 }}>
         <Typography variant="subtitle2" sx={{ mb: 1, color: '#4caf50', fontWeight: 'bold' }}>
-          Datos Nuevos
+          Después
         </Typography>
         <pre style={{ margin: 0, fontSize: '12px', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
           {newStr}
@@ -95,6 +166,22 @@ export default function AuditLogDetailsModal({ open, onClose, logId }: AuditLogD
   const hasOldData = log.old_data !== null && log.old_data !== undefined;
   const hasNewData = log.new_data !== null && log.new_data !== undefined;
   const showDiff = hasOldData && hasNewData;
+  
+  // Determinar el título según la acción
+  const getDataTitle = () => {
+    if (log.action === 'create') {
+      return 'Datos agregados';
+    } else if (log.action === 'delete') {
+      return 'Datos eliminados';
+    } else if (log.action === 'update') {
+      return 'Cambios efectuados';
+    } else if (log.action === 'login') {
+      return 'Inicio de sesión';
+    } else if (log.action === 'logout') {
+      return 'Cierre de sesión';
+    }
+    return 'Datos Nuevos';
+  };
 
   return (
     <Modal open={open} onClose={onClose} className="flex items-center justify-center">
@@ -157,13 +244,18 @@ export default function AuditLogDetailsModal({ open, onClose, logId }: AuditLogD
 
         {/* Tabs for Data */}
         {showDiff && (
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs value={tabValue} onChange={handleTabChange}>
-              <Tab label="Comparación" />
-              <Tab label="Datos Anteriores" />
-              <Tab label="Datos Nuevos" />
-            </Tabs>
-          </Box>
+          <>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Cambios efectuados
+            </Typography>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+              <Tabs value={tabValue} onChange={handleTabChange}>
+                <Tab label="Comparación" />
+                <Tab label="Antes" />
+                <Tab label="Después" />
+              </Tabs>
+            </Box>
+          </>
         )}
 
         {showDiff ? (
@@ -207,7 +299,7 @@ export default function AuditLogDetailsModal({ open, onClose, logId }: AuditLogD
             {hasOldData && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  Datos Anteriores
+                  {log.action === 'delete' ? 'Datos eliminados' : 'Datos Anteriores'}
                 </Typography>
                 <pre style={{ 
                   margin: 0, 
@@ -227,7 +319,7 @@ export default function AuditLogDetailsModal({ open, onClose, logId }: AuditLogD
             {hasNewData && (
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  Datos Nuevos
+                  {getDataTitle()}
                 </Typography>
                 <pre style={{ 
                   margin: 0, 
