@@ -107,6 +107,14 @@ module.exports = {
       };
     }
 
+    if (user.role === "admin") {
+      return {
+        ok: false,
+        message: "Cannot delete admin users",
+        status: 403
+      };
+    }
+
     if (user.role === "manager") {
       return {
         ok: false,
