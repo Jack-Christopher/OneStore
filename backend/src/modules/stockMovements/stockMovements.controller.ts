@@ -25,6 +25,17 @@ async function getByWarehouse(req: Req, res: Res) {
   }
 }
 
+async function getKardex(req: Req, res: Res) {
+  try {
+    const warehouseId = typeof req.query.warehouseId === "string" ? req.query.warehouseId : undefined;
+    const data = await service.getKardex(req?.user?.id, req.params.productId, warehouseId);
+    return ok(res, data);
+  } catch (error) {
+    console.error("Error in getKardex:", error);
+    return fail(res, "No se pudo armar el kardex", "INTERNAL_ERROR", 500);
+  }
+}
+
 async function getByProduct(req: Req, res: Res) {
   try {
     const data = await service.getByProduct(req?.user?.id, req.params.productId);
@@ -84,5 +95,5 @@ async function remove(req: Req, res: Res) {
   }
 }
 
-module.exports = { getAll, getByWarehouse, getByProduct, getOne, create, update, remove };
+module.exports = { getAll, getByWarehouse, getByProduct, getKardex, getOne, create, update, remove };
 

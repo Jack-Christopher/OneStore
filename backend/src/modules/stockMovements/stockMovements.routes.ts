@@ -7,6 +7,7 @@ const authGuard = require("../../shared/middlewares/authGuard");
 const router = express.Router();
 
 router.get("/", authGuard, controller.getAll);
+router.get("/kardex/:productId", authGuard, controller.getKardex);
 router.get("/warehouse/:warehouseId", authGuard, controller.getByWarehouse);
 router.get("/product/:productId", authGuard, controller.getByProduct);
 router.get("/:id", authGuard, controller.getOne);

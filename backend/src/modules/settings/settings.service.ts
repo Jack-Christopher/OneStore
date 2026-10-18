@@ -1,8 +1,8 @@
 import { BulkUpdateSettingsDTO } from "./settings.types";
 import { toSnakeCase } from "../../shared/utils/object";
-import axios from "axios";
 
 const repo = require("./settings.repository");
+const exchangeRatesService = require("../exchangeRates/exchangeRates.service");
 
 async function getAllSettings(user_id: string) {
   const settings = await repo.findAll(user_id);
@@ -54,37 +54,11 @@ async function getCurrencyRates(user_id: string, refresh: boolean = false) {
     throw new Error("Base currency not set");
   }
 
-  const cachedData = await getSetting(user_id, "currency_api_cache");
-  const cachedTimestamp = await getSetting(user_id, "currency_api_timestamp");
+  const rate = refresh
+    ? await exchangeRatesService.syncLatest()
+    : await exchangeRatesService.getLatest();
 
-  // Check if cache is valid (24 hours)
-  const now = new Date();
-  const cacheAge = cachedTimestamp ? (now.getTime() - new Date(cachedTimestamp).getTime()) / (1000 * 60 * 60) : 24;
-
-  if (!refresh && cachedData && cacheAge < 24) {
-    return cachedData;
-  }
-
-  // Fetch from API
-  try {
-    const response = await axios.get(
-      `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${baseCurrency.toLowerCase()}.json`
-    );
-
-    const rates = response.data[baseCurrency.toLowerCase()];
-
-    // Store in cache
-    await updateSetting(user_id, "currency_api_cache", rates);
-    await updateSetting(user_id, "currency_api_timestamp", now.toISOString());
-
-    return rates;
-  } catch (error: any) {
-    // If API fails and we have cached data, return cached data
-    if (cachedData) {
-      return cachedData;
-    }
-    throw new Error(`Failed to fetch currency rates: ${error.message}`);
-  }
+  return exchangeRatesService.quoteForBase(baseCurrency, rate);
 }
 
 module.exports = {

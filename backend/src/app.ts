@@ -25,6 +25,8 @@ const exportsRoutes = require("./modules/exports/exports.routes");
 const importsRoutes = require("./modules/imports/imports.routes");
 const statsRoutes = require("./modules/stats/stats.routes");
 const billingRoutes = require("./modules/billing/billing.routes");
+const exchangeRatesRoutes = require("./modules/exchangeRates/exchangeRates.routes");
+const rucRoutes = require("./modules/ruc/ruc.routes");
 const errorHandler = require("./shared/middlewares/errorHandler");
 
 const expressApp = express();
@@ -64,6 +66,8 @@ apiRouter.use("/exports", exportsRoutes);
 apiRouter.use("/imports", importsRoutes);
 apiRouter.use("/stats", statsRoutes);
 apiRouter.use("/billing", billingRoutes);
+apiRouter.use("/exchange-rates", exchangeRatesRoutes);
+apiRouter.use("/ruc", rucRoutes);
 
 expressApp.use("/api", apiRouter);
 expressApp.use(errorHandler);

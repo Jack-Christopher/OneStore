@@ -63,8 +63,8 @@ async function setBaseCurrency(req: Req, res: Res) {
 async function getCurrencyRates(req: Req, res: Res) {
   try {
     const refresh = req.query.refresh === "true";
-    const rates = await service.getCurrencyRates(req?.user?.id, refresh);
-    return ok(res, { rates });
+    const quote = await service.getCurrencyRates(req?.user?.id, refresh);
+    return ok(res, quote);
   } catch (error: any) {
     return fail(res, error.message || "Error fetching currency rates", "CURRENCY_RATES_ERROR", 500);
   }

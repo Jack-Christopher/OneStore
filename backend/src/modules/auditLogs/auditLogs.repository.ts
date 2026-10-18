@@ -1,6 +1,22 @@
 const AuditLog = require("../../database/models/AuditLog");
 const User = require("../../database/models/User");
 
+function isObjectId(value: unknown) {
+  return /^[0-9a-fA-F]{24}$/.test(String(value || ""));
+}
+
+async function withUserNames(logs: any[]) {
+  const ids = [...new Set(logs.map((log) => String(log.user_id || "")).filter(isObjectId))];
+  const users = ids.length
+    ? await User.find({ _id: { $in: ids } }).select("full_name email").lean()
+    : [];
+  const names = new Map(users.map((user: any) => [String(user._id), user.full_name || user.email || "Usuario"]));
+  return logs.map((log) => ({
+    ...log,
+    user_name: names.get(String(log.user_id)) || "Usuario no disponible"
+  }));
+}
+
 module.exports = {
   async findAll(filters: any, page: number = 1, limit: number = 50) {
     const query: any = {};
@@ -46,7 +62,7 @@ module.exports = {
     ]);
 
     return {
-      logs,
+      logs: await withUserNames(logs),
       total,
       page,
       limit,
@@ -55,7 +71,10 @@ module.exports = {
   },
 
   async findById(id: string) {
-    return AuditLog.findById(id).lean();
+    const log = await AuditLog.findById(id).lean();
+    if (!log) return null;
+    const [named] = await withUserNames([log]);
+    return named;
   }
 };
 

@@ -3,6 +3,7 @@ export { }; // Empty export to force module scope
 const repository = require("./auditLogs.repository");
 const { ok, fail } = require("../../shared/utils/response");
 const User = require("../../database/models/User");
+const Tenant = require("../../database/models/Tenant");
 
 async function listAuditLogs(req: Req, res: Res) {
   try {
@@ -105,6 +106,28 @@ async function getOne(req: Req, res: Res) {
   }
 }
 
+async function getScope(req: Req, res: Res) {
+  try {
+    const role = req.user?.role;
+    const tenantId = String(req.user?.tenant_id || "");
+    let tenantName = null;
+    let tenants: Array<{ _id: string; name: string }> = [];
+
+    if (role === "admin") {
+      tenants = await Tenant.find({}).select("_id name").sort({ name: 1 }).lean();
+    } else if (/^[0-9a-fA-F]{24}$/.test(tenantId)) {
+      const tenant = await Tenant.findById(tenantId).select("name").lean();
+      tenantName = tenant?.name || null;
+    }
+
+    const scope = role === "admin" ? "platform" : role === "manager" ? "tenant" : "own";
+    return ok(res, { readOnly: true, role, scope, tenantName, tenants });
+  } catch (error) {
+    console.log(JSON.stringify(error, null, 2));
+    return fail(res, "Failed to resolve audit scope", "INTERNAL_ERROR", 500);
+  }
+}
+
 async function getAllowedUsers(req: Req, res: Res) {
   try {
     const userRole = req.user?.role;
@@ -144,5 +167,5 @@ async function getAllowedUsers(req: Req, res: Res) {
   }
 }
 
-module.exports = { listAuditLogs, getOne, getAllowedUsers };
+module.exports = { listAuditLogs, getOne, getAllowedUsers, getScope };
 

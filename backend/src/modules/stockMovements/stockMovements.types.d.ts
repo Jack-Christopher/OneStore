@@ -6,6 +6,7 @@ export interface StockMovementDTO {
   productId: string;
   movementType: MovementType;
   quantity: number;
+  unitCostBase?: number | null;
   relatedId?: string;
   comment?: string;
   metadata?: any;

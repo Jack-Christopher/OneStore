@@ -9,6 +9,7 @@ const productsController = require("./products.controller");
 const stockController = require("./stock.controller");
 const usersController = require("./users.controller");
 const overviewController = require("./overview.controller");
+const billingSummaryController = require("./billingSummary.controller");
 
 const router = express.Router();
 
@@ -51,6 +52,7 @@ router.get("/users/count", authGuard, usersController.getCount);
 
 // Overview/Dashboard
 router.get("/overview/dashboard", authGuard, overviewController.getDashboard);
+router.get("/billing/document-summary", authGuard, billingSummaryController.getDocumentSummary);
 
 module.exports = router;
 

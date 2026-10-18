@@ -7,6 +7,8 @@ const saleItemsRepo = require("../saleItems/saleItems.repository");
 const stockMovementsService = require("../stockMovements/stockMovements.service");
 const warehouseProductsService = require("../warehouseProducts/warehouseProducts.service");
 const settingsService = require("../settings/settings.service");
+const costLayersService = require("../costLayers/costLayers.service");
+const StockMovement = require("../../database/models/StockMovement");
 
 async function getAll(user_id: string) {
   return repo.findAll(user_id);
@@ -100,36 +102,35 @@ async function createWithItems(dto: CreateSaleWithItemsDTO, userId: string) {
 
     // Create stock movements and update warehouse products for each item
     for (const item of dto.items) {
-      try {
-        // Create stock movement (exit)
-        await stockMovementsService.create({
-          tenantId: dto.sale.tenantId,
-          warehouseId: dto.sale.warehouseId,
-          productId: item.productId,
-          movementType: 'sale',
-          quantity: item.quantity,
-          relatedId: sale._id.toString(),
-          comment: `Venta #${sale._id}`,
-          createdBy: userId
-        });
+      const consumed = await costLayersService.consume({
+        tenantId: dto.sale.tenantId,
+        warehouseId: dto.sale.warehouseId,
+        productId: item.productId,
+        quantity: item.quantity
+      });
 
-        // Decrement warehouse product quantity
-        const updatedWarehouseProduct = await warehouseProductsService.decrementQuantity(
-          dto.sale.tenantId,
-          dto.sale.warehouseId,
-          item.productId,
-          item.quantity
-        );
+      await stockMovementsService.create({
+        tenantId: dto.sale.tenantId,
+        warehouseId: dto.sale.warehouseId,
+        productId: item.productId,
+        movementType: 'sale',
+        quantity: item.quantity,
+        unitCostBase: consumed.unitCostPen,
+        relatedId: sale._id.toString(),
+        comment: `Venta #${sale._id}`,
+        metadata: { allocations: consumed.allocations, uncovered: consumed.uncovered },
+        createdBy: userId
+      });
 
-        if (!updatedWarehouseProduct) {
-          console.warn(`Failed to decrement stock for product ${item.productId} in warehouse ${dto.sale.warehouseId}`);
-        } else {
-          console.log(`Stock decremented for product ${item.productId}: new quantity = ${updatedWarehouseProduct.quantity}`);
-        }
-      } catch (error) {
-        console.error(`Error updating stock for product ${item.productId}:`, error);
-        // Continue with other items even if one fails
-        // In production, you might want to rollback the sale or throw an error
+      const updatedWarehouseProduct = await warehouseProductsService.decrementQuantity(
+        dto.sale.tenantId,
+        dto.sale.warehouseId,
+        item.productId,
+        item.quantity
+      );
+
+      if (!updatedWarehouseProduct) {
+        throw new Error(`No se pudo descontar el stock del producto ${item.productId}`);
       }
     }
   }
@@ -152,6 +153,16 @@ async function cancelSale(id: string, userId: string) {
   if (sale.status === 'canceled') return sale;
 
   const items = await saleItemsRepo.findAllBySaleId(id);
+
+  const originalMovements = await StockMovement.find({
+    related_id: sale._id.toString(),
+    movement_type: "sale"
+  }).lean();
+
+  for (const movement of originalMovements) {
+    const allocations = movement.metadata?.allocations || [];
+    await costLayersService.restoreAllocations(allocations);
+  }
 
   // Reverse stock movements for each item
   for (const item of items) {

@@ -7,7 +7,8 @@ const restrictAuditQuery = require("../../shared/middlewares/restrictAuditQuery"
 
 const router = express.Router();
 
-router.get("/allowed-users", authGuard, controller.getAllowedUsers);
+router.get("/scope", authGuard, restrictAuditQuery, controller.getScope);
+router.get("/allowed-users", authGuard, restrictAuditQuery, controller.getAllowedUsers);
 router.get("/", authGuard, restrictAuditQuery, controller.listAuditLogs);
 router.get("/:id", authGuard, restrictAuditQuery, controller.getOne);
 

@@ -6,6 +6,9 @@ const repo = require("./purchaseOrders.repository");
 const stockMovementsService = require("../stockMovements/stockMovements.service");
 const warehouseProductsService = require("../warehouseProducts/warehouseProducts.service");
 const settingsService = require("../settings/settings.service");
+const exchangeRatesService = require("../exchangeRates/exchangeRates.service");
+const costLayersService = require("../costLayers/costLayers.service");
+const { receiptCost } = require("../costLayers/costing");
 const Supplier = require("../../database/models/Supplier");
 const Product = require("../../database/models/Product");
 const Warehouse = require("../../database/models/Warehouse");
@@ -15,6 +18,12 @@ const suppliersRepo = require("../suppliers/suppliers.repository");
 const productsRepo = require("../products/products.repository");
 const warehousesRepo = require("../warehouses/warehouses.repository");
 const User = require("../../database/models/User");
+
+function parseOptionalDate(value: any) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 async function getAll(user_id: string) {
   return repo.findAll(user_id);
@@ -70,6 +79,18 @@ async function createWithItems(dto: CreatePurchaseOrderWithItemsDTO, userId: str
 
   // Keep total_amount for backward compatibility
   orderData.total_amount = orderData.total_base;
+  orderData.issued_at = parseOptionalDate(orderData.issued_at);
+  orderData.due_at = parseOptionalDate(orderData.due_at);
+  orderData.paid_at = parseOptionalDate(orderData.paid_at);
+  orderData.freight_mode = orderData.freight_mode || "none";
+  orderData.freight_amount = Number(orderData.freight_amount) || 0;
+
+  try {
+    const fx = await exchangeRatesService.getForDate(orderData.paid_at || orderData.issued_at || new Date());
+    if (fx?.sell) orderData.sunat_sell = fx.sell;
+  } catch (error: any) {
+    console.error("Could not attach SUNAT rate to purchase:", error.message);
+  }
 
   const order = await repo.create(orderData);
 
@@ -116,16 +137,64 @@ async function receiveOrder(id: string, userId: string) {
   if (order.status === 'received') return order;
 
   const items = await repo.findItemsByOrderId(id);
+  let sunatSell = order.sunat_sell;
+  if ((order.currency_code || "").toUpperCase() === "USD") {
+    try {
+      const fx = await exchangeRatesService.getForDate(order.paid_at || order.issued_at || new Date());
+      if (fx?.sell) sunatSell = fx.sell;
+    } catch (error: any) {
+      console.error("Could not resolve payment-date exchange rate:", error.message);
+    }
+  }
+  const totalValueDoc = items.reduce((sum: number, item: any) => {
+    const unit = item.unit_cost_original ?? item.unit_cost_base ?? item.unit_price ?? 0;
+    return sum + unit * item.quantity;
+  }, 0);
 
   // Create stock movements and update warehouse products for each item
   for (const item of items) {
+    const product = await Product.findById(item.product_id).lean();
+    const factor = product?.purchase_to_stock_factor > 0 ? product.purchase_to_stock_factor : 1;
+    const unitCostBase = item.unit_cost_base ?? item.unit_price ?? 0;
+    const unitCostOriginal = item.unit_cost_original ?? unitCostBase;
+    const usesSunat = (order.currency_code || "").toUpperCase() === "USD" && sunatSell > 0;
+    const penPerDocumentUnit = usesSunat
+      ? sunatSell
+      : (unitCostOriginal > 0 ? unitCostBase / unitCostOriginal : 1);
+    const receipt = receiptCost({
+      mode: order.freight_mode || "none",
+      freightAmount: order.freight_amount || 0,
+      penPerDocumentUnit,
+      quantity: item.quantity,
+      stockFactor: factor,
+      unitCostBase: usesSunat ? unitCostOriginal * sunatSell : unitCostBase,
+      lineValueDoc: unitCostOriginal * item.quantity,
+      totalValueDoc
+    });
+
+    await costLayersService.openLayer({
+      tenantId: order.tenant_id,
+      warehouseId: order.warehouse_id,
+      productId: item.product_id,
+      source: "purchase",
+      purchaseOrderId: order._id.toString(),
+      receivedAt: order.paid_at || order.issued_at || new Date(),
+      qty: receipt.stockQty,
+      unitCostPen: receipt.unitCostPen,
+      currencyCode: order.currency_code,
+      exchangeRate: sunatSell || order.exchange_rate,
+      freightPen: receipt.freightPen
+    });
+    await costLayersService.refreshAverageCost(item.product_id);
+
     // Create stock movement (entry)
     await stockMovementsService.create({
       tenantId: order.tenant_id,
       warehouseId: order.warehouse_id,
       productId: item.product_id,
       movementType: 'purchase',
-      quantity: item.quantity,
+      quantity: receipt.stockQty,
+      unitCostBase: receipt.unitCostPen,
       relatedId: order._id.toString(),
       comment: `Recepción de orden de compra #${order.reference_number || order._id}`,
       createdBy: userId
@@ -136,7 +205,7 @@ async function receiveOrder(id: string, userId: string) {
       order.tenant_id,
       order.warehouse_id,
       item.product_id,
-      item.quantity
+      receipt.stockQty
     );
 
     // Update received quantity in item
@@ -153,7 +222,8 @@ async function receiveOrder(id: string, userId: string) {
   // Prepare update data - ensure all required fields are present
   const updateData: any = {
     status: 'received',
-    updated_by: userId
+    updated_by: userId,
+    sunat_sell: sunatSell || orderObj.sunat_sell || null
   };
 
   // Ensure currency fields exist - if they don't, set defaults

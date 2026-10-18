@@ -15,6 +15,10 @@ async function getByProduct(user_id: string, productId: string) {
   return repo.findByProduct(user_id, productId);
 }
 
+async function getKardex(user_id: string, productId: string, warehouseId?: string) {
+  return repo.findKardex(user_id, productId, warehouseId);
+}
+
 async function getOne(id: string) {
   return repo.findById(id);
 }
@@ -42,6 +46,7 @@ module.exports = {
   getAll,
   getByWarehouse,
   getByProduct,
+  getKardex,
   getOne,
   create,
   createMany,

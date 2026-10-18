@@ -13,6 +13,8 @@ const WarehouseProduct = require("../../database/models/WarehouseProduct");
 const Warehouse = require("../../database/models/Warehouse");
 const stockMovementsService = require("../stockMovements/stockMovements.service");
 const warehouseProductsService = require("../warehouseProducts/warehouseProducts.service");
+const costLayersService = require("../costLayers/costLayers.service");
+const { nextSku } = require("./sku");
 
 async function getAll(user_id: string) {
   return repo.findAll(user_id);
@@ -71,6 +73,15 @@ async function create(dto: ProductUpdateDTO) {
   }
   if (formattedData.supplier_id === "" || formattedData.supplier_id === null || formattedData.supplier_id === undefined) {
     delete formattedData.supplier_id;
+  }
+  if (formattedData.purchase_unit_id === "" || formattedData.purchase_unit_id === null || formattedData.purchase_unit_id === undefined) {
+    delete formattedData.purchase_unit_id;
+  }
+
+  if (!formattedData.product_type) formattedData.product_type = "resale";
+  if (!(formattedData.purchase_to_stock_factor > 0)) formattedData.purchase_to_stock_factor = 1;
+  if (!formattedData.sku && formattedData.tenant_id) {
+    formattedData.sku = await nextSku(formattedData.tenant_id, formattedData.product_type);
   }
 
   // Ensure name is trimmed and not empty
@@ -157,6 +168,18 @@ async function update(id: string, dto: ProductUpdateDTO) {
   }
   if (formattedData.supplier_id === "" || formattedData.supplier_id === null || formattedData.supplier_id === undefined) {
     delete formattedData.supplier_id;
+  }
+  if (formattedData.purchase_unit_id === "" || formattedData.purchase_unit_id === null || formattedData.purchase_unit_id === undefined) {
+    delete formattedData.purchase_unit_id;
+  }
+
+  if (formattedData.sale_price !== undefined && formattedData.sale_price !== null) {
+    const current = await Product.findById(id).lean();
+    const cost = formattedData.purchase_price ?? current?.purchase_price ?? 0;
+    const margin = formattedData.margin_percent ?? current?.margin_percent ?? 0;
+    const salePrice = Number(formattedData.sale_price) || 0;
+    const suggested = cost * (1 + (Number(margin) || 0) / 100);
+    formattedData.price_stale = cost > 0 && salePrice + 0.0001 < suggested;
   }
 
   // Check for duplicate name before attempting to update (skip if updating the same product)
@@ -496,15 +519,41 @@ async function adjustStockTo(
     opts?.comment ||
     `Ajuste manual de stock (${currentStock} -> ${desiredStock})`;
 
+  let unitCost = product.purchase_price || 0;
+  let metadata = { ...(opts?.metadata || {}) };
+
+  if (delta > 0) {
+    await costLayersService.openLayer({
+      tenantId,
+      warehouseId,
+      productId,
+      source: "adjustment",
+      receivedAt: new Date(),
+      qty: quantity,
+      unitCostPen: unitCost,
+      currencyCode: "PEN"
+    });
+  } else {
+    const consumed = await costLayersService.consume({
+      tenantId,
+      warehouseId,
+      productId,
+      quantity
+    });
+    if (consumed.unitCostPen !== null) unitCost = consumed.unitCostPen;
+    metadata = { ...metadata, allocations: consumed.allocations, uncovered: consumed.uncovered };
+  }
+
   const movement = await stockMovementsService.create({
     tenantId,
     warehouseId,
     productId,
     movementType,
     quantity,
+    unitCostBase: unitCost,
     relatedId: productId,
     comment,
-    metadata: opts?.metadata,
+    metadata,
     createdBy: userId
   });
 
@@ -516,6 +565,7 @@ async function adjustStockTo(
       productId,
       quantity
     );
+    await costLayersService.refreshAverageCost(productId);
   } else {
     updatedWarehouseProduct = await warehouseProductsService.decrementQuantity(
       tenantId,

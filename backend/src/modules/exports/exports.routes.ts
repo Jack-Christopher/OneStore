@@ -7,6 +7,7 @@ const authGuard = require("../../shared/middlewares/authGuard");
 const router = express.Router();
 
 router.get("/modules", authGuard, controller.getAvailableModules);
+router.get("/cost-sheet/:format", authGuard, controller.exportCostSheet);
 router.get("/:module/:format", authGuard, controller.exportModule);
 
 module.exports = router;

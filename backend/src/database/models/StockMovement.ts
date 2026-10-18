@@ -7,6 +7,7 @@ const StockMovementSchema = new Schema({
   product_id: { type: String, required: true },
   movement_type: { type: String, enum: ['purchase', 'sale', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'], required: true },
   quantity: { type: Number, required: true },
+  unit_cost_base: { type: Number, default: null },
   related_id: { type: String },
   comment: { type: String },
   metadata: Schema.Types.Mixed,

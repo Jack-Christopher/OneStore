@@ -3,6 +3,7 @@ export { }; // Empty export to force module scope
 import type { ExportFormat, ExportableModule } from "./exports.types";
 
 const service = require("./exports.service");
+const costSheet = require("./costSheet");
 const { ok, fail } = require("../../shared/utils/response");
 
 async function exportModule(req: Req, res: Res) {
@@ -53,6 +54,24 @@ async function exportModule(req: Req, res: Res) {
   }
 }
 
+async function exportCostSheet(req: Req, res: Res) {
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return fail(res, "User not authenticated", "UNAUTHORIZED", 401);
+    if (req.params.format !== "csv") {
+      return fail(res, "El formato de la hoja de costos es csv", "INVALID_FORMAT", 400);
+    }
+
+    const result = await costSheet.buildCostSheetCsv(userId);
+    res.setHeader("Content-Type", result.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${result.filename}"`);
+    return res.send(result.content);
+  } catch (error: any) {
+    console.error("Cost sheet export error:", error);
+    return fail(res, error.message || "No se pudo exportar la hoja de costos", "EXPORT_ERROR", 500);
+  }
+}
+
 async function getAvailableModules(req: Req, res: Res) {
   try {
     const modules = [
@@ -79,6 +98,7 @@ async function getAvailableModules(req: Req, res: Res) {
 
 module.exports = {
   exportModule,
+  exportCostSheet,
   getAvailableModules,
 };
 
