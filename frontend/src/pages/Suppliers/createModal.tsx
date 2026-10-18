@@ -5,6 +5,7 @@ import { Box, Button, Modal } from "@mui/material";
 import Alert from "@/components/Alert";
 import type { CreateSupplierPayload } from "@/services/api/suppliers";
 import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
+import { lookupRuc, rucErrorMessage } from "@/services/api/ruc";
 
 interface SuppliersCreateModalProps {
   open: boolean;
@@ -135,13 +136,37 @@ export default function SuppliersCreateModal({ open, onClose }: SuppliersCreateM
           />
 
           <label className="block mb-2 text-sm font-medium">Documento (RUC/DNI)</label>
-          <input
-            type="text"
-            placeholder="RUC o DNI"
-            className="border rounded p-2 w-full mb-3"
-            value={formData.document}
-            onChange={(e) => setFormData({ ...formData, document: e.target.value })}
-          />
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              placeholder="RUC o DNI"
+              className="border rounded p-2 w-full"
+              value={formData.document}
+              onChange={(e) => setFormData({ ...formData, document: e.target.value })}
+            />
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={async () => {
+                setError("");
+                try {
+                  const res = await lookupRuc(formData.document || "");
+                  if (res.success && res.data) {
+                    setFormData((current) => ({
+                      ...current,
+                      document: res.data.ruc,
+                      name: current.name || res.data.name,
+                      address: current.address || res.data.address || "",
+                    }));
+                  }
+                } catch (lookupError: any) {
+                  setError(rucErrorMessage(lookupError));
+                }
+              }}
+            >
+              Buscar RUC
+            </Button>
+          </div>
 
           {error && (
             <Alert

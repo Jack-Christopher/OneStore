@@ -1,60 +1,34 @@
-/**
- * Theme Configuration File
- * ========================
- * Theme is now managed via CSS variables in styles/index.css
- * This file provides utility functions for theme management
- */
+import { createTheme } from '@mui/material/styles'
 
-export type ThemeName = 'light' | 'dark'
+export const muiTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    background: { default: '#0C1422', paper: '#18283C' },
+    primary: { main: '#3AA89A', contrastText: '#04221E' },
+    secondary: { main: '#31445F', contrastText: '#E8EEF7' },
+    error: { main: '#E06B78', contrastText: '#FFF7F8' },
+    text: { primary: '#E8EEF7', secondary: '#93A4BE' },
+    divider: '#31445F',
+  },
+  shape: { borderRadius: 0 },
+  typography: {
+    button: { textTransform: 'none' },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: { backgroundImage: 'none', boxShadow: 'none' },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: { boxShadow: 'none', borderRadius: 0 },
+      },
+    },
+  },
+})
 
-/**
- * Apply theme to document by toggling the 'dark' class
- * CSS variables are defined in styles/index.css and automatically switch
- */
-export function applyTheme(themeName: ThemeName): void {
-  const root = document.documentElement
-
-  // Toggle dark class for Tailwind and CSS variables
-  if (themeName === 'dark') {
-    root.classList.add('dark')
-  } else {
-    root.classList.remove('dark')
-  }
-
-  // Store preference in localStorage for persistence
-  localStorage.setItem('theme', themeName)
-}
-
-/**
- * Get saved theme from localStorage or default to 'light'
- */
-export function getSavedTheme(): ThemeName {
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark' || saved === 'light') {
-    return saved
-  }
-  return 'light'
-}
-
-/**
- * Initialize theme on app load
- * Call this early to prevent flash of wrong theme
- */
 export function initializeTheme(): void {
-  const savedTheme = getSavedTheme()
-  applyTheme(savedTheme)
+  document.documentElement.classList.add('dark')
+  localStorage.setItem('theme', 'dark')
 }
-
-/**
- * Toggle between light and dark themes
- */
-export function toggleTheme(): ThemeName {
-  const html = document.documentElement
-  const isDark = html.classList.contains('dark')
-  const newTheme: ThemeName = isDark ? 'light' : 'dark'
-  applyTheme(newTheme)
-  return newTheme
-}
-
-
-

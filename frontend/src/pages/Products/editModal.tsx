@@ -16,6 +16,7 @@ import Alert from "@/components/Alert";
 import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { ScanBarcode } from "lucide-react";
+import { PRODUCT_TYPE_OPTIONS } from "@/constants/productTypes";
 
 interface ProductsEditModalProps {
     open: boolean;
@@ -107,6 +108,10 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                         minStock: res.data?.min_stock || 0,
                         maxStock: res.data?.max_stock || 0,
                         subUnitsPerUnit: res.data?.sub_units_per_unit || 1,
+                        productType: res.data?.product_type || "resale",
+                        purchaseUnitId: (res.data as any)?.purchase_unit_id?._id || (res.data as any)?.purchase_unit_id || "",
+                        purchaseToStockFactor: res.data?.purchase_to_stock_factor || 1,
+                        marginPercent: res.data?.margin_percent || 0,
                     };
                     setForm(initialData);
                     setInitialForm(initialData);
@@ -179,20 +184,26 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
                 padding: '2rem',
                 borderRadius: '0.5rem',
                 boxShadow: 24,
-                width: 400,
+                width: 560,
                 maxHeight: '80vh',
                 overflowY: 'auto',
             }}>
                 <h2 className="text-2xl font-bold mb-4 text-center">Editar Producto</h2>
                 <form className="flex flex-col" onSubmit={onSubmit}>
+                    <label className="block mb-2 text-sm font-medium">Tipo</label>
+                    <Select options={PRODUCT_TYPE_OPTIONS} value={form.productType || "resale"} setFormInput={(value: string) => setForm({ ...form, productType: value as UpdateProductPayload["productType"] })} styles="border rounded p-2 w-full mb-3" />
                     <label className="block mb-2 text-sm font-medium">Nombre <span className="text-red-500">*</span></label>
                     <Input type="text" placeholder="Nombre" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
                     <label className="block mb-2 text-sm font-medium">Proveedor <span className="text-red-500">*</span></label>
                     <Select options={suppliers} value={form.supplierId || ""} setFormInput={(value: any) => setForm({ ...form, supplierId: value })} styles="border rounded p-2 w-full mb-3" />
                     <label className="block mb-2 text-sm font-medium">Categoría</label>
                     <Select options={categories} value={form.categoryId || ""} setFormInput={(value: any) => setForm({ ...form, categoryId: value })} styles="border rounded p-2 w-full mb-3" />
-                    <label className="block mb-2 text-sm font-medium">Unidad</label>
+                    <label className="block mb-2 text-sm font-medium">Unidad de stock / venta</label>
                     <Select options={unitsOfMeasure} value={form.unitId || ""} setFormInput={(value: any) => setForm({ ...form, unitId: value })} styles="border rounded p-2 w-full mb-3" />
+                    <label className="block mb-2 text-sm font-medium">Unidad de compra</label>
+                    <Select options={unitsOfMeasure} value={form.purchaseUnitId || ""} setFormInput={(value: any) => setForm({ ...form, purchaseUnitId: value })} styles="border rounded p-2 w-full mb-3" />
+                    <label className="block mb-2 text-sm font-medium">Factor compra → stock</label>
+                    <Input type="number" placeholder="Ej: 25" step="any" value={form.purchaseToStockFactor} onChange={e => setForm({ ...form, purchaseToStockFactor: parseFloat(e.target.value) || 1 })} />
                     <label className="block mb-2 text-sm font-medium">Descripción</label>
                     <Input type="text" placeholder="Descripción" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                     <label className="block mb-2 text-sm font-medium">SKU</label>
@@ -228,8 +239,14 @@ export default function ProductsEditModal({ open, onClose, productId, onSuccess 
 
                     <label className="block mb-2 text-sm font-medium">Precio de compra</label>
                     <Input type="number" placeholder="Precio de compra" value={form.purchasePrice} onChange={e => setForm({ ...form, purchasePrice: Number(e.target.value) })} />
+                    <label className="block mb-2 text-sm font-medium">Margen %</label>
+                    <Input type="number" placeholder="Margen" step="any" value={form.marginPercent} onChange={e => setForm({ ...form, marginPercent: Number(e.target.value) })} />
                     <label className="block mb-2 text-sm font-medium">Precio de venta</label>
                     <Input type="number" placeholder="Precio de venta" value={form.salePrice} onChange={e => setForm({ ...form, salePrice: Number(e.target.value) })} />
+                    <p className="text-xs text-muted-foreground mb-3">
+                        Utilidad: {((form.salePrice || 0) - (form.purchasePrice || 0)).toFixed(2)}.
+                        Sugerido: {((form.purchasePrice || 0) * (1 + (form.marginPercent || 0) / 100)).toFixed(2)}
+                    </p>
                     <label className="block mb-2 text-sm font-medium">Stock mínimo</label>
                     <Input type="number" placeholder="Stock mínimo" value={form.minStock} onChange={e => setForm({ ...form, minStock: Number(e.target.value) })} />
                     <label className="block mb-2 text-sm font-medium">Stock máximo</label>

@@ -62,7 +62,10 @@ export const setBaseCurrency = async (currency: string) => {
 };
 
 export const getCurrencyRates = async (refresh: boolean = false) => {
-  const res = await api.get<ApiResponse<{ rates: Record<string, number> }>>(
+  const res = await api.get<ApiResponse<{
+    rates: Record<string, number>;
+    sunat?: { buy: number; sell: number; date: string; source: string };
+  }>>(
     `${SETTINGS_API_BASE}/currency/rates${refresh ? "?refresh=true" : ""}`
   );
   return res.data;

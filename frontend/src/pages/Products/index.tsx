@@ -9,7 +9,8 @@ import DeleteModal from '@/components/DeleteModal'
 import ProductsViewModal from './viewModal'
 import ProductsEditModal from './editModal'
 import ProductsAdjustStockModal from './adjustStockModal'
-import { deleteProduct } from '@/services/api/products'
+import { deleteProduct, downloadCostSheet } from '@/services/api/products'
+import { productTypeLabel } from '@/constants/productTypes'
 
 
 export default function ProductsPage() {
@@ -46,12 +47,19 @@ export default function ProductsPage() {
 
 
   const columns = [
+    { field: 'product_type', headerName: 'Tipo', width: 110, renderCell: (params: GridRenderCellParams) => productTypeLabel(params.value) },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'category_name', headerName: 'Categoría', flex: 1 },
     { field: 'unit_name', headerName: 'Unidad', flex: 1 },
     { field: 'sku', headerName: 'SKU', flex: 1 },
     { field: 'purchase_price', headerName: 'Precio de Compra', flex: 1 },
     { field: 'sale_price', headerName: 'Precio de Venta', flex: 1 },
+    {
+      field: 'price_stale',
+      headerName: 'Precio',
+      width: 140,
+      renderCell: (params: GridRenderCellParams) => params.value ? 'Desactualizado' : 'Al día'
+    },
     {
       field: 'currentStock',
       headerName: 'Stock Actual',
@@ -120,6 +128,9 @@ export default function ProductsPage() {
           onClick={() => setOpenImportModal(true)}
         >
           Importar Productos
+        </Button>
+        <Button variant="outlined" color="primary" onClick={() => downloadCostSheet().catch((err) => console.error(err))}>
+          Exportar costos
         </Button>
       </Box>
       <ProductsCreateModal

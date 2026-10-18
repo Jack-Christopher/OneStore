@@ -15,6 +15,7 @@ import Input from "@/components/Input";
 import { trimStringValues, createTrimmedBlurHandler } from "@/utils/formUtils";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { ScanBarcode } from "lucide-react";
+import { PRODUCT_TYPE_OPTIONS } from "@/constants/productTypes";
 
 interface ProductsCreateModalProps {
   open: boolean;
@@ -41,6 +42,10 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
     minStock: 0,
     maxStock: 0,
     subUnitsPerUnit: 1,
+    productType: "resale",
+    purchaseUnitId: "",
+    purchaseToStockFactor: 1,
+    marginPercent: 0,
     description: "",
   };
   const [form, setForm] = useState<CreateProductPayload>(initialForm);
@@ -69,7 +74,7 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: 560,
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
@@ -161,6 +166,14 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
       <Box sx={boxStyle}>
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Producto</h2>
         <form className="flex flex-col" onSubmit={onSubmit}>
+          <label className="block mb-2 text-sm font-medium">Tipo</label>
+          <Select
+            options={PRODUCT_TYPE_OPTIONS}
+            setFormInput={(value) => setForm({ ...form, productType: value as CreateProductPayload["productType"] })}
+            value={form.productType || "resale"}
+            styles="border rounded p-2 w-full mb-3"
+          />
+
           <label className="block mb-2 text-sm font-medium">Nombre <span className="text-red-500">*</span></label>
           <input
             type="text"
@@ -188,7 +201,7 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
             styles="border rounded p-2 w-full mb-3"
           />
 
-          <label className="block mb-2 text-sm font-medium">Unidad de Medida</label>
+          <label className="block mb-2 text-sm font-medium">Unidad de stock / venta</label>
           <Select
             options={unitsOfMeasure}
             setFormInput={(value) => setForm({ ...form, unitId: value })}
@@ -196,10 +209,27 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
             styles="border rounded p-2 w-full mb-3"
           />
 
+          <label className="block mb-2 text-sm font-medium">Unidad de compra</label>
+          <Select
+            options={unitsOfMeasure}
+            setFormInput={(value) => setForm({ ...form, purchaseUnitId: value })}
+            value={form.purchaseUnitId || ""}
+            styles="border rounded p-2 w-full mb-3"
+          />
+          <label className="block mb-2 text-sm font-medium">Factor compra → stock</label>
+          <Input
+            type="number"
+            placeholder="Ej: 25 si compras sacos y el stock está en kg"
+            step="any"
+            value={form.purchaseToStockFactor}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, purchaseToStockFactor: parseFloat(e.target.value) || 1 })}
+          />
+          <p className="text-xs text-muted-foreground mb-3">Cuántas unidades de stock entran en una unidad de compra. Saco de 25 kg con stock en kg = 25.</p>
+
           <label className="block mb-2 text-sm font-medium">SKU</label>
           <Input
             type="text"
-            placeholder="SKU"
+            placeholder="Se genera solo si lo dejas vacío"
             value={form.sku}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, sku: e.target.value })}
             onBlur={createTrimmedBlurHandler(setForm, 'sku')}
@@ -242,6 +272,14 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
             value={form.purchasePrice}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, purchasePrice: parseFloat(e.target.value) })}
           />
+          <label className="block mb-2 text-sm font-medium">Margen % para precio sugerido</label>
+          <Input
+            type="number"
+            placeholder="Margen"
+            step="any"
+            value={form.marginPercent}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, marginPercent: parseFloat(e.target.value) || 0 })}
+          />
           <label className="block mb-2 text-sm font-medium">Precio de Venta</label>
           <Input
             type="number"
@@ -250,6 +288,10 @@ export default function ProductsCreateModal({ open, onClose, onSuccess }: Produc
             value={form.salePrice}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, salePrice: parseFloat(e.target.value) })}
           />
+          <p className="text-xs text-muted-foreground mb-3">
+            Utilidad: {((form.salePrice || 0) - (form.purchasePrice || 0)).toFixed(2)} ({(form.purchasePrice || 0) > 0 ? ((((form.salePrice || 0) - (form.purchasePrice || 0)) / (form.purchasePrice || 1)) * 100).toFixed(1) : "0"}%).
+            Sugerido: {((form.purchasePrice || 0) * (1 + (form.marginPercent || 0) / 100)).toFixed(2)}
+          </p>
           <label className="block mb-2 text-sm font-medium">Stock Mínimo</label>
           <Input
             type="number"

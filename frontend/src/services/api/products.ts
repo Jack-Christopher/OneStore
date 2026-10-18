@@ -15,6 +15,15 @@ export interface Product {
   minStock?: number;
   maxStock?: number;
   subUnitsPerUnit?: number;
+  productType?: "input" | "finished" | "resale";
+  product_type?: "input" | "finished" | "resale";
+  purchaseUnitId?: string;
+  purchase_unit_id?: string & { _id?: string; name?: string };
+  purchaseToStockFactor?: number;
+  purchase_to_stock_factor?: number;
+  marginPercent?: number;
+  margin_percent?: number;
+  price_stale?: boolean;
   description?: string;
   currentStock?: number;
 }
@@ -36,6 +45,10 @@ export interface CreateProductPayload {
   minStock?: number;
   maxStock?: number;
   subUnitsPerUnit?: number;
+  productType?: "input" | "finished" | "resale";
+  purchaseUnitId?: string;
+  purchaseToStockFactor?: number;
+  marginPercent?: number;
   description?: string;
 }
 
@@ -53,6 +66,10 @@ export interface UpdateProductPayload {
   minStock?: number;
   maxStock?: number;
   subUnitsPerUnit?: number;
+  productType?: "input" | "finished" | "resale";
+  purchaseUnitId?: string;
+  purchaseToStockFactor?: number;
+  marginPercent?: number;
   description?: string;
 }
 
@@ -135,3 +152,13 @@ export const adjustProductStock = async (id: string, payload: AdjustProductStock
   const res = await api.post<ApiResponse<AdjustProductStockResult>>(`${PRODUCT_API_BASE}/${id}/adjust-stock`, payload)
   return res.data
 }
+
+export const downloadCostSheet = async () => {
+  const res = await api.get("/api/exports/cost-sheet/csv", { responseType: "blob" });
+  const url = URL.createObjectURL(res.data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "costos.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+};

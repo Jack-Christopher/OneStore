@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DataGrid, type GridRenderCellParams } from '@mui/x-data-grid';
-import { Button, TextField, Box, Select, MenuItem, FormControl, InputLabel, Pagination } from '@mui/material';
+import { Button, Box, Select, MenuItem, FormControl, InputLabel, Pagination } from '@mui/material';
 import { useAuditLogsStore } from '@/store/auditLogsStore';
 import { useAuthStore } from '@/store/authStore';
 import AuditLogDetailsModal from './detailsModal';
@@ -8,10 +8,8 @@ import { Eye } from 'lucide-react';
 import dayjs from 'dayjs';
 import { formatDate } from '@/utils/date';
 import DateInput from '@/components/DateInput';
-import { getAllowedUsers, type AllowedUser } from '@/services/api/auditLogs';
-
-const ENTITIES = ['Product', 'Sale', 'StockMovement', 'PurchaseOrder', 'Supplier', 'Category', 'Warehouse', 'Tenant', 'User'];
-const ACTIONS = ['create', 'update', 'delete', 'login', 'logout'];
+import { getAllowedUsers, getAuditScope, type AllowedUser, type AuditScope } from '@/services/api/auditLogs';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES, auditActionLabel, auditEntityLabel, auditScopeLabel } from '@/constants/auditLabels';
 
 export default function AuditPage() {
   const user = useAuthStore((s) => s.authUser?.user);
@@ -21,6 +19,7 @@ export default function AuditPage() {
   const [openDetailsModal, setOpenDetailsModal] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const [allowedUsers, setAllowedUsers] = useState<AllowedUser[]>([]);
+  const [scope, setScope] = useState<AuditScope | null>(null);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -36,31 +35,30 @@ export default function AuditPage() {
 
   // Load allowed users on mount
   useEffect(() => {
-    const loadAllowedUsers = async () => {
+    const loadScope = async () => {
       try {
-        const response = await getAllowedUsers();
-        if (response.success && response.data) {
-          setAllowedUsers(response.data);
-        }
+        const [usersResponse, scopeResponse] = await Promise.all([
+          getAllowedUsers(),
+          getAuditScope(),
+        ]);
+        if (usersResponse.success && usersResponse.data) setAllowedUsers(usersResponse.data);
+        if (scopeResponse.success && scopeResponse.data) setScope(scopeResponse.data);
       } catch (error) {
-        console.error('Failed to load allowed users:', error);
+        console.error('Failed to load audit scope:', error);
       }
     };
 
-    if (role === 'admin' || role === 'manager') {
-      loadAllowedUsers();
-    } else if (role === 'clerk') {
-      // For clerk, set only themselves
-      if (user?.id) {
-        setAllowedUsers([{
-          _id: user.id,
-          email: user.email || '',
-          full_name: user.fullname || '',
-          role: 'clerk',
-          tenant_id: user.tenantId || ''
-        }]);
-      }
+    if (role === 'clerk' && user?.id) {
+      setAllowedUsers([{
+        _id: user.id,
+        email: user.email || '',
+        full_name: user.fullname || '',
+        role: 'clerk',
+        tenant_id: user.tenantId || ''
+      }]);
     }
+
+    loadScope();
   }, [role, user]);
 
   useEffect(() => {
@@ -88,9 +86,17 @@ export default function AuditPage() {
   }, [filters, currentPage, limit, fetch]);
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters(prev => {
+      const next = { ...prev, [key]: value };
+      if (key === 'tenant_id') next.user_id = '';
+      return next;
+    });
     setCurrentPage(1);
   };
+
+  const visibleUsers = filters.tenant_id
+    ? allowedUsers.filter((item) => item.tenant_id === filters.tenant_id)
+    : allowedUsers;
 
   const handleViewDetails = (logId: string) => {
     setSelectedLogId(logId);
@@ -109,17 +115,22 @@ export default function AuditPage() {
     {
       field: 'user_id',
       headerName: 'Usuario',
-      width: 150,
+      width: 220,
+      renderCell: (params: GridRenderCellParams) => {
+        const named = allowedUsers.find((item) => item._id === params.row.user_id);
+        return params.row.user_name || named?.full_name || named?.email || 'Usuario no disponible';
+      }
     },
     {
       field: 'entity',
       headerName: 'Entidad',
-      width: 150,
+      width: 180,
+      renderCell: (params: GridRenderCellParams) => auditEntityLabel(params.value as string),
     },
     {
       field: 'action',
       headerName: 'Acción',
-      width: 120,
+      width: 170,
       renderCell: (params: GridRenderCellParams) => {
         const action = params.value as string;
         const colorMap: Record<string, string> = {
@@ -130,8 +141,8 @@ export default function AuditPage() {
           logout: '#9e9e9e',
         };
         return (
-          <span style={{ color: colorMap[action] || '#000', fontWeight: 'bold' }}>
-            {action.toUpperCase()}
+          <span style={{ color: colorMap[action] || '#E8EEF7', fontWeight: 'bold' }}>
+            {auditActionLabel(action)}
           </span>
         );
       }
@@ -157,7 +168,10 @@ export default function AuditPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Auditoría</h1>
+      <h1 className="text-xl font-semibold mb-2">Auditoría</h1>
+      <p className="mb-4 text-sm text-foreground">
+        {auditScopeLabel(scope?.scope, scope?.tenantName)}
+      </p>
 
       {/* Filters */}
       <Box 
@@ -170,33 +184,35 @@ export default function AuditPage() {
         }}
       >
         {role === 'admin' && (
-          <>
-            <TextField
-              label="Tenant ID"
-              size="small"
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel>Empresa</InputLabel>
+            <Select
               value={filters.tenant_id}
+              label="Empresa"
               onChange={(e) => handleFilterChange('tenant_id', e.target.value)}
-              sx={{ minWidth: 150 }}
-            />
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Usuario</InputLabel>
-              <Select
-                value={filters.user_id}
-                label="Usuario"
-                onChange={(e) => handleFilterChange('user_id', e.target.value)}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {allowedUsers.map((user) => (
-                  <MenuItem key={user._id} value={user._id}>
-                    {user.full_name || user.email} ({user.role})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </>
+            >
+              <MenuItem value="">Todas</MenuItem>
+              {(scope?.tenants || []).map((tenant) => (
+                <MenuItem key={tenant._id} value={tenant._id}>
+                  {tenant.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         )}
-        {role === 'manager' && (
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+        {role === 'clerk' ? (
+          <FormControl size="small" sx={{ minWidth: 220 }} disabled>
+            <InputLabel>Usuario</InputLabel>
+            <Select value={user?.id || ''} label="Usuario">
+              {visibleUsers.map((item) => (
+                <MenuItem key={item._id} value={item._id}>
+                  {item.full_name || item.email}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ) : (
+          <FormControl size="small" sx={{ minWidth: 220 }}>
             <InputLabel>Usuario</InputLabel>
             <Select
               value={filters.user_id}
@@ -204,75 +220,56 @@ export default function AuditPage() {
               onChange={(e) => handleFilterChange('user_id', e.target.value)}
             >
               <MenuItem value="">Todos</MenuItem>
-              {allowedUsers.map((user) => (
-                <MenuItem key={user._id} value={user._id}>
-                  {user.full_name || user.email}
+              {visibleUsers.map((item) => (
+                <MenuItem key={item._id} value={item._id}>
+                  {item.full_name || item.email}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         )}
-        {role === 'clerk' && allowedUsers.length > 0 && (
-          <FormControl size="small" sx={{ minWidth: 200 }} disabled>
-            <InputLabel>Usuario</InputLabel>
-            <Select
-              value={user?.id || ''}
-              label="Usuario"
-            >
-              {allowedUsers.map((u) => (
-                <MenuItem key={u._id} value={u._id}>
-                  {u.full_name || u.email}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-        {(role === 'admin' || role === 'manager') && (
-          <>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Entidad</InputLabel>
-              <Select
-                value={filters.entity}
-                label="Entidad"
-                onChange={(e) => handleFilterChange('entity', e.target.value)}
-              >
-                <MenuItem value="">Todas</MenuItem>
-                {ENTITIES.map((entity) => (
-                  <MenuItem key={entity} value={entity}>{entity}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Acción</InputLabel>
-              <Select
-                value={filters.action}
-                label="Acción"
-                onChange={(e) => handleFilterChange('action', e.target.value)}
-              >
-                <MenuItem value="">Todas</MenuItem>
-                {ACTIONS.map((action) => (
-                  <MenuItem key={action} value={action}>{action.toUpperCase()}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Box sx={{ minWidth: 150 }}>
-              <DateInput
-                value={filters.date_from || ""}
-                onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                placeholder="Desde"
-                className=""
-              />
-            </Box>
-            <Box sx={{ minWidth: 150 }}>
-              <DateInput
-                value={filters.date_to || ""}
-                onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                placeholder="Hasta"
-                className=""
-              />
-            </Box>
-          </>
-        )}
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel>Entidad</InputLabel>
+          <Select
+            value={filters.entity}
+            label="Entidad"
+            onChange={(e) => handleFilterChange('entity', e.target.value)}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {AUDIT_ENTITIES.map((entity) => (
+              <MenuItem key={entity.value} value={entity.value}>{entity.label}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel>Acción</InputLabel>
+          <Select
+            value={filters.action}
+            label="Acción"
+            onChange={(e) => handleFilterChange('action', e.target.value)}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {AUDIT_ACTIONS.map((action) => (
+              <MenuItem key={action.value} value={action.value}>{action.label}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Box sx={{ minWidth: 150 }}>
+          <DateInput
+            value={filters.date_from || ""}
+            onChange={(e) => handleFilterChange('date_from', e.target.value)}
+            placeholder="Desde"
+            className=""
+          />
+        </Box>
+        <Box sx={{ minWidth: 150 }}>
+          <DateInput
+            value={filters.date_to || ""}
+            onChange={(e) => handleFilterChange('date_to', e.target.value)}
+            placeholder="Hasta"
+            className=""
+          />
+        </Box>
       </Box>
 
       {/* Table */}

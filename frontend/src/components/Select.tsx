@@ -120,9 +120,9 @@ export default function Select({ options = [], setFormInput, styles, value, disa
         value={currentValue || ''}
         disabled={disabled}
       >
-        <option value="" className="bg-white text-black dark:bg-black dark:text-white">Seleccione una opción</option>
+        <option value="" className="bg-card text-foreground">Seleccione una opción</option>
         {sortedOptions?.map((o) => {
-          return <option key={o.value} value={o.value} className="bg-white text-black dark:bg-black dark:text-white">{o.label}</option>
+          return <option key={o.value} value={o.value} className="bg-card text-foreground">{o.label}</option>
         })}
       </select>
     );

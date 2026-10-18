@@ -38,6 +38,11 @@ export interface CreatePurchaseOrderPayload {
   currencyCode?: string;
   exchangeRate?: number;
   totalOriginal?: number;
+  issuedAt?: string;
+  dueAt?: string;
+  paidAt?: string;
+  freightMode?: "none" | "per_bag" | "prorated";
+  freightAmount?: number;
 }
 
 export interface CreatePurchaseOrderItemPayload {

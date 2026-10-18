@@ -467,7 +467,7 @@ export default function SupportPage() {
   ];
 
   return (
-    <div className="p-4">
+    <div className="support-page p-4">
       <Typography variant="h4" className="mb-6 font-bold">
         Centro de Soporte
       </Typography>
@@ -552,7 +552,7 @@ export default function SupportPage() {
                     </Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography variant="body2" className="text-gray-700">
+                    <Typography variant="body2" className="support-answer">
                       {faq.a}
                     </Typography>
                   </AccordionDetails>
@@ -591,7 +591,7 @@ export default function SupportPage() {
                         key={stepIndex}
                         component="li"
                         variant="body2"
-                        className="text-gray-700"
+                        className="support-answer"
                       >
                         {step}
                       </Typography>

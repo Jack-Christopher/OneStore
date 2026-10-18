@@ -28,6 +28,7 @@ import SalesActivityHeatmap from "./components/SalesActivityHeatmap";
 import PurchasesActivityHeatmap from "./components/PurchasesActivityHeatmap";
 import OperationsActivityHeatmap from "./components/OperationsActivityHeatmap";
 import ActivityCalendar from "./components/ActivityCalendar";
+import DocumentTypeSummary from "./components/DocumentTypeSummary";
 
 export default function StatsPage() {
   const user = useAuthStore.getState().authUser?.user;
@@ -91,6 +92,8 @@ export default function StatsPage() {
       <Typography variant="h4" className="mb-6 font-bold text-foreground">
         Estadísticas
       </Typography>
+
+      <DocumentTypeSummary />
 
       {/* KPI Cards */}
       {dashboardOverview && (

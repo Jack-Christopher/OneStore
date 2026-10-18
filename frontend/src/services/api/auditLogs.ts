@@ -11,6 +11,20 @@ export interface AuditLog {
   old_data?: any;
   new_data?: any;
   performed_at: string;
+  user_name?: string;
+}
+
+export interface AuditTenantOption {
+  _id: string;
+  name: string;
+}
+
+export interface AuditScope {
+  readOnly: boolean;
+  role: string;
+  scope: "platform" | "tenant" | "own";
+  tenantName: string | null;
+  tenants: AuditTenantOption[];
 }
 
 export interface AuditLogFilters {
@@ -68,6 +82,11 @@ export interface AllowedUser {
 
 export const getAllowedUsers = async () => {
   const res = await api.get<ApiResponse<AllowedUser[]>>(`${AUDIT_LOGS_API_BASE}/allowed-users`);
+  return res.data;
+};
+
+export const getAuditScope = async () => {
+  const res = await api.get<ApiResponse<AuditScope>>(`${AUDIT_LOGS_API_BASE}/scope`);
   return res.data;
 };
 

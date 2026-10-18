@@ -266,8 +266,8 @@ export default function ProductFormulasEditModal({ open, onClose, productFormula
           />
 
           {items.map((item: EditItem, index: number) => (
-            <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">
-              <label className="block mb-2 text-sm font-medium bg-blue-100 p-2 rounded text-center">Item {index + 1}</label>
+            <Box key={item.id} className="mb-2 border border-border bg-background p-3">
+              <label className="mb-2 block bg-primary p-2 text-center text-sm font-medium text-primary-foreground">Item {index + 1}</label>
               <label className="block mb-2 text-sm font-medium">Producto</label>
               <Select
                 options={products}

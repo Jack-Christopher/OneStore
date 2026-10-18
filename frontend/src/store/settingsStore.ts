@@ -25,7 +25,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const newSettings = res.data || {};
         set({ settings: newSettings });
         
-        // Don't apply theme from settings - theme is controlled by ThemeToggle and localStorage
+        // Theme is fixed to dark. Settings do not switch it.
         // Theme is applied on app initialization from localStorage in main.tsx
       } else {
         set({ error: res.message || "Error fetching settings" });
@@ -45,7 +45,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const updatedSettings = { ...get().settings, ...res.data };
         set({ settings: updatedSettings });
         
-        // Don't apply theme from settings update - theme is controlled by ThemeToggle
+        // Theme is fixed to dark. Settings do not switch it.
       } else {
         set({ error: res.message || "Error updating settings" });
       }

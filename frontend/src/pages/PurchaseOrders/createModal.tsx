@@ -61,6 +61,12 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
   const [useForeignCurrency, setUseForeignCurrency] = useState(false);
   const [currencyCode, setCurrencyCode] = useState("");
   const [exchangeRate, setExchangeRate] = useState(1);
+  const [sunatSell, setSunatSell] = useState<number | null>(null);
+  const [issuedAt, setIssuedAt] = useState("");
+  const [dueAt, setDueAt] = useState("");
+  const [paidAt, setPaidAt] = useState("");
+  const [freightMode, setFreightMode] = useState<"none" | "per_bag" | "prorated">("none");
+  const [freightAmount, setFreightAmount] = useState(0);
   const [baseCurrency, setBaseCurrency] = useState<string | null>(null);
   const [currencyRates, setCurrencyRates] = useState<Record<string, number>>({});
   const [availableCurrencies, setAvailableCurrencies] = useState<SelectOption[]>([]);
@@ -93,6 +99,7 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
               const ratesRes = await getCurrencyRates(false);
               if (ratesRes.success && ratesRes.data?.rates) {
                 setCurrencyRates(ratesRes.data.rates);
+                setSunatSell(ratesRes.data.sunat?.sell ?? null);
 
                 // Build available currencies list
                 const currencies: SelectOption[] = [];
@@ -255,6 +262,11 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
     setUseForeignCurrency(false);
     setCurrencyCode("");
     setExchangeRate(1);
+    setIssuedAt("");
+    setDueAt("");
+    setPaidAt("");
+    setFreightMode("none");
+    setFreightAmount(0);
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -330,6 +342,11 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
           currencyCode: useForeignCurrency ? currencyCode : undefined,
           exchangeRate: useForeignCurrency ? exchangeRate : undefined,
           totalOriginal: useForeignCurrency ? totalOriginal : undefined,
+          issuedAt: issuedAt || undefined,
+          dueAt: dueAt || undefined,
+          paidAt: paidAt || undefined,
+          freightMode,
+          freightAmount,
         },
         items: items.map(item => ({
           tenantId,
@@ -399,8 +416,8 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
           <h3 className="text-lg font-semibold mb-2">Items</h3>
 
           {items.map((item, idx) => (
-            <Box key={item.id} className="border p-3 rounded mb-2 bg-gray-50">
-              <label className="block mb-2 text-sm font-medium bg-blue-100 p-2 rounded text-center">Item {idx + 1}</label>
+            <Box key={item.id} className="mb-2 border border-border bg-background p-3">
+              <label className="mb-2 block bg-primary p-2 text-center text-sm font-medium text-primary-foreground">Item {idx + 1}</label>
 
               <label className="block mb-2 text-sm font-medium">Producto *</label>
               <Select
@@ -470,6 +487,35 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
 
           <hr className="my-3" />
 
+          <label className="block mb-2 text-sm font-medium">Fecha de emisión</label>
+          <Input type="date" placeholder="Emisión" value={issuedAt} onChange={(e) => setIssuedAt(e.target.value)} />
+          <label className="block mb-2 text-sm font-medium">Fecha de vencimiento</label>
+          <Input type="date" placeholder="Vencimiento" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+          <label className="block mb-2 text-sm font-medium">Fecha de pago</label>
+          <Input type="date" placeholder="Pago" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+          <p className="text-xs text-muted-foreground mb-3">El costo en soles de una compra en dólares usa el tipo de cambio SUNAT de la fecha de pago.</p>
+
+          <label className="block mb-2 text-sm font-medium">Flete</label>
+          <Select
+            options={[
+              { value: "none", label: "Sin flete" },
+              { value: "per_bag", label: "Por bolsa / unidad de compra" },
+              { value: "prorated", label: "Prorrateado en la factura" },
+            ]}
+            value={freightMode}
+            setFormInput={(value) => setFreightMode(value as "none" | "per_bag" | "prorated")}
+            styles="border rounded p-2 w-full mb-3"
+          />
+          {freightMode !== "none" && (
+            <Input
+              type="number"
+              placeholder={freightMode === "per_bag" ? "Flete por unidad de compra" : "Flete total de la factura"}
+              step="any"
+              value={freightAmount}
+              onChange={(e) => setFreightAmount(Number(e.target.value))}
+            />
+          )}
+
           <FormControlLabel
             control={
               <Checkbox
@@ -520,8 +566,9 @@ export default function PurchaseOrdersCreateModal({ open, onClose }: PurchaseOrd
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExchangeRate(Number(e.target.value))}
               />
               {baseCurrency && currencyCode && currencyRates[currencyCode.toLowerCase()] && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✓ Tasa automática: {currencyRates[currencyCode.toLowerCase()].toFixed(4)}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Factor de conversión: {currencyRates[currencyCode.toLowerCase()].toFixed(4)}
+                  {sunatSell ? ` · SUNAT venta ${sunatSell.toFixed(4)} soles por dólar` : ""}
                 </p>
               )}
 
